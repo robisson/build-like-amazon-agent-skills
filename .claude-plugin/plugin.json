@@ -1,0 +1,25 @@
+{
+  "name": "build-like-amazon",
+  "description": "Production-grade engineering skills for AI coding agents, built on Amazon's Working Backwards methodology and operational excellence culture.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Robisson Oliveira"
+  },
+  "homepage": "https://github.com/robisson/build-like-amazon",
+  "repository": "https://github.com/robisson/build-like-amazon",
+  "license": "MIT",
+  "commands": "./.claude/commands",
+  "skills": "./skills",
+  "agents": [
+    "./agents/code-review-bar-raiser.md",
+    "./agents/coe-reviewer.md",
+    "./agents/design-bar-raiser.md",
+    "./agents/doc-bar-raiser.md",
+    "./agents/implementation-verifier.md",
+    "./agents/ops-bar-raiser.md",
+    "./agents/principal-engineer.md",
+    "./agents/requirements-analyzer.md",
+    "./agents/security-guardian.md",
+    "./agents/task-planner.md"
+  ]
+}
