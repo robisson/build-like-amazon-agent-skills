@@ -317,7 +317,7 @@ Currently in the catalog:
 
 | Pattern | Source | When applicable |
 |---------|--------|-----------------|
-| [Cell-Based Architecture](patterns/cell-based-architecture/PATTERN.md) | AWS Well-Architected (Sep 2023) | Workloads requiring extreme resilience, multi-tenant SaaS, ultra-scale, RPO < 5s, RTO < 30s |
+| [Cell-Based Architecture](patterns/cell-based-architecture/PATTERN.md) | AWS Well-Architected guidance (by Robisson Oliveira) | Workloads requiring extreme resilience, high scalability, testability and reduced scope of impact in failures |
 
 ## 10 Agent Personas
 
