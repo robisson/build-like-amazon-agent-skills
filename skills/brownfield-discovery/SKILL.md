@@ -94,7 +94,7 @@ From the inventory, infer:
 
 - **High-level architecture** — components, data flows (read path / write path), sync vs async boundaries. Express as a Mermaid diagram.
 - **Existing API surface(s)** — what does this service expose? REST endpoints (route table → OpenAPI), gRPC services (`.proto` files or inferred from code), event topics/queues (publishers, subscribers, payload shapes), CLI commands, MCP tools, etc.
-- **Patterns present (or absent)** — single-instance? Multi-AZ? Multi-region? Cell-based? Bulkhead isolation? Control-plane / data-plane split? Static stability? Event-driven with outbox? Saga? Cross-reference `patterns/*/PATTERN.md` and assess whether each is **present**, **partial**, or **absent**.
+- **Patterns present (or absent)** — single-instance? Multi-AZ? Multi-region? Cell-based? Bulkhead isolation? Control-plane / data-plane split? Static stability? Event-driven with outbox? Saga? Cross-reference `patterns/INDEX.md` and assess whether each is **present**, **partial**, or **absent**.
 - **Trust boundaries** — where untrusted input enters; how it's validated; what crosses an authentication/authorization boundary.
 
 For each inference, note your **confidence level** (high / medium / low) and the **evidence** that supports it (file paths, line ranges, IaC resources). Inferences with low confidence are flagged for the user.

@@ -121,7 +121,7 @@ Common alternatives to address:
 
 The `patterns/` directory carries architectural patterns whose adoption propagates across the entire system (e.g., cell-based architecture, shuffle-sharding, static stability). Patterns are not a separate mandatory section — they enter the design as alternatives, evaluated against the data and the workload's actual requirements.
 
-When generating alternatives, scan `patterns/*/PATTERN.md` and pull in any pattern whose `applies_when:` plausibly matches the workload's characteristics (criticality, RPO/RTO, multi-tenancy, scale, blast-radius tolerance). A matching pattern becomes a real alternative — it competes with the baseline and other options on its own merits, with concrete pros/cons, cost, and operational impact.
+When generating alternatives, read `patterns/INDEX.md` (the lightweight catalog) and identify any pattern whose `applies_when` criteria plausibly match the workload's characteristics. Only then load the full `patterns/<name>/PATTERN.md` for matching patterns. A matching pattern becomes a real alternative — it competes with the baseline and other options on its own merits, with concrete pros/cons, cost, and operational impact.
 
 Two important cases:
 
@@ -189,7 +189,7 @@ See the `design-review` skill for the full review process.
 
 | Intention | Mechanism |
 |-----------|-----------|
-| "I'll think about alternatives" | Document requires at least 2 alternatives with genuine pros for each. When generating alternatives, scan `patterns/` and pull in any pattern whose `applies_when:` plausibly fits the workload. |
+| "I'll think about alternatives" | Document requires at least 2 alternatives with genuine pros for each. When generating alternatives, read `patterns/INDEX.md` and pull in any pattern whose criteria plausibly fit the workload. |
 | "I'll consider operational impact" | Mandatory operational concerns section with specific runbook references |
 | "I'll come back and add cost estimates" | Cost section is a launch blocker for Design BR review |
 | "I'll make sure it's secure" | Threat model section required for any system handling customer data |
@@ -209,7 +209,7 @@ See the `design-review` skill for the full review process.
 
 - Design document has no alternatives considered (author didn't explore the space)
 - All alternatives are strawmen with obvious flaws (rigged comparison)
-- For a high-criticality workload (≥ 99.99% availability target, RPO < 5s, RTO < 30s, FSI/regulated, ultra-scale, multi-tenant), the alternatives list does not include any pattern from `patterns/` despite plausibly matching `applies_when:` — the author skipped the catalog
+- For a high-criticality workload (≥ 99.99% availability target, RPO < 5s, RTO < 30s, FSI/regulated, ultra-scale, multi-tenant), the alternatives list does not include any pattern from `patterns/INDEX.md` despite plausibly matching criteria — the author skipped the catalog
 - An adopted pattern's Skill Impact Map is not reflected in Architecture, Operational Concerns, or Testing
 - No explicit trade-offs stated (author is hiding complexity)
 - Non-functional requirements are missing or vague ("high availability," "fast")
@@ -229,7 +229,7 @@ See the `design-review` skill for the full review process.
 - [ ] Architecture section includes both high-level and detailed component design
 - [ ] Data model covers access patterns and growth projections
 - [ ] At least 2 genuine alternatives are described with real pros/cons
-- [ ] When `patterns/` contains a pattern that plausibly fits the workload, it appears as a real alternative (or is the chosen approach) — not silently skipped
+- [ ] When `patterns/INDEX.md` contains a pattern that plausibly fits the workload, it appears as a real alternative (or is the chosen approach) — not silently skipped
 - [ ] If a pattern is adopted, its Skill Impact Map is reflected in Architecture, Operational Concerns, and Testing
 - [ ] Trade-offs are explicit ("choosing X over Y because Z, accepting W")
 - [ ] Cost estimation includes infrastructure, operational, and development costs

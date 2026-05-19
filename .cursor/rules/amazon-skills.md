@@ -75,7 +75,7 @@ This project uses Amazon-style engineering practices. When working in this codeb
 
 ## Architectural Patterns
 
-Patterns live in `patterns/`. Each `patterns/<name>/PATTERN.md` declares its applicability in `applies_when:` frontmatter. During design, scan the catalog and pull in any pattern whose `applies_when:` plausibly matches the workload — it becomes a candidate alternative in the Design Doc.
+Patterns live in `patterns/`. Read `patterns/INDEX.md` (lightweight catalog with title, description, and applicability criteria) during design to decide which patterns are relevant. Only load the full `patterns/<name>/PATTERN.md` when criteria match. This prevents loading hundreds of lines of pattern docs into context unnecessarily.
 
 ## Bar Raiser Personas
 
@@ -92,7 +92,7 @@ Read `AGENTS.md` for the full operating contract. The non-negotiable behaviors a
 1. **Respect approval gates.** During `/wb`, `/design`, `/spec`, stop at each gate and present work.
 2. **Match the ceremony to the change.** Trivial → direct to code; Small → direct or lightweight spec; Medium → `/spec` + `/build`; Large → full `/design` flow; New product → `/wb` first. The agent picks; the user only sees outcome-framed options when there is genuine ambiguity. For brownfield projects without BLA artifacts, propose `/onboard` (3 paths: anchor only / validate-the-why with inferred PR/FAQ / forward WB + gap analysis). See `skills/using-amazon-skills/SKILL.md` → "Match the Ceremony to the Change" and `skills/brownfield-discovery/SKILL.md` for details.
 3. **API First.** Every customer-facing surface is an API. UI / CLI / SDK / MCP / agent / partner are all clients. The API spec is created before any client spec. **Pick the right contract standard per protocol** — OpenAPI for REST, GraphQL SDL for GraphQL, `.proto` for gRPC, AsyncAPI + JSON Schema/Avro/Protobuf for async events, ODCS for data contracts, MCP manifest for MCP tools, provider-native spec for AI agent tools. See `skills/api-contract-first/SKILL.md`.
-4. **Patterns enter design as alternatives.** Scan `patterns/` while generating alternatives in the Design Doc.
+4. **Patterns enter design as alternatives.** Read `patterns/INDEX.md` to identify relevant patterns; load full `PATTERN.md` only when criteria match.
 5. **Track tasks during `/build`.** The orchestrator owns `tasks.md`. Flip `[ ] → [-]` before dispatching a wave; `[-] → [x]` as sub-agents report success; `[!]` for blockers. No spec is "done" while any task is `[ ]` or `[-]`.
 6. **`/build` is autonomous to feature completion.** Approval gates happened in `/design`. `/build` runs all specs end-to-end without asking between specs/waves/PASSED reviews. Stops only for hard blockers, FAILED review, unrecoverable green-build failure, or explicit user pause request.
 7. **Code Quality Bar.** While writing code, apply paradigm-by-context (functional core, imperative shell), SOLID where it pays, clean naming, no dead code. See `skills/incremental-implementation/SKILL.md` → "Code Quality Bar".

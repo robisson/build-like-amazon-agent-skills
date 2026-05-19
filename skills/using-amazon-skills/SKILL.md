@@ -135,7 +135,7 @@ Alongside skills, this repository carries a catalog of **architectural patterns*
 
 A pattern, once adopted, changes how almost every skill is applied — partition keys leak into APIs, deploy strategy changes, observability changes, on-call changes. Each `patterns/<name>/PATTERN.md` declares its applicability in `applies_when:` and carries a `Skill Impact Map` listing exactly which skills change.
 
-**How patterns enter design (Amazon-style):** patterns are not a separate mandatory checklist. They feed **Alternatives Considered** in the Design Doc. When generating alternatives, scan `patterns/*/PATTERN.md` and pull in any pattern whose `applies_when:` plausibly matches the workload — that pattern becomes a real alternative, evaluated with data and trade-offs against the other options. If the user (or the WB output) is asking for a specific pattern (e.g., "implement cell-based"), the pattern is the chosen approach and alternatives are explored *within* it. Patterns that don't fit don't appear — quality of thought, not quantity of dismissals.
+**How patterns enter design (Amazon-style):** patterns are not a separate mandatory checklist. They feed **Alternatives Considered** in the Design Doc. When generating alternatives, read `patterns/INDEX.md` (lightweight catalog) and identify any pattern whose `applies_when` criteria plausibly match the workload. Only then load the full `patterns/<name>/PATTERN.md` for matching patterns. That pattern becomes a real alternative, evaluated with data and trade-offs against the other options. If the user (or the WB output) is asking for a specific pattern (e.g., "implement cell-based"), the pattern is the chosen approach and alternatives are explored *within* it. Patterns that don't fit don't appear — quality of thought, not quantity of dismissals.
 
 When a pattern is adopted, its `Skill Impact Map` becomes a constraint on the rest of the design and on the specs that follow.
 
@@ -214,7 +214,7 @@ When facing a situation, ask yourself:
    - New operational signals, alarms, dashboards, or runbooks → Operational Excellence before writing the design doc
    - Infrastructure change → Infrastructure as Code + Pipeline Safety
    - New service launch → Operational Excellence + Operational Readiness Review
-   - High-criticality workload (≥ 99.99% availability target, RPO < 5s, RTO < 30s, FSI, ultra-scale, multi-tenant) → scan `patterns/` while generating alternatives in the design doc; pull in any pattern whose `applies_when:` plausibly matches
+   - High-criticality workload (≥ 99.99% availability target, RPO < 5s, RTO < 30s, FSI, ultra-scale, multi-tenant) → read `patterns/INDEX.md` while generating alternatives in the design doc; load full PATTERN.md for any whose criteria match
    - Post-incident → COE + Mechanism Creation
 
 3. **What's the scale?**

@@ -58,7 +58,7 @@ If any answer is yes, review at full depth. If all answers are no, perform a lig
 
 - [ ] At least two real alternatives are considered.
 - [ ] Rejected alternatives are plausible, not strawmen.
-- [ ] When a pattern from `patterns/` plausibly fits the workload (per its `applies_when:`), it appears as a real alternative or is the chosen approach — not silently skipped.
+- [ ] When a pattern from `patterns/INDEX.md` plausibly fits the workload (per its criteria), it appears as a real alternative or is the chosen approach — not silently skipped.
 - [ ] If a pattern is adopted, its Skill Impact Map is reflected in Architecture, Operational Concerns, and Testing.
 - [ ] Trade-offs are explicit: "choosing X over Y because Z, accepting W."
 - [ ] The design explains why the simplest viable option is sufficient or why extra complexity is necessary.
@@ -115,7 +115,7 @@ Block progression to specs or build if any of these are true:
 
 - [ ] Problem or requirements are ambiguous.
 - [ ] The design has no real alternatives or trade-off analysis.
-- [ ] A pattern from `patterns/` plausibly fits the workload but was not considered as an alternative or as the chosen approach.
+- [ ] A pattern from `patterns/INDEX.md` plausibly fits the workload but was not considered as an alternative or as the chosen approach.
 - [ ] A one-way door decision lacks explicit sign-off criteria.
 - [ ] External dependencies are introduced without failure behavior.
 - [ ] Security-sensitive flows lack a threat model or mitigation plan.

@@ -205,7 +205,7 @@ Error (4xx/5xx):
 
 ## 4. Alternatives Considered
 
-> When generating alternatives, scan `patterns/*/PATTERN.md` for any pattern whose `applies_when:` plausibly matches this workload. A matching pattern competes here as a real alternative (or is the chosen approach if the user/WB asked for it). Patterns that don't fit do not appear — quality of thought, not quantity of dismissals.
+> When generating alternatives, read `patterns/INDEX.md` and identify any pattern whose criteria plausibly match this workload. Load the full `PATTERN.md` only for matching patterns. A matching pattern competes here as a real alternative (or is the chosen approach if the user/WB asked for it). Patterns that don't fit do not appear — quality of thought, not quantity of dismissals.
 >
 > If a pattern is adopted, copy its Skill Impact Map into the relevant later sections (Architecture, Operational Concerns, Testing).
 

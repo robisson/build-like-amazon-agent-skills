@@ -58,8 +58,8 @@ Before starting the full design flow, detect the project state and classify the 
 - This step does not produce a standalone artifact or approval gate. Its output is incorporated into the design document.
 
 ### Step 0d: Pattern Catalog Scan
-- List every directory under `patterns/` and read just the frontmatter (`applies_when:`) of each `PATTERN.md`. Do not load the full body of patterns that obviously don't fit.
-- For each pattern whose `applies_when:` plausibly matches the workload's characteristics (criticality, RPO/RTO, multi-tenancy, scale, blast-radius tolerance, regulatory needs), read the full `PATTERN.md` including the `Skill Impact Map`.
+- Read `patterns/INDEX.md` — the lightweight catalog with title, description, and `applies_when` / `does NOT apply when` criteria for each pattern. Do NOT read full `PATTERN.md` files at this stage.
+- For each pattern whose `applies_when` criteria plausibly match the workload's characteristics (criticality, RPO/RTO, multi-tenancy, scale, blast-radius tolerance, AI/agent needs, regulatory requirements), read the full `patterns/<name>/PATTERN.md` including the `Skill Impact Map`.
 - The matching patterns enter Step 1 as candidate alternatives in Section 4 ("Alternatives Considered") of the design document. They compete with the baseline approach on their own merits, with concrete pros/cons and data — not as a checkbox exercise.
 - If the user (or the Working Backwards output) explicitly asked for a pattern (e.g., "implement cell-based"), that pattern is the chosen approach for Step 1, and the alternatives explored are *within* it (e.g., topology variants, partitioning strategies). Do not re-litigate the pattern adoption itself.
 - Patterns that don't fit do not appear in the design. Do not dismiss them in writing — they simply aren't relevant to this workload.
