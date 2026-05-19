@@ -311,13 +311,15 @@ Alongside skills, the repository carries a catalog of **architectural patterns**
 - **Skills** = how to *execute* a phase (workflows with gates).
 - **Patterns** = what to *decide* (architectural choices that propagate across the system).
 
-Each `patterns/<name>/PATTERN.md` declares its applicability in `applies_when:` frontmatter and includes a `Skill Impact Map` listing exactly which skills change when the pattern is adopted. During design, the agent scans the catalog and pulls in any pattern whose `applies_when:` plausibly matches the workload — it becomes a candidate alternative in the Design Doc, evaluated with concrete trade-offs.
+Each `patterns/<name>/PATTERN.md` declares its applicability in `applies_when:` frontmatter and includes a `Skill Impact Map` listing exactly which skills change when the pattern is adopted. During design, the agent reads **only** [`patterns/INDEX.md`](patterns/INDEX.md) to check which patterns are relevant — and loads the full `PATTERN.md` only when criteria match. This prevents context pollution from loading hundreds of lines of pattern docs unnecessarily.
 
 Currently in the catalog:
 
 | Pattern | Source | When applicable |
 |---------|--------|-----------------|
-| [Cell-Based Architecture](patterns/cell-based-architecture/PATTERN.md) | AWS Well-Architected guidance (by Robisson Oliveira) | Workloads requiring extreme resilience, high scalability, testability and reduced scope of impact in failures |
+| [Cell-Based Architecture](patterns/cell-based-architecture/PATTERN.md) | AWS Well-Architected (Sep 2023) | Workloads requiring extreme resilience, multi-tenant SaaS, RPO < 5s, RTO < 30s |
+| [SaaS Architecture](patterns/saas-architecture/PATTERN.md) | AWS SaaS Architecture Fundamentals (Aug 2022) | Multi-tenant software delivered as a service, unified operations, silo/pool deployment |
+| [Agentic AI Architecture](patterns/agentic-ai/PATTERN.md) | AWS Prescriptive Guidance (Jul 2025) | AI agent systems requiring autonomous reasoning, tool use, multi-agent coordination |
 
 ## 10 Agent Personas
 
