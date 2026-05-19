@@ -370,27 +370,9 @@ Amazon's engineering culture is **highly encodable** — [explicit mechanisms, d
 - ✅ A starting point you should adapt to your context
 - ✅ Battle-tested patterns from operating services at massive scale
 
-## Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
-
-- How to write new skills
-- Skill anatomy and required sections
-- Rationalization table format
-- Verification checkpoint requirements
-- Pull request process
-
-### Quick Contributing Guide
-
-1. Fork the repository
-2. Create a skill file following the anatomy in [`meta-authoring.md`](docs/skill-anatomy.md)
-3. Include rationalizations for every major step
-4. Add verification checkpoints
-5. Submit a PR with a description of the workflow the skill encodes
-
 ## References
 
-The skills in this project are grounded in publicly available Amazon engineering practices. Key sources include:
+All the skills in this project are grounded in publicly available resources. Key sources include:
 
 - **[AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)** — Six pillars: Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization, Sustainability
 - **[Amazon Builders' Library](https://aws.amazon.com/builders-library/)** — 20+ articles on deployment, operations, dependency management, and distributed systems design
