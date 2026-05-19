@@ -388,6 +388,20 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
 4. Add verification checkpoints
 5. Submit a PR with a description of the workflow the skill encodes
 
+## References
+
+The skills in this project are grounded in publicly available Amazon engineering practices. Key sources include:
+
+- **[AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/)** — Six pillars: Operational Excellence, Security, Reliability, Performance Efficiency, Cost Optimization, Sustainability
+- **[Amazon Builders' Library](https://aws.amazon.com/builders-library/)** — 20+ articles on deployment, operations, dependency management, and distributed systems design
+- **[Operational Readiness Reviews (ORR)](https://docs.aws.amazon.com/wellarchitected/latest/operational-readiness-reviews/wa-operational-readiness-reviews.html)** — How AWS distills incident learnings into launch checklists
+- **[Correction of Errors (COE)](https://aws.amazon.com/blogs/mt/why-you-should-develop-a-correction-of-error-coe/)** — Blameless post-incident analysis mechanism
+- **[2016 Bezos Shareholder Letter](https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders)** — Type 1 (one-way door) vs Type 2 (two-way door) decision framework
+- **[Amazon Leadership Principles](https://www.aboutamazon.com/about-us/leadership-principles)** — Customer Obsession, Bias for Action, Ownership, Insist on Highest Standards
+- **[Working Backwards (book)](https://www.workingbackwards.com/)** — By Colin Bryar & Bill Carr, the definitive guide to Amazon's product development process
+
+See [`docs/references.md`](docs/references.md) for the full list of 49 references with URLs and descriptions.
+
 ## License
 
 [MIT](LICENSE)
