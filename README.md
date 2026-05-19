@@ -64,7 +64,40 @@ This circular lifecycle means every operational lesson feeds back into the next 
 > 👉 **New here? Read [`docs/getting-started.md`](docs/getting-started.md) first** — it walks you through install + 4 hands-on scenarios (new product, existing project onboarding, small change, production incident) in ~10 minutes. The setup snippets below are also there, with full context.
 
 <details>
-<summary><strong>Claude Code (recommended)</strong></summary>
+<summary><strong>Kiro IDE & CLI</strong></summary>
+
+Kiro uses three mechanisms: **skills** (workflow guidance), **steering** (persistent operating rules), and **commands** (slash commands). To get the full workflow running:
+
+```bash
+git clone https://github.com/robisson/build-like-amazon.git
+cd your-project
+
+# 1. Skills — router files + full skill library
+cp -r build-like-amazon/.kiro/skills/ .kiro/skills/
+cp -r build-like-amazon/skills/ .kiro/skills/amazon/
+
+# 2. Steering — operating contract (approval gates, assumptions, simplicity)
+mkdir -p .kiro/steering
+cp build-like-amazon/AGENTS.md .kiro/steering/amazon-engineering.md
+
+# 3. Commands — slash commands (/wb, /design, /build, /deploy, etc.)
+cp -r build-like-amazon/.kiro/commands/ .kiro/prompts/
+```
+
+Then use slash commands directly:
+
+```
+/wb Start a new Working Backwards cycle for our authentication service
+/design Review the architecture for the payment processing module
+/build Execute the approved specs
+/deploy Plan progressive deployment for the API v2 release
+```
+
+See [Kiro docs](https://kiro.dev/docs/skills/) for more on skills, steering, and commands.
+</details>
+
+<details>
+<summary><strong>Claude Code</strong></summary>
 
 **Option A — Plugin (recommended, zero conflict with your project)**
 
@@ -141,50 +174,6 @@ cp -r build-like-amazon/.gemini/commands/ your-project/.gemini/commands/
 </details>
 
 <details>
-<summary><strong>Kiro IDE & CLI</strong></summary>
-
-Kiro uses three mechanisms: **skills** (workflow guidance), **steering** (persistent operating rules), and **commands** (slash commands). To get the full workflow running:
-
-```bash
-git clone https://github.com/robisson/build-like-amazon.git
-cd your-project
-
-# 1. Skills — router files + full skill library
-cp -r build-like-amazon/.kiro/skills/ .kiro/skills/
-cp -r build-like-amazon/skills/ .kiro/skills/amazon/
-
-# 2. Steering — operating contract (approval gates, assumptions, simplicity)
-mkdir -p .kiro/steering
-cp build-like-amazon/AGENTS.md .kiro/steering/amazon-engineering.md
-
-# 3. Commands — slash commands (/wb, /design, /build, /deploy, etc.)
-cp -r build-like-amazon/.kiro/commands/ .kiro/prompts/
-```
-
-Then use slash commands directly:
-
-```
-/wb Start a new Working Backwards cycle for our authentication service
-/design Review the architecture for the payment processing module
-/build Execute the approved specs
-/deploy Plan progressive deployment for the API v2 release
-```
-
-See [Kiro docs](https://kiro.dev/docs/skills/) for more on skills, steering, and commands.
-</details>
-
-<details>
-<summary><strong>GitHub Copilot</strong></summary>
-
-Use agent definitions from `agents/` as Copilot personas and skill content in `.github/copilot-instructions.md`:
-
-```bash
-git clone https://github.com/robisson/build-like-amazon.git .build-like-amazon
-cat .build-like-amazon/AGENTS.md >> .github/copilot-instructions.md
-```
-</details>
-
-<details>
 <summary><strong>OpenAI Codex</strong></summary>
 
 Use this repository as a portable skill library for Codex. Keep `AGENTS.md` as the operating contract, and keep the library in `.build-like-amazon/` so Codex can load skills, personas, templates, references, and command definitions on demand:
@@ -216,6 +205,17 @@ Pause after each Working Backwards stage and wait for my explicit approval.
 ```
 
 Recommended model: `gpt-5.2-codex` for long-running agentic coding tasks, with higher reasoning effort for one-way door decisions such as public APIs, data migrations, security changes, and production rollouts.
+</details>
+
+<details>
+<summary><strong>GitHub Copilot</strong></summary>
+
+Use agent definitions from `agents/` as Copilot personas and skill content in `.github/copilot-instructions.md`:
+
+```bash
+git clone https://github.com/robisson/build-like-amazon.git .build-like-amazon
+cat .build-like-amazon/AGENTS.md >> .github/copilot-instructions.md
+```
 </details>
 
 <details>
