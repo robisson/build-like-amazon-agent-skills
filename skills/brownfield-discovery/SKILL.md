@@ -33,7 +33,7 @@ This is not retroactive approval. The output carries a banner saying "REVERSE-EN
 
 ## Amazon Context
 
-Inside Amazon, services accumulate years of decisions that live only in the heads of long-tenured engineers and in the code. New owners onboarding a service do **System Onboarding** — a structured pass where they read the code, the runbooks, the COE history, and produce a written summary of the system as it is. This skill is the same pattern: a one-time, structured pass that produces written artifacts so the next reader (human or agent) is not starting from scratch.
+Inside Amazon, services accumulate years of decisions that live only in the heads of long-tenured engineers and in the code. New owners onboarding a service do a **structured system walkthrough** — a disciplined pass where they read the code, the runbooks, the incident history, and produce a written summary of the system as it is. This skill is the same pattern: a one-time, structured pass that produces written artifacts so the next reader (human or agent) is not starting from scratch.
 
 The artifacts produced are deliberately marked as reverse-engineered. Pretending a reverse-engineered Design Doc is the same as one approved by a Design Bar Raiser would corrupt the process — bar raisers exist precisely because retroactive justification is not the same as upfront design.
 

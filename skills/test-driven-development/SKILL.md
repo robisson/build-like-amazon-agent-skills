@@ -28,7 +28,7 @@ Beyond pre-deployment testing, Amazon runs canary tests in production—syntheti
 
 At Amazon, untested code does not ship. Pipelines enforce minimum coverage thresholds (typically 80% line coverage, 90% branch coverage for critical paths). Code review explicitly evaluates test quality—a change without tests is rejected regardless of how correct the implementation appears.
 
-The Builder Tools ecosystem (Brazil, CDK Pipelines, CodeGuru) integrates testing at every stage: pre-commit hooks run unit tests locally, CI runs the full suite, and post-deployment canaries verify production health. Teams own their test infrastructure the same way they own their production infrastructure.
+The CI/CD toolchain (build system, deployment pipelines, code analysis) integrates testing at every stage: pre-commit hooks run unit tests locally, CI runs the full suite, and post-deployment canaries verify production health. Teams own their test infrastructure the same way they own their production infrastructure.
 
 Amazon's testing culture learned from expensive failures: services that shipped with "we'll add tests later" invariably accumulated tech debt that made changes risky, deployments scary, and on-call rotations miserable. TDD inverts this—tests are the first thing you build, not the last.
 

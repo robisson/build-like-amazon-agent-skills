@@ -34,7 +34,7 @@ Amazon operates thousands of services at massive scale. When something goes wron
 
 Services that don't emit proper telemetry become operational black holes—they break, nobody knows why, and recovery takes hours of guessing. Amazon's operational bar requires that every service ships with dashboards, alarms, and runbooks before launch (enforced through ORR—Operational Readiness Review).
 
-CloudWatch, X-Ray, and internal tooling provide the infrastructure. But the instrumentation must live in the code. No external tool can observe what the code doesn't emit.
+Observability platforms (metrics, tracing, logging) provide the infrastructure. But the instrumentation must live in the code. No external tool can observe what the code doesn't emit.
 
 ## The Process
 
