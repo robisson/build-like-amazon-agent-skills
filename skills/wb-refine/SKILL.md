@@ -178,6 +178,29 @@ The PR/FAQ is presented in a review meeting:
 4. Author responds to questions, takes notes on feedback
 5. Meeting ends with: Approved / Approved with changes / Not approved (revise and return)
 
+### Pre-Presentation Self-Check (MANDATORY)
+
+Before showing the PR/FAQ to the user, the agent MUST silently verify the output against these structural rules. If ANY check fails, fix it before presenting — do not present a non-compliant draft.
+
+**Press Release structural checks:**
+1. Does the PR contain ANY markdown headers (`##`, `###`, `**Header:**` used as section dividers)? → If yes, REWRITE as continuous narrative paragraphs.
+2. Does the PR contain ANY bullet lists (`-`, `*`, `+`) or numbered lists (`1.`, `2.`)? → If yes, REWRITE as prose paragraphs.
+3. Does the PR contain a "Key capabilities:", "Key features:", "How it works:" or similar header-like label followed by a list? → If yes, REWRITE as a narrative paragraph describing the customer experience.
+4. Are there exactly TWO quotes (one spokesperson, one customer)? → If not, add the missing quote(s).
+5. Is the PR in present tense throughout? → Scan for "will", "going to", "plans to" and fix.
+6. Does the PR start with the template formula: "[Product Name]" + "For [target customer] who [need]..." + opening paragraph with city/date? → If not, restructure.
+7. Is the PR ≤ 1 page (~500-700 words max)? → If longer, cut.
+8. Does the PR describe BENEFITS to the customer (outcomes, time saved, cost reduced) rather than technical features (Kafka, gRPC, Kubernetes, React)? → Scan and fix any technology-first language.
+
+**FAQ structural checks:**
+9. Is the FAQ split into TWO clearly separated sections: "External FAQ" and "Internal FAQ"? → If combined, split them.
+10. Are there ≥5 questions in each section? → If not, add questions.
+
+**Visuals check:**
+11. Is there a Visuals section with at least one diagram or mockup? → If missing, add placeholder.
+
+Only after ALL 11 checks pass, present to the user.
+
 ### Final Step: Present and Wait for Approval
 
 Present your complete PR/FAQ document to the user. Ask:

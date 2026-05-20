@@ -76,6 +76,8 @@ Q2: How much does it cost us to build?
 
 ## PRESS RELEASE
 
+> ⛔ **SELF-CHECK BEFORE OUTPUT**: After writing, verify: (1) NO headers inside this section, (2) NO bullet/numbered lists, (3) NO "Key capabilities:" or "How it works:" labels, (4) TWO quotes present, (5) present tense throughout, (6) ≤ 1 page, (7) benefits not features. If ANY fails, rewrite before presenting.
+
 [Product Name]
 
 [One sentence following this formula: "For [target customer] who [need/pain], [Product Name] is [category] that [primary benefit]."]
