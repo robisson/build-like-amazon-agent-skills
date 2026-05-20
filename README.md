@@ -68,6 +68,8 @@ This circular lifecycle means every operational lesson feeds back into the next 
 
 Kiro uses three mechanisms: **skills** (workflow guidance), **steering** (persistent operating rules), and **commands** (slash commands). To get the full workflow running:
 
+**With Kiro IDE, you dont need to execute /spec command, because kiro alreadt an excepcional native support to spec driven developmentm but the other commands area still very useful**
+
 ```bash
 git clone https://github.com/robisson/build-like-amazon.git
 cd your-project
