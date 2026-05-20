@@ -1,5 +1,7 @@
 # Onboard — Reverse-Engineer an Existing Project
 
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+
 `/onboard` activates the **brownfield-discovery** skill. It runs once per project (or when the project drifts significantly) and produces anchoring artifacts derived from the real code, IaC, and observability.
 
 `/onboard` has **three paths**, picked by the user at the start. The agent classifies and asks; the user picks an outcome, not a process step.

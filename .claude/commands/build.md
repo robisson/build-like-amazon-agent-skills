@@ -1,5 +1,7 @@
 # Build — Execute Specs
 
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+
 ## ⛔ Default Execution Mode: Fully Autonomous Until the Feature Is Done
 
 **Unlike `/design` and `/wb`, `/build` runs without human gates by default. The approval gates happened *before* `/build` (during spec creation in `/design`). Once specs exist and are approved, `/build` executes everything end-to-end.**

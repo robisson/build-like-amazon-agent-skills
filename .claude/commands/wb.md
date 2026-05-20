@@ -1,5 +1,7 @@
 # Working Backwards — Start Here
 
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+
 **IMPORTANT: Each WB stage has a mandatory human approval gate. After completing each stage, present your work and ask the user to review before proceeding. Never skip stages or rush to PR/FAQ. The PR/FAQ is Stage 4 — it requires Stages 1-3 to be completed and individually approved first.**
 
 You are activating the **Working Backwards** meta-skill. This is Amazon's product discovery process: start from the customer and work backwards to the solution.

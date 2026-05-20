@@ -1,5 +1,7 @@
 # Invent — What Is the Solution?
 
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+
 You are activating the **wb-invent** skill. This is Phase 3 of Working Backwards: inventing the simplest solution that solves the customer's problem.
 
 ## What to do

@@ -1,5 +1,7 @@
 # Listen — Who Is the Customer?
 
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+
 You are activating the **wb-listen** skill. This is Phase 1 of Working Backwards: deeply understanding the customer before proposing any solution.
 
 ## What to do

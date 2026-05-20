@@ -1,5 +1,7 @@
 # Spec — Create a New Implementation Spec
 
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+
 This command creates a **single new spec** (vertical slice of value) when the design phase is already complete. Use it to incrementally add features, endpoints, or capabilities without re-running the full `/design` flow.
 
 ## Step 0: State Detection + Proportionality Check
