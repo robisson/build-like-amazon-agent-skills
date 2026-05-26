@@ -92,6 +92,7 @@ Before executing anything, classify the invocation against the repo state and th
 1. **Read existing specs** — Load `specs/<slice-name>/tasks.md` for the current slice. Do NOT create new specs.
 2. **Pick up `tasks.md`** — Parse the phases, waves, and dependency graph from the current spec.
 2b. **Check for coherence review** — If `specs/<slice-name>/coherence-review.md` exists, read the "Action Items for Build Agent" section. These action items are binding constraints that override or clarify tasks.md. Keep them visible throughout execution.
+2c. **Apply implementation memory** — After the current spec/tasks and coherence-review action items are known, read `skills/implementation-memory/SKILL.md`. If `docs/implementation-memory.md` exists, read it and select only active rules whose `Applies when` field matches the current spec, task, component, dependency, or risk profile. Convert selected rules into implementation guardrails, test checks, or review checks for this build. Unmatched rules are ignored and MUST NOT become requirements.
 3. **Execute tasks wave-by-wave:**
    - **ALWAYS execute all tasks in Wave 1 IN PARALLEL** (these have no dependencies — parallelization is mandatory, not optional).
    - After Wave 1 completes, verify green-build gate passes (all tests green, no regressions).
@@ -265,13 +266,14 @@ Produce the following structured review and save it to `specs/<slice-name>/imple
 2. **Check PBT properties** from `design.md` — run them if a test runner is available, otherwise manually verify the implementation satisfies them.
 3. **Check for scope creep** — scan implementation for functionality not traced to any requirement. Flag it.
 4. **Write the structured output** to `specs/<slice-name>/implementation-review.md`.
-5. **If PASSED WITH FIXES NEEDED**:
+5. **Hand off to user validation and Quality Memory Review** — After implementation review, read `skills/implementation-memory/SKILL.md` and explicitly ask the user to test the delivered behavior, bring back failures or feedback, and debug with the agent until the implementation is accepted. Do not update `docs/implementation-memory.md` automatically at the first end-of-build if user validation/debug feedback is not available. Report `Implementation memory skipped: waiting for user validation/debug feedback and an explicit Quality Memory Review request.` When the user later asks for Quality Memory Review or confirms the implementation is validated, use implementation verification, implementation-review findings, user test results, debug fixes, and final user feedback to extract at most 2 candidate learnings, apply admission and rejection checks, merge or prune active rules when needed, and rewrite the whole memory file only if an update is warranted.
+6. **If PASSED WITH FIXES NEEDED**:
    - Append the "Fix Tasks" section to `tasks.md` under a new phase header: `## Phase N+1: Review Fixes`
    - Add a green-build gate: `✅ **Green-build gate**: All prior phases pass. Review fixes are isolated corrections.`
    - Execute the fix tasks following normal task execution rules (TDD, operational code, incremental implementation).
    - After all fix tasks are `[x]`, re-run verification ONLY on the items that were flagged — not a full re-review.
-6. **If PASSED**: Mark spec as DONE. Update `tasks.md` status. **Proceed to the next spec immediately — do NOT ask the user for permission.** Only stop if this is the last spec in `specs/`.
-7. **If FAILED**: Present `implementation-review.md` to the user with a clear explanation of what failed and why auto-fix is insufficient.
+7. **If PASSED**: Mark spec as DONE. Update `tasks.md` status. **Proceed to the next spec immediately — do NOT ask the user for permission.** Only stop if this is the last spec in `specs/`.
+8. **If FAILED**: Present `implementation-review.md` to the user with a clear explanation of what failed and why auto-fix is insufficient.
 
 ### What "FAILED" Means (vs. "PASSED WITH FIXES NEEDED")
 
@@ -306,8 +308,12 @@ Specs executed: <N>
 Total tasks done: <total>
 Blocked tasks: <count> (see below)
 Tests: green-build gate passed at every phase boundary
+Implementation memory: skipped pending user validation/debug feedback and Quality Memory Review request
 
 Next steps:
+- Test the implemented behavior in the product
+- Bring back any failure, error, or feedback and debug with the agent until it is OK
+- Ask for Quality Memory Review after validation to capture durable implementation learnings
 - /review (code review bar raising)
 - /deploy (progressive rollout)
 

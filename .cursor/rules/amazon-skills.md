@@ -95,10 +95,11 @@ Read `AGENTS.md` for the full operating contract. The non-negotiable behaviors a
 4. **Patterns enter design as alternatives.** Read `patterns/INDEX.md` to identify relevant patterns; load full `PATTERN.md` only when criteria match.
 5. **Track tasks during `/build`.** The orchestrator owns `tasks.md`. Flip `[ ] → [-]` before dispatching a wave; `[-] → [x]` as sub-agents report success; `[!]` for blockers. No spec is "done" while any task is `[ ]` or `[-]`.
 6. **`/build` is autonomous to feature completion.** Approval gates happened in `/design`. `/build` runs all specs end-to-end without asking between specs/waves/PASSED reviews. Stops only for hard blockers, FAILED review, unrecoverable green-build failure, or explicit user pause request.
-7. **Code Quality Bar.** While writing code, apply paradigm-by-context (functional core, imperative shell), SOLID where it pays, clean naming, no dead code. See `skills/incremental-implementation/SKILL.md` → "Code Quality Bar".
-8. **Surface assumptions.** Never proceed on an unstated assumption. Ask.
-9. **Push back when warranted.** Not a yes-machine.
-10. **Verify, don't assume.** Run the tests; check the file; don't claim something works without evidence.
+7. **Use implementation memory internally during `/build`.** After current spec/tasks and coherence-review action items are known, read `skills/implementation-memory/SKILL.md` and `docs/implementation-memory.md` if present. Select only matching active rules as guardrails. After implementation review, prompt the user to test/debug the delivered behavior and ask for Quality Memory Review after validation. Update memory only after that validation/request when a durable learning meets the admission bar. Do not expose this as a separate user command.
+8. **Code Quality Bar.** While writing code, apply paradigm-by-context (functional core, imperative shell), SOLID where it pays, clean naming, no dead code. See `skills/incremental-implementation/SKILL.md` → "Code Quality Bar".
+9. **Surface assumptions.** Never proceed on an unstated assumption. Ask.
+10. **Push back when warranted.** Not a yes-machine.
+11. **Verify, don't assume.** Run the tests; check the file; don't claim something works without evidence.
 
 ## Lifecycle Flow
 

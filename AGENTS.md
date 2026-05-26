@@ -171,7 +171,13 @@ The orchestrator (the agent running `/build`) owns `tasks.md`. Sub-agents do not
 
 For the full state-transition protocol and resume rules, see `.claude/commands/build.md`.
 
-### 10. Code Quality Bar (during writing, not after)
+### 10. Implementation Memory During /build
+
+After the current spec/tasks and `coherence-review.md` action items are known, read `skills/implementation-memory/SKILL.md` and `docs/implementation-memory.md` if present. Select only matching active rules as implementation guardrails; unmatched rules are ignored and never become requirements. This is an internal `/build` mechanism, not a separate user-facing command.
+
+After implementation review, explicitly ask the user to test the delivered behavior, bring back failures or feedback, and debug with the agent until accepted. Do not update memory automatically at the first end-of-build when user validation/debug feedback is missing. When the user asks for Quality Memory Review after validation, update `docs/implementation-memory.md` only when a durable learning passes the admission bar. Keep memory fixed-size and procedural.
+
+### 11. Code Quality Bar (during writing, not after)
 
 While writing code in `/build`:
 
