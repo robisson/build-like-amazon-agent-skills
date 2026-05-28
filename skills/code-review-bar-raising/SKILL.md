@@ -227,6 +227,18 @@ After establishing the review process, verify:
 - [ ] Team coding standards are documented and referenced in reviews
 - [ ] Review coverage exists for all technology stacks the team uses without relying on a single person
 
+## Implementation Memory Capture
+
+After review findings are resolved, check whether any finding represents a **recurring pattern** (same finding appears across 2+ reviews, or the reviewer explicitly flags "this keeps happening"). If a recurring pattern is identified:
+
+1. Read `skills/implementation-memory/SKILL.md`.
+2. Generate a self-reflection: "What recurring implementation mistake does this review finding reveal? What rule would prevent it in future builds?"
+3. Extract up to 2 candidate learnings.
+4. Present candidates to the user for Accept / Reject / Edit.
+5. Apply admission checks and rejection rules before writing to `docs/implementation-memory.md`.
+
+If no recurring pattern is identified, skip this step silently. This keeps the memory focused on durable, cross-cutting lessons rather than one-off feedback.
+
 ## Tenets
 
 1. **"Ship It" is a commitment.** When you approve code, you're saying "I stand behind this code in production." Your name is on it. Review accordingly.

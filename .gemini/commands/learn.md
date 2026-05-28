@@ -36,6 +36,17 @@ A mechanism is complete when:
 - It prevents the CLASS of problem, not just this instance.
 - It's verified through testing or simulation.
 
+## Implementation Memory Capture
+
+After corrective actions are defined, check for **implementation-level** actions (things that change how code is written — not org/process actions). If found:
+
+1. Read `skills/implementation-memory/SKILL.md`.
+2. Self-reflect: "What implementation practice would have prevented this? What general rule applies?"
+3. Extract up to 2 candidates. Present for Accept / Reject / Edit.
+4. Apply admission checks before writing to `docs/implementation-memory.md`.
+
+If no implementation-level action exists, skip silently.
+
 ## Output
 
 Save to `docs/coe/<incident-name>/`:

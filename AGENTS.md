@@ -173,9 +173,19 @@ For the full state-transition protocol and resume rules, see `.claude/commands/b
 
 ### 10. Implementation Memory During /build
 
-After the current spec/tasks and `coherence-review.md` action items are known, read `skills/implementation-memory/SKILL.md` and `docs/implementation-memory.md` if present. Select only matching active rules as implementation guardrails; unmatched rules are ignored and never become requirements. This is an internal `/build` mechanism, not a separate user-facing command.
+After the current spec/tasks and `coherence-review.md` action items are known, read `skills/implementation-memory/SKILL.md` and `docs/implementation-memory.md` if present. Select active rules using multi-signal matching (Tags, File patterns, or `Applies when` prose). Increment `Hit count` for each selected rule. Unmatched rules are ignored and never become requirements. This is an internal mechanism, not a separate user-facing command.
 
-After implementation review, explicitly ask the user to test the delivered behavior, bring back failures or feedback, and debug with the agent until accepted. Do not update memory automatically at the first end-of-build when user validation/debug feedback is missing. When the user asks for Quality Memory Review after validation, update `docs/implementation-memory.md` only when a durable learning passes the admission bar. Keep memory fixed-size and procedural.
+**Semi-automatic trigger (primary population path):** When implementation review verdict is PASSED WITH FIXES NEEDED and fix tasks are done, generate a self-reflection, extract up to 2 candidate learnings, and present to user for Accept / Reject / Edit. Do not wait for the user to ask.
+
+**Manual trigger:** When verdict is PASSED, ask the user to test, bring feedback, and debug. Update memory only after user asks for Quality Memory Review.
+
+**Periodic nudge:** If `Builds without update` counter in the memory file is ≥3, include a reminder in the end-of-build summary.
+
+**Multi-source capture:** Implementation memory can also be fed from `/review` (recurring code review findings) and `/learn` (COE implementation-level corrective actions). Same admission checks and rejection rules apply.
+
+**Staleness:** Rules unused for >90 days or unselected in 5 consecutive reviews are flagged for pruning during Quality Memory Review. The agent asks the user before removing.
+
+Keep memory fixed-size (max 12 rules), procedural, and harness-agnostic.
 
 ### 11. Code Quality Bar (during writing, not after)
 
