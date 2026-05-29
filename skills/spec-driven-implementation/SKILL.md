@@ -148,7 +148,7 @@ Extract and formalize requirements **for this slice only** from the Design Docum
 - Acceptance Criteria use SHALL/MUST/MAY with WHEN/IF/WHERE conditions
 - Cross-reference the Design Document section that drives each requirement
 
-**Agent**: `requirements-analyzer` reviews the requirements for:
+**Agent**: Load `agents/requirements-analyzer.md` and apply the `requirements-analyzer` persona to review the requirements for:
 - Logical inconsistencies across requirements
 - Ambiguous terms ("fast", "large scale", "reasonable")
 - Conflicting constraints
@@ -190,7 +190,7 @@ Decompose the design into executable tasks:
 - Design references link tasks to design sections
 - A dependency graph JSON at the end enables tooling
 
-**Agent**: `task-planner` generates the dependency graph, identifies the critical path, groups tasks into waves, and flags one-way door decisions that need extra review.
+**Agent**: Load `agents/task-planner.md` and apply the `task-planner` persona to generate the dependency graph, identify the critical path, group tasks into waves, and flag one-way door decisions that need extra review.
 
 **🚦 GATE: Present tasks.md to the user. Ask: "Review this task plan. Dependencies correct? Sizing makes sense?" Wait for explicit approval. The spec is only ready for /build after tasks are approved.**
 
@@ -214,7 +214,7 @@ Once a spec is approved:
 2. Verify green-build gate passes (all tests green, no regressions)
 3. Execute Wave 2 tasks (depend on Wave 1 outputs)
 4. Continue until all waves are complete
-5. Run the `implementation-verifier` agent to validate PBT properties
+5. Load `agents/implementation-verifier.md` and apply the `implementation-verifier` persona to validate PBT properties
 
 Parallel execution within a wave is safe by construction—the `task-planner` guarantees no intra-wave dependencies.
 
@@ -231,7 +231,7 @@ After each spec is fully implemented:
 
 After all 3 spec artifacts are approved (requirements.md, design.md, tasks.md) and BEFORE the spec is handed to `/build`, run a coherence review to catch drift between the spec and the approved Design Document.
 
-**Reviewers**: `design-bar-raiser` + `principal-engineer` (for one-way door decisions)
+**Reviewers**: Load `agents/design-bar-raiser.md` and apply the `design-bar-raiser` persona. For one-way door decisions, also load `agents/principal-engineer.md` and apply the `principal-engineer` persona.
 
 **What they check**:
 1. Does the spec contradict any decision from the System Design Document?
@@ -457,6 +457,8 @@ _Depends on: Task 1.2 (Wave 2)_
 
 ### requirements-analyzer
 
+Load `agents/requirements-analyzer.md` before performing this review.
+
 **Purpose**: Cross-requirement consistency checking. Does NOT analyze requirements in isolation—reasons across ALL requirements simultaneously.
 
 **What it catches**:
@@ -469,6 +471,8 @@ _Depends on: Task 1.2 (Wave 2)_
 **How it works**: Reads all requirements, builds a constraint graph, identifies contradictions and gaps, asks clarifying questions with suggested resolutions, then updates requirements.md with the resolved version.
 
 ### task-planner
+
+Load `agents/task-planner.md` before generating tasks or dependency graphs.
 
 **Purpose**: Decompose design into executable tasks with optimal ordering.
 
@@ -484,6 +488,8 @@ _Depends on: Task 1.2 (Wave 2)_
 **How it works**: Reads design.md, extracts components and their relationships, generates tasks that build components bottom-up, validates that every requirement has at least one task covering it, and produces the tasks.md with dependency graph JSON.
 
 ### implementation-verifier
+
+Load `agents/implementation-verifier.md` before validating properties or implementation/design conformance.
 
 **Purpose**: Validate that implementation satisfies the spec's properties and requirements.
 

@@ -37,6 +37,18 @@ A mechanism is complete when:
 - It prevents the entire CLASS of problem, not just this instance.
 - It's verified through testing or simulation.
 
+## Implementation Memory Capture
+
+After corrective actions are defined, check whether any action item is an **implementation-level** corrective action (i.e., something that should change how code is written in future builds — not an org/process/people action). If so:
+
+1. Read `skills/implementation-memory/SKILL.md`.
+2. Generate a self-reflection: "What implementation practice would have prevented or mitigated this incident? What general rule should apply to future builds?"
+3. Extract up to 2 candidate learnings from implementation-level action items.
+4. Present candidates to the user for Accept / Reject / Edit (same format as `/build` semi-automatic trigger).
+5. Apply admission checks and rejection rules before writing to `docs/implementation-memory.md`.
+
+If no implementation-level action item exists (all actions are org/process/infra), skip this step silently.
+
 ## Output
 
 Save to `docs/coe/<incident-name>/`:

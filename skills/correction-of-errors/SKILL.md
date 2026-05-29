@@ -149,6 +149,18 @@ Root causes from this example:
 - [ ] No blame language in the document
 - [ ] Similar incident from the past? Check if previous COE actions were completed
 
+## Implementation Memory Capture
+
+After corrective actions are defined, check whether any action item is an **implementation-level** corrective action (something that should change how code is written in future builds — not an org/process/people action). If so:
+
+1. Read `skills/implementation-memory/SKILL.md`.
+2. Generate a self-reflection: "What implementation practice would have prevented or mitigated this incident? What general rule should apply to future builds?"
+3. Extract up to 2 candidate learnings from implementation-level action items.
+4. Present candidates to the user for Accept / Reject / Edit.
+5. Apply admission checks and rejection rules before writing to `docs/implementation-memory.md`.
+
+If no implementation-level action item exists (all actions are org/process/infra), skip this step silently.
+
 ## Tenets
 
 1. **Blameless means systemic.** If your conclusion requires a person to have done something differently, dig deeper into why the system allowed it.

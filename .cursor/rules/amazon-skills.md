@@ -95,10 +95,11 @@ Read `AGENTS.md` for the full operating contract. The non-negotiable behaviors a
 4. **Patterns enter design as alternatives.** Read `patterns/INDEX.md` to identify relevant patterns; load full `PATTERN.md` only when criteria match.
 5. **Track tasks during `/build`.** The orchestrator owns `tasks.md`. Flip `[ ] → [-]` before dispatching a wave; `[-] → [x]` as sub-agents report success; `[!]` for blockers. No spec is "done" while any task is `[ ]` or `[-]`.
 6. **`/build` is autonomous to feature completion.** Approval gates happened in `/design`. `/build` runs all specs end-to-end without asking between specs/waves/PASSED reviews. Stops only for hard blockers, FAILED review, unrecoverable green-build failure, or explicit user pause request.
-7. **Code Quality Bar.** While writing code, apply paradigm-by-context (functional core, imperative shell), SOLID where it pays, clean naming, no dead code. See `skills/incremental-implementation/SKILL.md` → "Code Quality Bar".
-8. **Surface assumptions.** Never proceed on an unstated assumption. Ask.
-9. **Push back when warranted.** Not a yes-machine.
-10. **Verify, don't assume.** Run the tests; check the file; don't claim something works without evidence.
+7. **Use implementation memory internally during `/build`.** After current spec/tasks and coherence-review action items are known, read `skills/implementation-memory/SKILL.md` and `docs/implementation-memory.md` if present. Select active rules using multi-signal matching (Tags, File patterns, `Applies when`). Increment `Hit count`. Semi-automatic trigger: after PASSED WITH FIXES NEEDED and fixes done, generate self-reflection, extract candidates, present to user for Accept/Reject/Edit. Manual trigger: after PASSED, prompt user to test/debug, update memory only after Quality Memory Review request. Nudge: if ≥3 builds without update, remind in summary. Multi-source: also capture from `/review` (recurring findings) and `/learn` (COE actions). Staleness: flag rules unused >90 days during Quality Memory Review. Do not expose as a separate user command.
+8. **Code Quality Bar.** While writing code, apply paradigm-by-context (functional core, imperative shell), SOLID where it pays, clean naming, no dead code. See `skills/incremental-implementation/SKILL.md` → "Code Quality Bar".
+9. **Surface assumptions.** Never proceed on an unstated assumption. Ask.
+10. **Push back when warranted.** Not a yes-machine.
+11. **Verify, don't assume.** Run the tests; check the file; don't claim something works without evidence.
 
 ## Lifecycle Flow
 

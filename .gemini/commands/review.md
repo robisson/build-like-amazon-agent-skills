@@ -39,6 +39,17 @@ Before production, verify:
 - Be kind, be specific, be constructive.
 - The bar raiser's job: would I hire this code?
 
+## Implementation Memory Capture
+
+After findings are resolved, check for **recurring patterns** (same finding across 2+ reviews, or explicitly flagged as "this keeps happening"). If found:
+
+1. Read `skills/implementation-memory/SKILL.md`.
+2. Self-reflect: "What recurring mistake does this reveal? What rule prevents it?"
+3. Extract up to 2 candidates. Present for Accept / Reject / Edit.
+4. Apply admission checks before writing to `docs/implementation-memory.md`.
+
+If no recurring pattern, skip silently.
+
 ## Output
 
 Save to `docs/reviews/<feature-name>/`:

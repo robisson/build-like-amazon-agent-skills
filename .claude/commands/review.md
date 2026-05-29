@@ -34,6 +34,18 @@ Before production deployment, verify:
 - Dependencies are understood and failure modes documented
 - On-call team knows about the change
 
+## Implementation Memory Capture
+
+After the review is complete and findings are resolved, check whether any findings represent a **recurring pattern** (same finding across 2+ PRs, or the reviewer explicitly flags "this keeps happening"). If so:
+
+1. Read `skills/implementation-memory/SKILL.md`.
+2. Generate a self-reflection: "What recurring implementation mistake does this finding reveal? What rule would prevent it in future builds?"
+3. Extract up to 2 candidate learnings.
+4. Present candidates to the user for Accept / Reject / Edit (same format as `/build` semi-automatic trigger).
+5. Apply admission checks and rejection rules before writing to `docs/implementation-memory.md`.
+
+If no recurring pattern is identified, skip this step silently.
+
 ## Output
 
 Save review findings to `docs/reviews/<feature-name>/`:

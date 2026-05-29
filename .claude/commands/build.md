@@ -92,6 +92,7 @@ Before executing anything, classify the invocation against the repo state and th
 1. **Read existing specs** — Load `specs/<slice-name>/tasks.md` for the current slice. Do NOT create new specs.
 2. **Pick up `tasks.md`** — Parse the phases, waves, and dependency graph from the current spec.
 2b. **Check for coherence review** — If `specs/<slice-name>/coherence-review.md` exists, read the "Action Items for Build Agent" section. These action items are binding constraints that override or clarify tasks.md. Keep them visible throughout execution.
+2c. **Apply implementation memory** — After the current spec/tasks and coherence-review action items are known, read `skills/implementation-memory/SKILL.md`. If `docs/implementation-memory.md` exists, read it and select active rules using multi-signal matching: Tags overlap with the spec's domain, File patterns match files the tasks will touch, OR `Applies when` prose is judged relevant. Convert selected rules into implementation guardrails, test checks, or review checks for this build. Increment `Hit count` for each selected rule. Unmatched rules are ignored and MUST NOT become requirements.
 3. **Execute tasks wave-by-wave:**
    - **ALWAYS execute all tasks in Wave 1 IN PARALLEL** (these have no dependencies — parallelization is mandatory, not optional).
    - After Wave 1 completes, verify green-build gate passes (all tests green, no regressions).
@@ -265,13 +266,19 @@ Produce the following structured review and save it to `specs/<slice-name>/imple
 2. **Check PBT properties** from `design.md` — run them if a test runner is available, otherwise manually verify the implementation satisfies them.
 3. **Check for scope creep** — scan implementation for functionality not traced to any requirement. Flag it.
 4. **Write the structured output** to `specs/<slice-name>/implementation-review.md`.
-5. **If PASSED WITH FIXES NEEDED**:
+5. **Implementation memory — verdict-dependent behavior**:
+   - **If PASSED WITH FIXES NEEDED** (semi-automatic trigger): After fix tasks are done, generate a self-reflection ("What went wrong? Why? What would have prevented it?"), extract up to 2 candidate learnings from the reflection, and present them to the user for Accept / Reject / Edit. Do not wait for the user to ask. This is the primary memory population path.
+   - **If PASSED** (manual trigger): Ask the user to test the delivered behavior, bring back failures or feedback, and debug with the agent until accepted. Report `Implementation memory: waiting for user validation and Quality Memory Review request.` When the user later asks for Quality Memory Review, generate self-reflection, extract candidates, apply admission/rejection checks, and update memory only if warranted.
+   - **Periodic nudge**: Read the `Builds without update` counter from `docs/implementation-memory.md`. If ≥3, include in end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
+   - **Show diff on update**: When memory is updated, show the rule IDs added/merged/removed directly in the response.
+6. **If PASSED WITH FIXES NEEDED**:
    - Append the "Fix Tasks" section to `tasks.md` under a new phase header: `## Phase N+1: Review Fixes`
    - Add a green-build gate: `✅ **Green-build gate**: All prior phases pass. Review fixes are isolated corrections.`
    - Execute the fix tasks following normal task execution rules (TDD, operational code, incremental implementation).
    - After all fix tasks are `[x]`, re-run verification ONLY on the items that were flagged — not a full re-review.
-6. **If PASSED**: Mark spec as DONE. Update `tasks.md` status. **Proceed to the next spec immediately — do NOT ask the user for permission.** Only stop if this is the last spec in `specs/`.
-7. **If FAILED**: Present `implementation-review.md` to the user with a clear explanation of what failed and why auto-fix is insufficient.
+   - Then trigger the semi-automatic memory extraction (step 5 above).
+7. **If PASSED**: Mark spec as DONE. Update `tasks.md` status. **Proceed to the next spec immediately — do NOT ask the user for permission.** Only stop if this is the last spec in `specs/`.
+8. **If FAILED**: Present `implementation-review.md` to the user with a clear explanation of what failed and why auto-fix is insufficient.
 
 ### What "FAILED" Means (vs. "PASSED WITH FIXES NEEDED")
 
@@ -300,14 +307,22 @@ Only at that point do you produce the **end-of-build summary** to the user:
 
 Specs executed: <N>
 - <spec-1>: PASSED (X tasks done)
-- <spec-2>: PASSED WITH FIXES NEEDED (Y tasks done, Z fix-tasks applied)
+- <spec-2>: PASSED WITH FIXES NEEDED (Y tasks done, Z fix-tasks applied, memory candidates presented)
 - <spec-N>: PASSED (W tasks done)
 
 Total tasks done: <total>
 Blocked tasks: <count> (see below)
 Tests: green-build gate passed at every phase boundary
+Implementation memory: <status — one of:>
+  - "updated: added IM-00X, merged IM-00Y" (if semi-auto trigger fired and user accepted)
+  - "candidates presented, awaiting user decision" (if semi-auto fired, user hasn't responded)
+  - "waiting for user validation and Quality Memory Review request" (if all PASSED)
+  - "nudge: N builds without update — consider running Quality Memory Review" (if counter ≥3)
 
 Next steps:
+- Test the implemented behavior in the product
+- Bring back any failure, error, or feedback and debug with the agent until it is OK
+- Ask for Quality Memory Review after validation to capture durable implementation learnings
 - /review (code review bar raising)
 - /deploy (progressive rollout)
 

@@ -33,6 +33,8 @@ A strong review does not try to prove the author wrong. It makes the design bett
 
 ## The Process
 
+Before reviewing, load `agents/design-bar-raiser.md` and apply that persona's review lens. If the design contains a one-way door decision, also load `agents/principal-engineer.md` and apply that persona to the irreversible decision, blast-radius, and long-term architecture trade-off review.
+
 ### 1. Context Assessment
 
 Before reviewing, classify the design:
