@@ -106,9 +106,9 @@ Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING
 
 ### Step 4: Design Review Checklist
 - Read skill: skills/design-review/SKILL.md
-- Load `agents/design-bar-raiser.md` and review the design through the design bar raiser lens.
-- Run the design review checklist against your own design
-- Present findings and self-assessment
+- Load `agents/design-bar-raiser.md` and review the design through the design bar raiser lens. **Self-assessment is not a design review.** For a **Medium** or **Large** design, dispatch it as a sub-agent with author-isolated context: it receives the design artifacts, the API contract(s) and `requirements.md`, and **not** your rationale for any of them — a reviewer handed the author's reasoning reviews the reasoning instead of the design. For **Trivial** and **Small**, activate the persona in this context; the ceremony ladder scopes it (`AGENTS.md` → *Match the Ceremony to the Change*). It is the same review either way, with the reviewer isolated from the author where that pays for itself.
+- Run the design review checklist as the dispatched reviewer, against the artifacts rather than against the intent behind them
+- Present the reviewer's findings and checklist result, attributed to the reviewer — not a self-assessment of your own design
 - If the review is contested — two defensible options and no agreement — load `agents/principal-engineer.md` and break the tie through the principal engineer lens.
 - 🚦 GATE: Ask: "Ready to proceed to implementation planning?"
 - ⛔ DO NOT proceed to Step 5 until the user approves.

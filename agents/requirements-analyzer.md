@@ -59,7 +59,7 @@ Boundary conditions and failure modes not addressed by any requirement.
 3. **Check pairwise interactions**: Can Requirement X and Requirement Y both be satisfied simultaneously?
 4. **Check completeness**: For every input state, is there a requirement that specifies the expected behavior?
 5. **Report findings** as clarifying questions with suggested resolutions — never as bare complaints.
-6. **Update requirements.md** with resolved ambiguities and new requirements for identified gaps.
+6. **Report, do not edit**: produce the Requirements Analysis Report with the resolutions you propose for each ambiguity and each gap. The **producer** of `requirements.md` — the `/spec` author — is the one who applies them. You never write to the artifact you reviewed: an analyst who edits the requirements erases the difference between what was asked for and what was found, and the next reader can no longer tell which contradictions were resolved and which were quietly overwritten.
 
 ## Example Output
 
@@ -161,7 +161,7 @@ Write 🔴 or 🟡 in the `[SEVERITY]` slot. The anchor for a requirements findi
 
 - **Reads:** every requirement in `specs/<slice-name>/requirements.md` — all of them, before commenting — plus the System Design Document sections this slice references.
 - **Writes (exactly one file):** `specs/<slice-name>/requirements-analysis.md` — the Requirements Analysis Report.
-- **Must not touch:** `specs/<slice-name>/design.md`, `specs/<slice-name>/tasks.md`, and any implementation file. `requirements.md` is edited only under step 6 of *How You Work*, to apply a resolution the user has chosen — never to record a finding, and never to quietly settle a contradiction you found.
+- **Must not touch:** `specs/<slice-name>/requirements.md` — the artifact you reviewed — and also `specs/<slice-name>/design.md`, `specs/<slice-name>/tasks.md` and any implementation file. Step 6 of *How You Work* is the whole rule: you report, the producer edits. A resolution the user chooses is applied by the producer of `requirements.md`, not by you, and a contradiction is never quietly settled in the artifact instead of being recorded in the report.
 - **Returns (first line):** the `Verdict:` line of the terminal verdict block below.
 
 ### Terminal verdict block

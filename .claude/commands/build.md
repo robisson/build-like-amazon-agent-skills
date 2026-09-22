@@ -287,15 +287,17 @@ Order the findings by impact. The rule is literal: **priority is impact, never c
 
 **This review is a gate.** A finding at canonical severity BLOCKING that is still open removes the option to approve and advance: the only remaining options are fix it, accept it with the risk recorded in the accepted-risk table, or pause. A review report without a parseable verdict block counts as BLOCKING. In this command the BLOCKING level is spelled `[FIX REQUIRED]` (see `AGENTS.md` → *One Severity Scale and One Verdict Scale*), so an open `[FIX REQUIRED]` finding blocks moving to the next spec or to `/deploy`. Executing the fix tasks immediately, as the table below requires, *is* the fix option — what is not available is advancing while one is still open.
 
+**Who produces what.** Three roles, and none of them is the same agent wearing a different hat. The **review is produced by the dispatched `agents/implementation-verifier.md`**, never by the orchestrator that wrote the code: the producer of an artifact cannot be the reviewer of it, and a self-check that finds nothing is indistinguishable from a review that was never run. The **fix tasks are executed by the orchestrator** (or by the sub-agents it dispatches for them), because the verifier must not touch the implementation it verified. The **re-verification after the fixes is a fresh dispatch** of the verifier — a new reviewer instance reading the code as it now stands, with the previous `implementation-review.md` as input so the findings keep their IDs — and never a self-check by whoever applied the fix. None of this adds a human gate: `/build` stays autonomous end to end. What changes is only who produces the report and who revalidates it.
+
 | Verdict | Action |
 |---------|--------|
 | **PASSED** | Proceed to next spec or `/deploy` **without asking the user**. No fixes needed. This verdict is only available when no BLOCKING finding is open: it is the gate opening, not a note. |
-| **PASSED WITH FIXES NEEDED** | Append "Fix Tasks" to `tasks.md` as a new `## Phase N+1: Review Fixes`. Execute these fix tasks IMMEDIATELY — **no human gate needed** (these are minor, within-scope fixes), because executing them is how the open findings get closed. Do not proceed while one is still open. After fixes are done, re-verify only the fixed items, then proceed to the next spec. |
+| **PASSED WITH FIXES NEEDED** | Append "Fix Tasks" to `tasks.md` as a new `## Phase N+1: Review Fixes`. Execute these fix tasks IMMEDIATELY — **no human gate needed** (these are minor, within-scope fixes), because executing them is how the open findings get closed. Do not proceed while one is still open. After fixes are done, re-verify only the fixed items — by a fresh dispatch of the verifier, not by the agent that applied the fix — then proceed to the next spec. |
 | **FAILED** | STOP. Present the review to the user for a decision. Do NOT auto-fix — the scope of failure requires human judgment (possible design gap, missing requirement, or fundamental misunderstanding). This is one of the four valid stop reasons. |
 
 ### Execution Rules
 
-1. **Generate the review** by comparing every requirement + acceptance criterion in `requirements.md` against the actual implementation.
+1. **Generate the review** by dispatching `agents/implementation-verifier.md`, which compares every requirement + acceptance criterion in `requirements.md` against the actual implementation. The orchestrator does not write this report about its own output.
 2. **Check PBT properties** from `design.md` — run them if a test runner is available, otherwise manually verify the implementation satisfies them. **Record which route you took for each property**: a property checked by reading the code is reported as `NOT EXECUTED` or `VERIFIED BY INSPECTION`, never as a pass. A report verified by reading must not be indistinguishable from one backed by 1,000 green cases, and the count of properties not executed belongs in the review.
 3. **Check for scope creep** — scan implementation for functionality not traced to any requirement. Flag it.
 4. **Write the structured output** to `specs/<slice-name>/implementation-review.md`.
@@ -307,8 +309,8 @@ Order the findings by impact. The rule is literal: **priority is impact, never c
 6. **If PASSED WITH FIXES NEEDED**:
    - Append the "Fix Tasks" section to `tasks.md` under a new phase header: `## Phase N+1: Review Fixes`
    - Add a green-build gate: `✅ **Green-build gate**: All prior phases pass. Review fixes are isolated corrections.`
-   - Execute the fix tasks following normal task execution rules (TDD, operational code, incremental implementation).
-   - After all fix tasks are `[x]`, re-run verification ONLY on the items that were flagged — not a full re-review.
+   - Execute the fix tasks following normal task execution rules (TDD, operational code, incremental implementation). The orchestrator owns these; the verifier that reported them does not touch the code.
+   - After all fix tasks are `[x]`, re-run verification ONLY on the items that were flagged — not a full re-review — as a **fresh dispatch** of `agents/implementation-verifier.md`, given the previous `implementation-review.md` so each finding keeps its ID and moves to `FIXED`. The agent that applied a fix never certifies its own fix.
    - Then trigger the semi-automatic memory extraction (step 5 above).
 7. **If PASSED**: Mark spec as DONE. Update `tasks.md` status. **Proceed to the next spec immediately — do NOT ask the user for permission.** Only stop if this is the last spec in `specs/`.
 8. **If FAILED**: Present `implementation-review.md` to the user with a clear explanation of what failed and why auto-fix is insufficient.

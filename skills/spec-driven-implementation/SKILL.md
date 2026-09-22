@@ -473,7 +473,7 @@ Load `agents/requirements-analyzer.md` before performing this review.
 - Unstated assumptions: Requirements assume a database exists but no requirement specifies its creation
 - Missing edge cases: Happy path defined but no requirement for timeout, partial failure, or concurrent access
 
-**How it works**: Reads all requirements, builds a constraint graph, identifies contradictions and gaps, asks clarifying questions with suggested resolutions, then updates requirements.md with the resolved version.
+**How it works**: Reads all requirements, builds a constraint graph, identifies contradictions and gaps, asks clarifying questions with suggested resolutions, then reports — it does not edit. The analysis report carries the proposed resolutions; the producer of `requirements.md` applies them. The reviewer never writes to the artifact it reviewed, because an edited requirement no longer shows what was asked for versus what was found.
 
 ### task-planner
 

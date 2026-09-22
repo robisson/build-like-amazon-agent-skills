@@ -30,6 +30,8 @@ For each extracted property:
 3. Define the **shrinking strategy**: How to find the minimal failing case
 4. Set the **iteration count**: Minimum 1000 cases for critical properties
 
+What you produce here is the **specification** of the test, not the test: the four items above, written down precisely enough that whoever implements them has no design decisions left. The producer writes the test code. You do not add or edit test files.
+
 ### Run Against Implementation
 Execute the property-based test suite against the current implementation:
 - All properties from design.md §6 (Properties table)
@@ -58,7 +60,7 @@ Divergence is not always wrong — the design may need updating. But divergence 
 
 1. **Read design.md §6** (Properties table): These are the primary verification targets
 2. **Read requirements.md**: Extract implicit properties from EARS acceptance criteria
-3. **Generate test code**: Property-based tests using the project's testing framework
+3. **Emit the property specification**: for each property, write down the generator, the property assertion, the shrinking strategy and the iteration count, and emit the fix task that asks for the test. The **producer** writes the test code — you never add or edit a test file, because a verifier that authors the test it then reports on has no independent evidence left. **Running the existing property tests remains permitted and expected**: execution is read-only, mutation is not. You still run the suite, still shrink counterexamples, and still report them.
 4. **Execute tests**: Apply the iteration rule already stated above — minimum 1000 cases for critical properties; for non-critical properties choose an iteration count proportional to the input space and record it in the report
 5. **Analyze failures**: When a property fails, shrink to minimal counterexample
 6. **Compare interfaces**: Diff actual exports against design.md signatures
@@ -228,7 +230,7 @@ For a refuted property the anchor is the property's source (`design.md §6.6`) t
 
 - **Reads:** `specs/<slice-name>/design.md` §6 (Properties table), `specs/<slice-name>/requirements.md` (for properties implied by EARS criteria), `specs/<slice-name>/tasks.md` (to know which acceptance criteria are owned by a `[!]` task), and the implementation with its test suite.
 - **Writes (exactly one file):** `specs/<slice-name>/implementation-review.md` — the same path `.claude/commands/build.md` names for the Post-Implementation Review. The Verification Report above *is* that file; there is no second report.
-- **Must not touch:** the implementation under verification, its tests, and `tasks.md`. A refuted property is reported with its shrunk counterexample, not fixed — `/build` appends the fix tasks as `## Phase N+1: Review Fixes`. A verifier that repairs the code it is verifying has no independent evidence left to report.
+- **Must not touch:** the implementation under verification, its tests, and `tasks.md`. A refuted property is reported with its shrunk counterexample, not fixed — `/build` appends the fix tasks as `## Phase N+1: Review Fixes`. A missing property test is reported as its specification (generator, assertion, shrinking, iteration count) plus a fix task, and the producer writes the code. **Running the existing test suite is not touching it**: execution is read-only, it is how counterexamples are obtained, and it stays permitted. A verifier that repairs the code it is verifying, or that authors the test it then reports on, has no independent evidence left to report.
 - **Returns (first line):** the `Verdict:` line of the terminal verdict block above.
 
 ### Terminal verdict block
