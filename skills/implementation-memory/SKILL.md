@@ -35,7 +35,7 @@ All sources use the same Quality Memory Review process, admission checks, and re
 
 Use this mechanism in these places:
 
-1. **Before `/build` task execution**: read the current spec/tasks first, then select active memory rules as defined in **Pre-Build Selection** below — a rule is selected if ANY signal matches (`Tags`, `File patterns`, or `Applies when`). That section is the single definition of the selection semantics; this hook only says when it runs.
+1. **Before `/build` task execution**: read the current spec/tasks first, then select active memory rules as defined in **Pre-Build Selection** below — a rule is selected if its `Phase` is `build` and ANY signal matches (`Tags`, `File patterns`, or `Applies when`). That section is the single definition of the selection semantics; this hook only says when it runs.
 2. **After implementation review (semi-automatic trigger)**: when the verdict is PASSED WITH FIXES NEEDED, the agent MUST automatically extract up to 2 candidate learnings from the fix findings and present them to the user for Accept / Reject / Edit. This is the primary memory population path. When the verdict is PASSED, prompt the user to test the delivered behavior and bring back failures or feedback.
 3. **After user validation or explicit request**: run a Quality Memory Review using implementation results, implementation review, test/debug feedback, and user feedback to decide whether memory should be updated.
 4. **After `/review` findings are resolved**: if the review surfaced recurring patterns (same finding across 2+ PRs or explicitly flagged as "this keeps happening"), extract candidates and present for Accept / Reject / Edit.
@@ -71,6 +71,7 @@ Every active rule must use this shape:
 ```markdown
 ### IM-XXX: [Short rule name]
 Tags: [api, error-handling, testing, infra, ui, data-pipeline, security, observability, workflow, ...]
+Phase: [wb | design | spec | build | deploy | operate]
 File patterns: [optional glob patterns, e.g. src/api/**, tests/integration/**]
 Applies when: [Spec/component/risk conditions where this rule is relevant.]
 Rule: [Actionable implementation behavior.]
@@ -91,15 +92,20 @@ Use stable IDs. When removing a rule, do not renumber unrelated rules unless the
 
 Before implementation starts:
 
+0. Determine the current phase from the command in flight: `/wb` → `wb`, `/design` → `design`, `/spec` → `spec`, `/build` → `build`, `/deploy` → `deploy`, `/operate` → `operate`. This section runs at the start of every phase, not only `/build`.
 1. Read the current `specs/<slice-name>/requirements.md`, `design.md`, `tasks.md`, and `coherence-review.md` if present.
 2. Read `docs/implementation-memory.md` if it exists.
-3. Select active rules using this multi-signal matching (a rule is selected if ANY signal matches):
+3. Select active rules using this multi-signal matching. A rule is selected when its `Phase` matches the current phase determined in step 0 AND any one of the following signals matches:
    - **Tags match**: rule tags overlap with the current spec's domain/technology areas.
    - **File patterns match**: the spec's tasks touch files matching the rule's glob patterns.
    - **Applies when matches**: the LLM judges the prose description to be relevant to the current spec, task, component, dependency, or risk profile.
+
+   The three signals above remain an OR among themselves — one is enough. `Phase` is an additional filter layered on top, not a replacement: a rule whose `Phase` does not match the current phase is never selected, however strongly its tags, file patterns, or prose match. A rule with no `Phase` line is treated as `build`.
 4. Convert selected rules into implementation guardrails, test checks, or review checks.
 5. Ignore unmatched rules. They are not requirements for the current build.
 6. Increment `Hit count` for each selected rule.
+
+Phase scoping changes which rules are selected, never how many may exist: the cap defined in **Memory Limits** above is unchanged at 12 active rules in total, not 12 per phase.
 
 Memory rules never override approved requirements, design, tasks, or coherence-review action items.
 
