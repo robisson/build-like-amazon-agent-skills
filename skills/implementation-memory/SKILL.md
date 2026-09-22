@@ -189,6 +189,7 @@ A candidate learning must pass at least 2 of these checks:
 - Corrects a recurring agent tendency.
 
 A defect that recurs even though a memory rule already covers it means memory is the wrong remedy: promote it to a declared project pattern or a mechanism via `skills/mechanism-creation/SKILL.md`, and do not add a second memory rule for the same defect.
+
 ## Rejection Rules
 
 Reject candidates that are:
