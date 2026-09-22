@@ -31,7 +31,7 @@ Implementation memory can be fed from multiple workflow stages — not only `/bu
 | `/review` (code review) | After review feedback is resolved | Recurring review findings that apply beyond one PR |
 | `/learn` (COE) | After corrective actions are defined | Operational lessons that should influence future implementation |
 
-All sources use the same Quality Memory Review process, admission checks, and rejection rules. Record the capturing phase in the rule's `Phase` field so later selection scopes it correctly.
+All sources use the same Quality Memory Review process, admission checks, and rejection rules. Record the capturing phase in the rule's `Phase` field so later selection scopes it correctly. `/review` and `/learn` are capture points, not phases: a rule captured there inherits the `Phase` of the work it reviewed — a review finding about implementation is `Phase: build`, a COE action about operational practice is `Phase: operate` — because the `Phase` field names the phase whose work the rule governs, and there is no pre-execution selection at `/review` or `/learn` to scope. The enum is therefore unchanged: no `review` or `learn` value exists.
 
 ## Internal Flow Hooks
 
@@ -44,7 +44,7 @@ Use this mechanism in these places:
 5. **After `/learn` corrective actions**: if a COE produces an implementation-level corrective action (not an org/process action), extract a candidate and present for Accept / Reject / Edit.
 6. **After a requirement bounces at the `/design` gate 3 or more times**: extract a candidate with `Phase: design` describing why the requirement kept failing the gate, and present for Accept / Reject / Edit. Without this hook a requirement rejected three times leaves no trace.
 7. **After a coherence-review finding recurs across specs**: when `/spec` produces the same coherence finding in 2 or more specs, extract a candidate with `Phase: spec` and present for Accept / Reject / Edit.
-8. **Periodic nudge**: after 3 builds without a memory update (tracked via `Last build without update` counter at the bottom of the memory file), include in the end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
+8. **Periodic nudge**: after 3 builds without a memory update (tracked via `Builds without update` counter at the bottom of the memory file), include in the end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
 
 Do not use this skill to replace requirements, design documents, ADRs, release notes, PR/FAQ, postmortems, or review artifacts.
 
