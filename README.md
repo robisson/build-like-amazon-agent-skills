@@ -43,6 +43,8 @@ This circular lifecycle means every operational lesson feeds back into the next 
 
 ## Commands
 
+Each command below produces named artifacts at fixed paths. What every one of them is, where it goes, whether it is mandatory, which template shapes it and who consumes it next is catalogued in [`docs/artifact-catalog.md`](docs/artifact-catalog.md).
+
 | Command | Description | Phase |
 |---------|-------------|-------|
 | `/onboard` | Reverse-engineer an existing project — produce design artifacts from real code so the agent understands your system | Onboarding |

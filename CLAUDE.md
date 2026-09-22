@@ -137,6 +137,6 @@ Even without explicit slash commands, activate relevant skills when:
 | `patterns/INDEX.md` | Lightweight pattern catalog — read ONLY this during `/design` and `/spec` to decide relevance. Load full `PATTERN.md` only when criteria match. |
 | `patterns/` | Full architectural pattern definitions (cell-based, SaaS, agentic AI) |
 | `.claude/commands/` | 14 slash command definitions |
-| `docs/` | Getting started, skill anatomy, philosophy |
+| `docs/` | Getting started, skill anatomy, philosophy, and [`docs/artifact-catalog.md`](docs/artifact-catalog.md) — the index of every artifact the flow produces: canonical path, mandatory or optional, template, producing command and consumers |
 | `tools/` | `bla-check` — the deterministic document checker (task markers, task graph, relative links) and its self-test in `tools/tests/`. Maintainer-side: run `python3 tools/tests/run.py` and `python3 tools/bla-check links .` before opening a PR. |
 | `.github/workflows/` | `check.yml` — the CI job that re-runs the document checks on the server: README counts, skill and agent frontmatter, severity/verdict label integrity, cross-references, `bla-check links`, the self-test, `markdownlint` and a secret scan. Every failure is one `FALHA [rule-name]` line. |

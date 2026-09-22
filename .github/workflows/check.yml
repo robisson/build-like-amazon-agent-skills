@@ -88,6 +88,21 @@ jobs:
           [ "$im_all" = "$((im_real + 1))" ] \
             || { echo "FALHA [memory-shape-placeholder] docs/implementation-memory.md has $im_all '### IM-' headings for $im_real rules; the Rule Shape placeholder must be present exactly once and must not be numbered"; f=1; }
 
+          # docs/artifact-catalog.md is the index authors are sent to for the shape of every artifact,
+          # so its Template column is checked in BOTH directions. A cited template that does not exist
+          # sends the author to nothing; a template on disk that the catalog never names is an orphan,
+          # which is the defect the catalog was written to end (three templates were orphans before it).
+          for t in $(grep -ohE 'skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md' docs/artifact-catalog.md \
+                     | sort -u); do
+            [ -e "$t" ] \
+              || { echo "FALHA [catalog-template-exists] docs/artifact-catalog.md cites $t, which does not exist on disk"; f=1; }
+          done
+
+          for t in $(find skills -path '*/templates/*.md' | sort); do
+            grep -q "$(basename "$t")" docs/artifact-catalog.md \
+              || { echo "FALHA [catalog-template-missing] $t exists on disk but docs/artifact-catalog.md never names it"; f=1; }
+          done
+
           [ "$f" -eq 0 ] || exit 1
 
       - name: frontmatter
