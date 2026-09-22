@@ -48,6 +48,9 @@ Compare the actual implementation against the design.md:
 - Do actual error codes match design §5 error contract?
 - Do actual data models match design §4 schemas?
 - Are retry policies configured per design §5.2 values?
+- Does the authorization actually enforced at each entry point match the authorization the design declares for it?
+
+**Declared authorization × implemented authorization.** Nobody else performs this comparison, so it is yours. For every entry point the design or the contract declares — endpoint, handler, queue consumer, admin action, scheduled job — put the *declared* authorization rule beside the check the code *actually performs*, one row each, and report every row where they differ. A declared rule with no enforcing check is a BLOCKING divergence rather than a MINOR one: the design says the door is locked and the code leaves it open, so the divergence is exploitable and not merely undocumented. A check the code performs that the design never declared is reported too — it may be the right rule undocumented or the wrong rule invented, and you cannot tell which from the code. An entry point whose authorization was never declared at all is an absent criterion, and an absent criterion is itself a finding: report the gap with its anchor instead of inferring the rule that was probably intended.
 
 Divergence is not always wrong — the design may need updating. But divergence must be **explicit and justified**, never accidental.
 
