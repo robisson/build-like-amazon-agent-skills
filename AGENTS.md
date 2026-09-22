@@ -254,6 +254,32 @@ When a skill specifies bar raiser review:
 4. **Block if necessary** — For blocking checkpoints, refuse to proceed until criteria are met
 5. **Document the decision** — Record what was reviewed, what passed, and any conditions
 
+### One Severity Scale and One Verdict Scale
+
+**These two tables rename nothing. They declare equivalence.** A reviewer already writing `[blocker]` keeps writing `[blocker]`; what the table adds is the statement — in one place, for the first time — of what `[blocker]` actually blocks. Every label in the *aliases* column already exists on disk in the file named next to it. None was invented here, none was moved, and no surface is asked to adopt another surface's spelling. When you read a finding or a verdict produced anywhere in this repository, map it through the relevant table and act on the **canonical** level, not on the wording.
+
+#### Severity of a finding
+
+| Canonical level | What this level blocks, exactly | Existing aliases on disk |
+|---|---|---|
+| **BLOCKING** | Removes the option to approve and advance. While one BLOCKING finding is open, the gate cannot be passed — a justification does not buy passage, only a fix does. | `[BLOCKING]` (`skills/code-review-bar-raising/SKILL.md`, `skills/design-review/SKILL.md`, `skills/spec-driven-implementation/SKILL.md`) · `[blocker]` (`agents/code-review-bar-raiser.md`) · `[FIX REQUIRED]` (`.claude/commands/build.md`) · 🚫 **Must fix** (`.claude/commands/review.md`) · **Critical** and **High** (`agents/security-guardian.md`) · 🔴 (`agents/requirements-analyzer.md`) · ❌ **FAIL** (`skills/operational-readiness-review/SKILL.md`, item level) |
+| **IMPORTANT** | Does not block the gate. Requires either a fix **or** a justification recorded where it can be audited later (see Operating Behavior 3 for where an accepted risk goes). Silence is not a resolution; an IMPORTANT finding that is neither fixed nor recorded is an open finding. | `[IMPORTANT]` (`skills/code-review-bar-raising/SKILL.md`, `skills/design-review/SKILL.md`) · `[WARNING]` (`skills/spec-driven-implementation/SKILL.md`) · `[concern]` (`agents/code-review-bar-raiser.md`) · ⚠️ **Should fix** (`.claude/commands/review.md`) · **Medium** (`agents/security-guardian.md`) · 🟡 (`agents/requirements-analyzer.md`) · ⚠️ **CONDITIONAL** (`skills/operational-readiness-review/SKILL.md`) |
+| **MINOR** | Blocks nothing and is never a gate condition. Fix it while you are in the file; close the review without it if you are not. It must never be the reason a gate is held. | `[NIT]` (`skills/code-review-bar-raising/SKILL.md`) · `[NOTE]` (`skills/design-review/SKILL.md`, `skills/spec-driven-implementation/SKILL.md`) · `[MINOR]` (`.claude/commands/build.md`) · `[nit]` (`agents/code-review-bar-raiser.md`) · 💡 **Consider** (`.claude/commands/review.md`) · **Low** (`agents/security-guardian.md`) |
+| **QUESTION** | Does not block by itself, but prevents a clean APPROVED while it is unanswered *and* the answer could change scope, contract or risk. Once answered it either closes or is re-raised at its own level. | `[QUESTION]` (`skills/code-review-bar-raising/SKILL.md`, `skills/design-review/SKILL.md`) · `[question]` (`agents/code-review-bar-raiser.md`) |
+
+`[PRAISE]` (`skills/code-review-bar-raising/SKILL.md`) and `[OK]` (`.claude/commands/build.md`) are outside this scale and outside every count: praise is not a finding and a satisfied check is not a finding. Keep the surface's own severity word inside the finding text wherever it carries information the canonical level throws away — `Critical` versus `High` with a CWE number in `agents/security-guardian.md` both map to BLOCKING, and both must stay readable as written.
+
+#### Verdict on a review
+
+| Canonical verdict | What this level blocks, exactly | Existing aliases on disk |
+|---|---|---|
+| **APPROVED** | Blocks nothing. The work advances to the next stage. | **PASSED** (`.claude/commands/build.md`) · **PASS** (`agents/implementation-verifier.md`) · **APPROVED** (`skills/design-review/SKILL.md`, `skills/spec-driven-implementation/SKILL.md`, `skills/operational-readiness-review/`) |
+| **APPROVED WITH NOTES** | Blocks nothing. The work advances **with the open items recorded**, and with a target date wherever the surface has a field for one. Advancing without recording them converts this verdict into APPROVED, which is a misreport. | **PASSED WITH FIXES NEEDED** (`.claude/commands/build.md`) · **PASS WITH WARNINGS** (`agents/implementation-verifier.md`) · **APPROVED WITH NOTES** (`skills/design-review/SKILL.md`, `skills/spec-driven-implementation/SKILL.md`) · **APPROVED WITH CONDITIONS** (`skills/operational-readiness-review/templates/orr-checklist.md`) |
+| **NOT APPROVED** | Blocks advancing entirely. Stop and escalate to the human; do not self-fix your way past it. | **FAILED** (`.claude/commands/build.md`) · **FAIL** (`agents/implementation-verifier.md`) · **NEEDS REVISION** (`skills/design-review/SKILL.md`, `skills/spec-driven-implementation/SKILL.md`) · **NOT APPROVED** (`skills/operational-readiness-review/templates/orr-checklist.md`) · **RE-DESIGN** (`skills/design-review/SKILL.md`, design only) |
+| **INCOMPLETE** | Blocks advancing, and is **not** a quality judgement. It is the declaration that the review could not be performed: the artifact is absent, it is still byte-identical to its template, it carries no verdict line, or the evidence the review needs was never presented. Report what is missing; do not convert it into NOT APPROVED, and never into APPROVED. | None — INCOMPLETE is new to this table and has no alias on disk yet. |
+
+`NOT-EXECUTED` is the item-level counterpart of INCOMPLETE, already in use: `agents/implementation-verifier.md` admits `NOT EXECUTED` in its `Result` column and counts it in the report header. A review whose items are all NOT-EXECUTED is INCOMPLETE; a review with some NOT-EXECUTED items still reports a real verdict, with those items named.
+
 ### When Multiple Bar Raisers Apply
 
 Execute them in this order:
