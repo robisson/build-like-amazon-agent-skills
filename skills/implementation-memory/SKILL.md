@@ -82,15 +82,17 @@ Rule: [Actionable implementation behavior.]
 Avoid: [Specific behavior to avoid.]
 Evidence: [Review feedback | user feedback | test failure | build defect | repeated pattern.]
 Impact: [Critical | High | Medium]
-Confidence: [Proven (prevented issues) | Established (applied successfully) | New (just added)]
+Confidence: [Proven (Prevented >= 1 backed by evidence) | Established (applied successfully) | New (just added)]
 Hit count: [N — number of builds where this rule was selected and applied]
-Prevented: [N — number of times this rule demonstrably prevented an issue]
+Prevented: [N — number of times this rule demonstrably prevented an issue; increment only with concrete evidence that the rule stopped something]
 Created: [YYYY-MM-DD]
 Last used: [YYYY-MM-DD]
 Builds on: [[IM-YYY]] (optional — reference to a related/prerequisite rule)
 ```
 
 Use stable IDs. When removing a rule, do not renumber unrelated rules unless the file is being deliberately compacted for readability.
+
+`Prevented` is an evidence counter, not a confidence signal. Increment it only when something concrete stopped: a validator blocked, a test failed before merge, or a review cited the rule by ID. Applying a rule, or believing it helped, is not evidence. `Confidence: Proven` therefore requires `Prevented >= 1` backed by such evidence; a rule whose only evidence is unattributed feedback stays at `Established` with `Prevented: 0`.
 
 ## Pre-Build Selection
 
@@ -186,6 +188,7 @@ A candidate learning must pass at least 2 of these checks:
 - Applies beyond one feature.
 - Corrects a recurring agent tendency.
 
+A defect that recurs even though a memory rule already covers it means memory is the wrong remedy: promote it to a declared project pattern or a mechanism via `skills/mechanism-creation/SKILL.md`, and do not add a second memory rule for the same defect.
 ## Rejection Rules
 
 Reject candidates that are:
