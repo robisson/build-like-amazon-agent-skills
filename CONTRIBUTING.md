@@ -197,6 +197,8 @@ Checkpoints define what "done" means for each phase. They can be:
    - [ ] At least one example and one anti-pattern included
    - [ ] Bar raiser questions are specified
    - [ ] Tested with at least one AI agent
+   - [ ] `python3 tools/tests/run.py` passes (`0 failed`)
+   - [ ] `python3 tools/bla-check links .` is clean (no `FALHA` line)
    - [ ] Counts stated in README match what is on disk
    - [ ] No cross-reference points at a non-existent path, heading or field
    - [ ] If I renamed something, I searched the old name across the repository
