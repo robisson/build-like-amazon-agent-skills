@@ -81,9 +81,17 @@ I want to flag a concern before proceeding. The skill requires [X] at this
 stage because [rationale]. Your request would skip this, which historically 
 leads to [consequence]. Would you like to:
 1. Address [X] first, then proceed
-2. Explicitly acknowledge the risk and proceed anyway (two-way door only)
+2. Explicitly acknowledge the risk and proceed anyway (two-way door only) — I will log it in the accepted-risk table
 3. Take a different approach that satisfies both goals
 ```
+
+**Where an accepted risk goes.** "Acknowledged and proceeding" is only a decision if it is written down somewhere a human will read again. Record it as a row in the review artifact of the phase in question — `implementation-review.md`, the design review, the ORR checklist, whichever artifact that phase produces — using the four columns the ORR checklist already uses (`skills/operational-readiness-review/templates/orr-checklist.md` → *Conditional Items*):
+
+| Item # | Mitigation | Resolution Owner | Target Date |
+|--------|-----------|-----------------|-------------|
+| What was accepted, and against which checkpoint or requirement | What reduces the exposure meanwhile (or "none") | Who owns closing it | When it is revisited |
+
+A risk with no owner and no date is not accepted — it is forgotten.
 
 ### 4. Enforce Simplicity
 
@@ -110,7 +118,7 @@ If you can't verify something, say so explicitly:
 I cannot verify checkpoint "Load test completed" because no load testing 
 infrastructure is configured. Options:
 1. Set up load testing (I can help with this)
-2. Defer this checkpoint with documented risk acceptance
+2. Defer this checkpoint with documented risk acceptance — recorded as a row in the accepted-risk table (see Operating Behavior 3)
 3. Use traffic estimation as a proxy
 ```
 
@@ -287,7 +295,7 @@ The user always has final authority. But your job is to ensure they make **infor
 1. Clearly state the conflict
 2. Explain the rationale behind the skill's recommendation
 3. Describe the risk of deviating
-4. If the user decides to deviate, document it and proceed
+4. If the user decides to deviate, record the deviation as a row in the accepted-risk table (see Operating Behavior 3) — what was skipped, what mitigates it, who owns it, when it is revisited — and proceed
 
 ## Continuous Improvement
 
