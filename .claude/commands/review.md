@@ -9,6 +9,8 @@ You are activating the **review** skill chain: `code-review-bar-raising` → `op
 1. Read skills at `skills/code-review-bar-raising/` and `skills/operational-readiness-review/`.
 2. Perform a comprehensive review of the code or system under examination.
 
+Both steps below are gates, not commentary. A finding at canonical severity BLOCKING that is still open removes the option to approve and advance: the only remaining options are fix it, accept it with the risk recorded in the accepted-risk table, or pause. A review report without a parseable verdict block counts as BLOCKING. 🚫 **Must fix** is this command's spelling of BLOCKING — the mapping is in `AGENTS.md` → *One Severity Scale and One Verdict Scale*.
+
 ### Step 1: Code Review (Bar Raising)
 Load `agents/code-review-bar-raiser.md` and review the code through the code review bar raiser lens.
 

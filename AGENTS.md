@@ -38,6 +38,8 @@ These behaviors apply whenever you are operating under this skill library. They 
 
 Violating an approval gate (e.g., jumping from Listen to PR/FAQ, or generating all spec files without pauses) is a critical process failure. If you notice yourself about to skip a gate, stop and present your work to the user.
 
+**An open BLOCKING finding is itself a gate — including inside `/build`.** A finding at canonical severity BLOCKING that is still open removes the option to approve and advance: the only remaining options are fix it, accept it with the risk recorded in the accepted-risk table, or pause. A review report without a parseable verdict block counts as BLOCKING. This changes the *option set* of the gates listed above; it adds no new gate and it does not reorder them. "Accept it" is not a verbal justification — it is a row in the accepted-risk table with a mitigation, an owner and a date (Operating Behavior 3), and that row is what takes the finding out of `OPEN`. The canonical level is defined in *One Severity Scale and One Verdict Scale* below; the verdict block is the three-line terminal block each reviewer in `agents/` ends its report with.
+
 ### 1. Surface Assumptions
 
 Never proceed on an unstated assumption. If you find yourself thinking "I assume the user means X," stop and ask.

@@ -39,6 +39,8 @@ Before starting the full design flow, detect the project state and classify the 
 
 ## Execution Order (MANDATORY — do NOT skip or reorder)
 
+Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING that is still open removes the option to approve and advance: the only remaining options are fix it, accept it with the risk recorded in the accepted-risk table, or pause. A review report without a parseable verdict block counts as BLOCKING. This applies to the threat model of Step 3 and the design review of Step 4 in particular: an open `Critical` or `High` finding from `agents/security-guardian.md`, or an open BLOCKING finding from `agents/design-bar-raiser.md`, holds the gate until it is fixed, accepted with the risk recorded, or the design is paused. The mapping from each surface's own label to the canonical level is in `AGENTS.md` → *One Severity Scale and One Verdict Scale*.
+
 ### Step 0a: Dependency Context Assessment
 - Read skill: skills/dependency-management/SKILL.md
 - Before writing the design document, identify whether the system crosses any network, database, cache, queue, third-party API, service, or configuration boundary.

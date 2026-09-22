@@ -264,10 +264,12 @@ Produce the following structured review and save it to `specs/<slice-name>/imple
 
 **Precondition on `PASSED`.** Execution closure is not delivery. A spec whose `tasks.md` contains at least one `[!]` corresponding to an unimplemented acceptance criterion **cannot** be given verdict `PASSED`, however clean the rest of the run was — the lowest admissible verdict is `PASSED WITH FIXES NEEDED`, and `FAILED` when an entire requirement is unimplemented. `PASSED` asserts that every acceptance criterion in `requirements.md` is met; a blocked task that owns one of them contradicts that assertion.
 
+**This review is a gate.** A finding at canonical severity BLOCKING that is still open removes the option to approve and advance: the only remaining options are fix it, accept it with the risk recorded in the accepted-risk table, or pause. A review report without a parseable verdict block counts as BLOCKING. In this command the BLOCKING level is spelled `[FIX REQUIRED]` (see `AGENTS.md` → *One Severity Scale and One Verdict Scale*), so an open `[FIX REQUIRED]` finding blocks moving to the next spec or to `/deploy`. Executing the fix tasks immediately, as the table below requires, *is* the fix option — what is not available is advancing while one is still open.
+
 | Verdict | Action |
 |---------|--------|
-| **PASSED** | Proceed to next spec or `/deploy` **without asking the user**. No fixes needed. The review is informational, not a gate. |
-| **PASSED WITH FIXES NEEDED** | Append "Fix Tasks" to `tasks.md` as a new `## Phase N+1: Review Fixes`. Execute these fix tasks IMMEDIATELY — **no human gate needed** (these are minor, within-scope fixes). After fixes are done, re-verify only the fixed items, then proceed to the next spec. |
+| **PASSED** | Proceed to next spec or `/deploy` **without asking the user**. No fixes needed. This verdict is only available when no BLOCKING finding is open: it is the gate opening, not a note. |
+| **PASSED WITH FIXES NEEDED** | Append "Fix Tasks" to `tasks.md` as a new `## Phase N+1: Review Fixes`. Execute these fix tasks IMMEDIATELY — **no human gate needed** (these are minor, within-scope fixes), because executing them is how the open findings get closed. Do not proceed while one is still open. After fixes are done, re-verify only the fixed items, then proceed to the next spec. |
 | **FAILED** | STOP. Present the review to the user for a decision. Do NOT auto-fix — the scope of failure requires human judgment (possible design gap, missing requirement, or fundamental misunderstanding). This is one of the four valid stop reasons. |
 
 ### Execution Rules
