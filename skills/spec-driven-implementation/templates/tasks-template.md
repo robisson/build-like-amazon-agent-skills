@@ -21,7 +21,7 @@
 - [!] Blocked     — Cannot proceed (add reason after marker)
 ```
 
-When resuming after an interruption, scan for `- [-]` markers to find where work was left off. Continue from the in-progress task.
+The resume rule is **not** defined here. See `.claude/commands/build.md` → "Resuming after interruption" for the single definition of how an interrupted build picks work back up; this template only defines the markers it reads. The legend above is canonical vocabulary — do not restate the resume procedure alongside it.
 
 ## Legend
 
