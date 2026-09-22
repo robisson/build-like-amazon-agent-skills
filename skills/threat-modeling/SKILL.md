@@ -32,6 +32,10 @@ A threat model is not a penetration test. Penetration testing finds bugs in impl
 
 Load `agents/security-guardian.md` when reviewing the threat model. Use it to challenge trust boundaries, data classification, least privilege, encryption, blast radius, and missing abuse cases.
 
+## Template
+
+Write the threat model into `skills/threat-modeling/templates/threat-model-template.md`. The template records the decisions this skill produces — classification, boundaries, STRIDE per crossing, IAM, encryption, blast radius, accepted risks — and deliberately does not restate the tables below, which are the authority. It uses this skill's own `Critical`/`High`/`Medium`/`Low` severities, mapped to the canonical levels in `AGENTS.md` → *One Severity Scale and One Verdict Scale*, and adds no new label.
+
 ## Amazon Context
 
 Threat models are living documents maintained alongside design documents. They are updated when the system changes, when new threat intelligence emerges, or when incidents reveal gaps. Every system that handles customer data, credentials, or payment information requires a formal threat model reviewed by security teams before launch.

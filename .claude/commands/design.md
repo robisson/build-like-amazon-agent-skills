@@ -98,6 +98,7 @@ Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING
 
 ### Step 3: Threat Modeling (if security-sensitive)
 - Read skill: skills/threat-modeling/SKILL.md
+- Follow `skills/threat-modeling/templates/threat-model-template.md` — it is the shape of `threat-model.md`, including the terminal verdict block `agents/security-guardian.md` ends the file with.
 - Load `agents/security-guardian.md` and review the design through the security guardian lens.
 - Produce: Threat model with mitigations
 - 🚦 GATE: Present the threat model. Ask: "Any security concerns I missed?"
