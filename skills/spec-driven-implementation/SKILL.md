@@ -571,7 +571,7 @@ Before marking the spec process complete for a slice:
 - [ ] Approval gates have been passed for all three documents
 - [ ] `implementation-verifier` passes after final wave
 - [ ] At spec completion, every entry in `tasks.md` is `[x]` (done) or `[!]` (blocked, with documented reason). No task remains `[ ]` or `[-]`. The orchestrator (the agent running `/build`) is responsible for keeping this file truthful throughout execution — sub-agents never edit `tasks.md` directly.
-- [ ] Execution closure has not been mistaken for delivery: if any `[!]` corresponds to an unimplemented acceptance criterion, `implementation-review.md` records `PASSED WITH FIXES NEEDED` or `FAILED`, never `PASSED`.
+- [ ] The spec's execution closure has not been mistaken for delivery: if any `[!]` corresponds to an unimplemented acceptance criterion, `implementation-review.md` records `PASSED WITH FIXES NEEDED` or `FAILED`, never `PASSED`.
 
 ## Tenets
 
