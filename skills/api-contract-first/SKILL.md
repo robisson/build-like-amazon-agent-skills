@@ -87,6 +87,8 @@ Before any implementation:
 
 The implementation serves the contract. Never let implementation convenience dictate API shape.
 
+Record the set of contracts in `skills/api-contract-first/templates/api-contracts-template.md`. That file is an **index and decision record**, never a substitute for the artefacts above: one row per surface with its protocol, the standard chosen, the artefact path and the reason, plus the clients, the versioning stance per surface and what is frozen since when. It is the file `/design` Step 2 and `/onboard` Path A produce alongside the protocol-native artefacts.
+
 ### 2. Backward Compatibility Rules
 
 #### What You Can Do (Non-Breaking)
