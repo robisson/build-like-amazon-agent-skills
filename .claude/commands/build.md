@@ -222,6 +222,17 @@ After ALL tasks in a spec's `tasks.md` are marked `[x]` (or `[!]` with a documen
 
 **Then run an implementation review.** This is NOT optional — it is a quality gate equivalent to green-build gates. Load `agents/implementation-verifier.md` and verify the implementation through the implementation verifier lens.
 
+**Dispatch it with author-isolated context for Medium and Large.** At those ceremony levels (`AGENTS.md` → *Match the Ceremony to the Change*) the implementation review is dispatched as a sub-agent, using the same sub-agent protocol as any task wave — and for the same reason it works there: a dispatched reviewer must start from zero and has no memory of the project, which is precisely the property a review of your own output needs. Give the reviewer sub-agent exactly this and nothing more:
+
+- the spec artifacts — `requirements.md`, `design.md` (§6 Properties table included) and `tasks.md` with its final markers;
+- the frozen API contract the implementation was built against;
+- the diff under review, and the scope it was allowed to touch;
+- the action items from `coherence-review.md` that bound this spec.
+
+Do **not** pass your justifications for any of it: no "we did X because Y", no walkthrough of your reasoning, no defence of a shortcut. A reviewer handed the author's reasoning reviews the reasoning and approves it, which is how a self-check disguises itself as a review.
+
+For **Trivial** and **Small** changes, continue with persona activation in this context — the ladder scopes the cost, and there is no diff big enough to justify a dispatch. Either way this is the **same review mechanism** with the same verdicts, the same finding format and the same single report at `specs/<slice-name>/implementation-review.md`; the only variable is whether the reviewer is isolated from the author. There is no second review and no second report.
+
 ### What to Check
 
 1. Does the implementation match what the spec defined? (requirement by requirement)
