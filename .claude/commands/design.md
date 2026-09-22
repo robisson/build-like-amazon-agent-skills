@@ -129,6 +129,27 @@ Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING
 - If the review verdict is **NEEDS REVISION**, go back and fix the spec artifacts before releasing to `/build`.
 - See `skills/spec-driven-implementation/SKILL.md` → Step 7 for full details and output format.
 
+## Finding format
+
+Every finding in a persisted report is written in this one shape:
+
+`[SEVERITY] file:line — <concrete condition> → <observable wrong result> → <required fix>`
+
+- The admission rule is **no anchor, no entry**: a finding with no `file:line` anchor — `file:section` for a document — does not enter the report. If you cannot point at the line, you have a suspicion to go investigate, not a finding to report.
+- **ID** — `F-01`, `F-02`, … assigned in the order found and stable for the life of the report. A re-review reuses the ID and never renumbers, because the ID is how the fix, the re-review and any accepted-risk row all refer to the same thing.
+- **Impact** — what breaks in production, in one line. This is the golden rule's answer, written down.
+- **Confidence** — `high`, `medium` or `low`: how sure you are that the condition actually holds.
+- **Minimal fix** — the smallest change that removes the condition, not the redesign you would prefer.
+- **Status** — one of `OPEN`, `FIXED`, `ACCEPTED-WITH-RISK`, `NOT-REPRODUCIBLE`, `SUPERSEDED`, defined in `skills/code-review-bar-raising/SKILL.md` → *Finding lifecycle in a persisted report*.
+
+`[SEVERITY]` is a slot, not a literal: write the label this surface already uses and let the canonical level appear in the report's `Findings:` counts line (`AGENTS.md` → *One Severity Scale and One Verdict Scale*).
+
+Order the findings by impact. The rule is literal: **priority is impact, never confidence.** A `low`-confidence finding about silent data loss outranks a `high`-confidence finding about a name. Confidence tells the author how hard to look before acting; it never demotes a finding and is never a reason to leave one out.
+
+**IDs and the lifecycle apply only to a report persisted to disk** — the Medium and Large ceremony levels, where a file exists for a later review to update. An inline review of a Trivial change carries no IDs and no lifecycle: there is no file, so there is nothing to renumber and nothing to supersede. The anchor rule and the golden rule still apply; they cost nothing.
+
+The threat model of Step 3 and the review checklist of Step 4 are persisted reports, so both carry IDs and the lifecycle. For a design finding the anchor is the design document's section (`design-doc.md §4`) or the contract artifact and the path inside it (`openapi.yaml` → `/orders` `post`) — that is this surface's `file:line`.
+
 ## Important: Boundary with /build
 
 The `/design` command is responsible for creating ALL specs. The `/build` command does NOT create specs — it reads existing specs and executes their tasks. If `/build` is invoked and no specs exist, it must stop and tell the user to run `/design` first.

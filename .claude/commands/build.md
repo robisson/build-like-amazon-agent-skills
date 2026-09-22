@@ -248,9 +248,9 @@ Produce the following structured review and save it to `specs/<slice-name>/imple
 | Req 2.1 | "THE system SHALL log all requests" | `middleware.ts:12` | ⚠️ Partial (missing error path) |
 
 ### Findings
-- [FIX REQUIRED] Req 1.2 — No validation handler found. Add input validation returning 400.
-- [FIX REQUIRED] Req 2.1 — Logging exists for success path but not error path. Add error logging in catch block.
-- [MINOR] Task 3.2 — Test covers happy path but not edge case from AC 3.2.c.
+- **F-01** [FIX REQUIRED] `handler.ts:45` — Req 1.2 has no validation branch on the request body → an invalid body is accepted and answered `200` instead of `400` → add the input validation handler. Impact: invalid records reach the store. Confidence: high. Minimal fix: validate at the handler boundary. Status: OPEN
+- **F-02** [FIX REQUIRED] `middleware.ts:12` — Req 2.1 logging covers the success path only → a failed request leaves no trace for the on-call → add error logging in the catch block. Impact: failures are unsupportable at 3 AM. Confidence: high. Minimal fix: one log line in the existing catch. Status: OPEN
+- **F-03** [MINOR] `handler.test.ts:88` — Task 3.2 covers the happy path but not AC 3.2.c → the edge case can regress unnoticed → add the edge-case test. Impact: none today. Confidence: high. Minimal fix: one test case. Status: OPEN
 - [OK] All PBT properties from design.md §6 pass.
 - [OK] No unspecified code found — implementation is within scope.
 
@@ -259,6 +259,27 @@ Produce the following structured review and save it to `specs/<slice-name>/imple
 - [ ] Fix: Add error-path logging for Req 2.1 (Size: S, Design: §3.5, Requirements: 2.1)
 - [ ] Fix: Add edge case test for AC 3.2.c (Size: S, Requirements: 3.2)
 ```
+
+### Finding format
+
+Every finding in a persisted report is written in this one shape:
+
+`[SEVERITY] file:line — <concrete condition> → <observable wrong result> → <required fix>`
+
+- The admission rule is **no anchor, no entry**: a finding with no `file:line` anchor — `file:section` for a document — does not enter the report. If you cannot point at the line, you have a suspicion to go investigate, not a finding to report.
+- **ID** — `F-01`, `F-02`, … assigned in the order found and stable for the life of the report. A re-review reuses the ID and never renumbers, because the ID is how the fix, the re-review and any accepted-risk row all refer to the same thing.
+- **Impact** — what breaks in production, in one line. This is the golden rule's answer, written down.
+- **Confidence** — `high`, `medium` or `low`: how sure you are that the condition actually holds.
+- **Minimal fix** — the smallest change that removes the condition, not the redesign you would prefer.
+- **Status** — one of `OPEN`, `FIXED`, `ACCEPTED-WITH-RISK`, `NOT-REPRODUCIBLE`, `SUPERSEDED`, defined in `skills/code-review-bar-raising/SKILL.md` → *Finding lifecycle in a persisted report*.
+
+`[SEVERITY]` is a slot, not a literal: write the label this surface already uses and let the canonical level appear in the report's `Findings:` counts line (`AGENTS.md` → *One Severity Scale and One Verdict Scale*).
+
+Order the findings by impact. The rule is literal: **priority is impact, never confidence.** A `low`-confidence finding about silent data loss outranks a `high`-confidence finding about a name. Confidence tells the author how hard to look before acting; it never demotes a finding and is never a reason to leave one out.
+
+**IDs and the lifecycle apply only to a report persisted to disk** — the Medium and Large ceremony levels, where a file exists for a later review to update. An inline review of a Trivial change carries no IDs and no lifecycle: there is no file, so there is nothing to renumber and nothing to supersede. The anchor rule and the golden rule still apply; they cost nothing.
+
+`[FIX REQUIRED]` and `[MINOR]` go in the `[SEVERITY]` slot. `[OK]` lines are not findings: they carry no ID, no status, and no place in any count. `implementation-review.md` is a persisted report, so the re-verification after the fix tasks updates it — moving each finding to `FIXED` — instead of writing a fresh report over it.
 
 ### Verdicts and Actions
 

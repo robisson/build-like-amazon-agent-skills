@@ -147,7 +147,7 @@ Reviewers categorize their feedback:
 |--------|---------|---------------|
 | `[BLOCKING]` | Must fix before merge. Correctness or operational issue. | Fix required. |
 | `[IMPORTANT]` | Should fix. Design or clarity issue. | Fix or explain why not. |
-| `[NIT]` | Minor style or preference. Nice to have. | Fix if easy, skip if not. |
+| `[NIT]` | Minor style or preference. Nice to have. | Fix if easy, skip if not. **Never blocks, and never counts toward the blocking total** — a held gate is never a `[NIT]`'s doing. |
 | `[QUESTION]` | Clarification needed. Might reveal an issue. | Answer in comment or code. |
 | `[PRAISE]` | Particularly good code. Worth calling out. | Enjoy. Keep doing this. |
 
@@ -181,6 +181,24 @@ Reviewers categorize their feedback:
 │  ❌ I understand every line in detail                    │
 └─────────────────────────────────────────────────────────┘
 ```
+
+**The compensating duty for that last line.** "Ship It" does not require understanding every line — but every line you did **not** understand must be declared in the review. Name the file and the range you did not follow and say why (generated code, an unfamiliar framework, outside your area), so the author and the next reviewer can see where the review's coverage actually ends. A review that did not reach the bar of understanding for the change it is approving emits INCOMPLETE, not Ship It. A partial read is a legitimate outcome; presenting it silently as a full one is not, because everyone downstream treats "Ship It" as evidence the change was understood. INCOMPLETE is defined in `AGENTS.md` → *One Severity Scale and One Verdict Scale*.
+
+### 7. Finding lifecycle in a persisted report
+
+A review written to a file outlives the conversation that produced it, so each finding needs a state and the file needs a history. Every finding in a persisted report carries exactly one of five states. This closed set is the only lifecycle vocabulary in this library — the reviewers in `agents/` and the commands that run them refer back to this table rather than defining their own.
+
+| State | Meaning | Who may set it |
+|-------|---------|----------------|
+| `OPEN` | Reported and unresolved. The state on entry. A BLOCKING finding in this state holds the gate. | The reviewer, on entry |
+| `FIXED` | The condition no longer holds, confirmed at the anchor by a re-read of the code — not by the author's assurance that it was addressed. | The re-review |
+| `ACCEPTED-WITH-RISK` | Deliberately not fixed, with a row in the accepted-risk table (`AGENTS.md` → Operating Behavior 3) naming the mitigation, the owner and the date. This is the only way a finding leaves `OPEN` without being fixed. | The human who owns the decision |
+| `NOT-REPRODUCIBLE` | The condition could not be reproduced on re-examination. Record what was tried, so the next reviewer does not start from zero. | The re-review |
+| `SUPERSEDED` | The code or artifact changed enough that the finding no longer describes it. Name the finding or the change that replaces it. | The re-review |
+
+**A later review updates the report; it does not recreate it.** Every report path in this library is fixed — `specs/<slice-name>/implementation-review.md`, `docs/reviews/<feature-name>/code-review.md`, and the equivalents each reviewer declares in its IO contract — so writing a fresh report over one destroys the history that makes it useful: which findings were accepted, by whom, and what was already ruled not reproducible. On re-review, keep every existing ID, move states forward, append new findings with the next free IDs, and stamp the round. A finding never disappears; it changes state.
+
+**Scope.** This lifecycle, and the IDs it depends on, apply only when the report is persisted to disk — Medium and Large on the ceremony ladder. An inline review of a Trivial change has no file, no IDs and no lifecycle: it has a conversation and a fix.
 
 ## Mechanisms Over Good Intentions
 
