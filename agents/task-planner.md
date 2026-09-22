@@ -29,7 +29,9 @@ Dependencies are edges in a directed acyclic graph (DAG). If your graph has cycl
 ### Group Into Parallelizable Waves
 A **wave** is a set of tasks that can execute concurrently because they have no intra-wave dependencies. Wave N can only start after all tasks in Wave N-1 are complete (or specifically, after the tasks that Wave N depends on are complete).
 
-Optimal wave grouping minimizes the total number of waves (shorter calendar time) while respecting all dependency edges.
+Absence of a logical dependency does NOT imply write safety. Two tasks can be independent in the graph and still write the same file — a barrel of exports, a router registration, a shared schema migration. File collision is the **second** condition for a wave: tasks may share a wave only when they have no intra-wave dependency **and** no overlap in the files they write. When the overlap is mandatory, serialise: keep one task in the wave and push the colliding task to the next.
+
+Optimal wave grouping minimizes the total number of waves (shorter calendar time) while respecting all dependency edges — never at the cost of a write collision. A wave with one extra task that corrupts a shared file is slower than a wave boundary.
 
 ### Identify the Critical Path
 The critical path is the longest chain of dependent tasks through the graph. It determines the minimum calendar time to complete the spec, regardless of parallelization.
