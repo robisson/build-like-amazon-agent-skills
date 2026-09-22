@@ -73,6 +73,21 @@ jobs:
           [ -z "$glued" ] \
             || { echo "FALHA [heading-needs-blank-line] README.md needs a blank line before the heading on line(s):$glued"; f=1; }
 
+          # Real memory rules are `### IM-<digit>`; `### IM-XXX` is the placeholder inside the Rule
+          # Shape fenced block. The loose `^### IM-` counts the placeholder as a rule, so the cap is
+          # checked against the tight pattern and the cap itself is read from the document that
+          # declares it instead of being hardcoded here.
+          im_real=$(grep -c '^### IM-[0-9]' docs/implementation-memory.md | tr -d ' ' || true)
+          im_all=$(grep -c '^### IM-' docs/implementation-memory.md | tr -d ' ' || true)
+          im_cap=$(grep -oE 'Maximum ([0-9]+) active rules' skills/implementation-memory/SKILL.md \
+                   | grep -oE '[0-9]+' | head -1 || true)
+          [ -n "$im_cap" ] \
+            || { echo "FALHA [memory-cap-undeclared] skills/implementation-memory/SKILL.md no longer declares 'Maximum N active rules'"; f=1; im_cap=12; }
+          [ "$im_real" -le "$im_cap" ] \
+            || { echo "FALHA [memory-cap-exceeded] docs/implementation-memory.md has $im_real active rules, cap is $im_cap"; f=1; }
+          [ "$im_all" = "$((im_real + 1))" ] \
+            || { echo "FALHA [memory-shape-placeholder] docs/implementation-memory.md has $im_all '### IM-' headings for $im_real rules; the Rule Shape placeholder must be present exactly once and must not be numbered"; f=1; }
+
           [ "$f" -eq 0 ] || exit 1
 
       - name: frontmatter
