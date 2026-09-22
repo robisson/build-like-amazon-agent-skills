@@ -66,7 +66,7 @@ This circular lifecycle means every operational lesson feeds back into the next 
 <details>
 <summary><strong>Kiro IDE & CLI</strong></summary>
 
-Kiro uses three mechanisms: **skills** (workflow guidance), **steering** (persistent operating rules), and **commands** (slash commands). To get the full workflow running:
+Kiro uses two mechanisms in this repository: **skills** (workflow guidance) and **commands** (slash commands). To get the full workflow running:
 
 **With Kiro IDE, you dont need to execute /spec command, because kiro alreadt an excepcional native support to spec driven developmentm but the other commands area still very useful**
 
@@ -78,12 +78,11 @@ cd your-project
 cp -r build-like-amazon/.kiro/skills/ .kiro/skills/
 cp -r build-like-amazon/skills/ .kiro/skills/amazon/
 
-# 2. Steering — operating contract (approval gates, assumptions, simplicity)
-mkdir -p .kiro/steering
-cp build-like-amazon/AGENTS.md .kiro/steering/amazon-engineering.md
-
-# 3. Commands — slash commands (/wb, /design, /build, /deploy, etc.)
+# 2. Commands — slash commands (/wb, /design, /build, /deploy, etc.)
 cp -r build-like-amazon/.kiro/commands/ .kiro/prompts/
+
+# 3. Operating contract — approval gates, assumptions, simplicity
+cp build-like-amazon/AGENTS.md ./AGENTS.md
 ```
 
 Then use slash commands directly:
@@ -95,7 +94,7 @@ Then use slash commands directly:
 /deploy Plan progressive deployment for the API v2 release
 ```
 
-See [Kiro docs](https://kiro.dev/docs/skills/) for more on skills, steering, and commands.
+See [Kiro docs](https://kiro.dev/docs/skills/) for more on skills and commands.
 </details>
 
 <details>
