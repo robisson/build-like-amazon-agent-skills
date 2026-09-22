@@ -35,7 +35,7 @@ All sources use the same Quality Memory Review process, admission checks, and re
 
 Use this mechanism in these places:
 
-1. **Before `/build` task execution**: read the current spec/tasks first, then select only active memory rules whose `Applies when` field AND `Tags`/`File patterns` match the current work.
+1. **Before `/build` task execution**: read the current spec/tasks first, then select active memory rules as defined in **Pre-Build Selection** below — a rule is selected if ANY signal matches (`Tags`, `File patterns`, or `Applies when`). That section is the single definition of the selection semantics; this hook only says when it runs.
 2. **After implementation review (semi-automatic trigger)**: when the verdict is PASSED WITH FIXES NEEDED, the agent MUST automatically extract up to 2 candidate learnings from the fix findings and present them to the user for Accept / Reject / Edit. This is the primary memory population path. When the verdict is PASSED, prompt the user to test the delivered behavior and bring back failures or feedback.
 3. **After user validation or explicit request**: run a Quality Memory Review using implementation results, implementation review, test/debug feedback, and user feedback to decide whether memory should be updated.
 4. **After `/review` findings are resolved**: if the review surfaced recurring patterns (same finding across 2+ PRs or explicitly flagged as "this keeps happening"), extract candidates and present for Accept / Reject / Edit.
