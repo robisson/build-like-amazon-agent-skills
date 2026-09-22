@@ -299,6 +299,20 @@ If you notice a skill is:
 
 Surface this to the user and suggest they open an issue or contribute an improvement.
 
+## Keep the Documentation Truthful in the Same Commit
+
+This repository *is* documentation: a stale cross-reference is a broken instruction, not a cosmetic defect. When you add, remove or rename a file, directory, command, skill, agent or frontmatter field, search the repository for references to the old name and update every one of them **in the same commit** as the change itself.
+
+Surfaces to search, at minimum: `README.md`, `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`, every `*/commands/` directory, and `docs/`.
+
+Three checks before you consider the change done:
+
+- Counts stated in prose or badges (for example "28 skills") still match what is on disk.
+- No cross-reference points at a path, heading or field that no longer exists.
+- If you renamed something, you grepped the old name across the whole repository and found nothing left.
+
+A follow-up commit "fix the docs" is not acceptable: between the two commits the contract lies, and an agent reading it acts on the lie.
+
 ---
 
 *These operating behaviors are mechanisms, not suggestions. Follow them consistently — that's how quality compounds over time.*

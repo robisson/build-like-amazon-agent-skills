@@ -201,6 +201,9 @@ Checkpoints define what "done" means for each phase. They can be:
    - [ ] At least one example and one anti-pattern included
    - [ ] Bar raiser questions are specified
    - [ ] Tested with at least one AI agent
+   - [ ] Counts stated in README match what is on disk
+   - [ ] No cross-reference points at a non-existent path, heading or field
+   - [ ] If I renamed something, I searched the old name across the repository
 4. **Review**: A maintainer will review for:
    - Consistency with existing skills
    - Clarity and executability of instructions
