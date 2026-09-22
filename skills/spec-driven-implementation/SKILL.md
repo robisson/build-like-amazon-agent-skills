@@ -219,7 +219,7 @@ Once a spec is approved:
 Parallel execution within a wave is safe only when **both** of these invariants hold:
 
 1. **No intra-wave logical dependency.** No task in the wave consumes an output produced by another task in the same wave. This one the `task-planner` does guarantee — it is exactly what the dependency graph models.
-2. **No intersection of files written within the wave.** No two tasks in the wave write the same file. This one the graph does **not** model: `templates/tasks-template.md` carries `depends_on`, `wave`, `size`, `type` and `door` per task, and no file field at all. Nothing in the current artifact can prove invariant 2.
+2. **No intersection of files written within the wave.** No two tasks in the wave write the same file. This one the graph does **not** model: `skills/spec-driven-implementation/templates/tasks-template.md` carries `depends_on`, `wave`, `size`, `type` and `door` per task, and no file field at all. Nothing in the current artifact can prove invariant 2.
 
 Because invariant 2 is unmodelled, it must be established by reading the tasks before dispatching a wave. When two tasks in the same wave must write the same file — a barrel of exports, a router registration, a schema migration — the intersection is mandatory and parallel execution would produce a lost write or a conflict. Serialise them: keep one task in the wave and move the colliding task to the next wave.
 

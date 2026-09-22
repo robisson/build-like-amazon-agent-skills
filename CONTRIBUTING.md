@@ -24,19 +24,15 @@ Thank you for your interest in contributing! This project thrives on community c
 
 ## Skill Anatomy
 
-Every skill follows a consistent structure that AI agents can parse reliably:
+Every skill follows a consistent structure that AI agents can parse reliably. The frontmatter carries **exactly three keys** — `name`, `description` and `leadership_principles` — on every skill in `skills/`. There is no `command`, `phase`, `bar-raisers` or `triggers` key: a skill is matched from its `description`, and its lifecycle phase is recorded in the catalogue in `README.md`, not in the file. Do not add keys; see [`docs/skill-anatomy.md`](docs/skill-anatomy.md) for the field rules.
 
 ```markdown
 ---
-name: skill-name
-command: /command
-phase: working-backwards | design | build | deploy | operate | learn | meta
-description: One-line description of what this skill does
-bar-raisers:
-  - persona-name
-triggers:
-  - natural language trigger
-  - another trigger phrase
+name: Human-Readable Skill Name
+description: One-sentence description of what this skill covers and why it matters.
+leadership_principles:
+  - Customer Obsession
+  - Ownership
 ---
 
 # Skill Title

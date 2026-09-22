@@ -233,7 +233,7 @@ Adjust the ceremony, terminology, thresholds. But don't remove the hard parts (g
 
 - **Philosophy** — read [`docs/philosophy.md`](philosophy.md) for *why* the practices exist
 - **Skill anatomy** — read [`docs/skill-anatomy.md`](skill-anatomy.md) if you want to write your own skill
-- **All skills** — full catalog in the [README](../README.md#all-27-skills)
+- **All skills** — full catalog in the [README](../README.md#all-28-skills)
 - **Bar raiser personas** — [`agents/`](../agents/) directory
 - **Architectural patterns** — [`patterns/`](../patterns/) directory
 - **Operating contract for agents** — [`AGENTS.md`](../AGENTS.md) (read this if you're a contributor or building a new integration)
