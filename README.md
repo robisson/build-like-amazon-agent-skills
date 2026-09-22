@@ -271,7 +271,7 @@ See [docs/getting-started.md](docs/getting-started.md) for the full setup guide.
 | Infrastructure as Code | [`build-iac.md`](skills/infrastructure-as-code/SKILL.md) | Define infrastructure declaratively with reviewable, testable, rollback-aware changes |
 | Technical Debt | [`build-tech-debt.md`](skills/operational-code/SKILL.md) | Identify, classify, and systematically address technical debt |
 | Spec-Driven Implementation | [`spec-driven-implementation/SKILL.md`](skills/spec-driven-implementation/SKILL.md) | Bridge between Design Document and code — decompose into vertical specs (requirements → design → tasks) with dependency ordering and parallel execution |
-| Implementation Memory | [`implementation-memory/SKILL.md`](skills/implementation-memory/SKILL.md) | Capture recurring implementation learnings as a fixed-size, procedural rule set selected by tags and file patterns during `/build` |
+| Implementation Memory | [`implementation-memory/SKILL.md`](skills/implementation-memory/SKILL.md) | Capture recurring implementation learnings as a fixed-size, procedural rule set selected by phase, tags and file patterns during `/build` |
 
 ### Deploy (2 skills)
 

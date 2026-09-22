@@ -183,7 +183,7 @@ For the full state-transition protocol and resume rules, see `.claude/commands/b
 
 ### 10. Implementation Memory During /build
 
-After the current spec/tasks and `coherence-review.md` action items are known, read `skills/implementation-memory/SKILL.md` and `docs/implementation-memory.md` if present. Select active rules using multi-signal matching (Tags, File patterns, or `Applies when` prose). Increment `Hit count` for each selected rule. Unmatched rules are ignored and never become requirements. This is an internal mechanism, not a separate user-facing command.
+After the current spec/tasks and `coherence-review.md` action items are known, read `skills/implementation-memory/SKILL.md` and `docs/implementation-memory.md` if present. Select active rules using multi-signal matching (Tags, File patterns, or `Applies when` prose). A rule is selected only when its `Phase` matches the current phase and any one of those signals matches; a rule whose `Phase` belongs to another phase is never selected, however well its tags or patterns fit. Increment `Hit count` for each selected rule. Unmatched rules are ignored and never become requirements. This is an internal mechanism, not a separate user-facing command.
 
 **Semi-automatic trigger (primary population path):** When implementation review verdict is PASSED WITH FIXES NEEDED and fix tasks are done, generate a self-reflection, extract up to 2 candidate learnings, and present to user for Accept / Reject / Edit. Do not wait for the user to ask.
 
