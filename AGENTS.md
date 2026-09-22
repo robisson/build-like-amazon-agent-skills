@@ -192,7 +192,7 @@ Keep memory fixed-size (max 12 rules), procedural, and harness-agnostic.
 While writing code in `/build`:
 
 - **Pick the paradigm by context.** Functional core, imperative shell as default. SOLID where entities have lifecycle. Procedural for short scripts.
-- **Naming carries the design.** No `process`, `handle`, `data`, `info`, `temp` in production code.
+- **Naming carries the design.** No `process`, `data`, `info`, `temp` in production code.
 - **Functions do one thing at one level of abstraction.** Small and shallow.
 - **Cyclomatic complexity is a smell, not a metric.** High branching means decomposition, not tolerance.
 - **No comments that describe *what*; only *why*.** Rename and extract until comments are unnecessary.
