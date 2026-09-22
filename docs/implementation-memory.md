@@ -17,13 +17,16 @@ Update policy:
 - Reject product requirements, feature facts, architecture decisions, changelog entries, raw feedback, secrets, customer data, and one-off details.
 - If adding a rule would exceed 12 active rules, merge or remove weaker rules before writing.
 - Stale threshold: rules unused for >90 days are candidates for pruning during Quality Memory Review.
+- `Prevented` increments ONLY with concrete evidence that the rule stopped something: a validator blocked, a test failed before merge, or a review cited the rule by ID. Applying a rule, or believing it helped, is not evidence.
+- `Confidence: Proven` requires `Prevented >= 1` backed by such evidence. Without a named writer of that evidence, the rule stays at `Established` and `Prevented: 0`.
 
-Capture sources: `/build` (post-implementation review), `/review` (recurring findings), `/learn` (COE implementation-level actions).
+Capture sources: `/design` (a requirement that bounced at the design gate 3 or more times), `/spec` (a coherence-review finding that recurs across specs), `/build` (post-implementation review), `/review` (recurring findings), `/learn` (COE implementation-level actions).
 
 ## Active Rules
 
 ### IM-001: Produce Required Workflow Artifacts
 Tags: [workflow, artifact-generation, build-output]
+Phase: build
 File patterns: specs/**/implementation-review.md, specs/**/coherence-review.md
 Applies when: Executing repository workflows that define review, coherence, implementation-review, or other persisted artifacts.
 Rule: Generate the required artifact file in the expected path before treating the workflow step as complete.
@@ -32,12 +35,13 @@ Evidence: User feedback.
 Impact: High
 Confidence: Established
 Hit count: 2
-Prevented: 1
+Prevented: 0
 Created: 2026-05-26
 Last used: 2026-05-26
 
 ### IM-002: Keep Workflow Mechanisms Native And Internal
 Tags: [workflow, skill-design, internal-mechanism]
+Phase: build
 File patterns: skills/**/*.md, .claude/commands/*.md
 Applies when: Implementing a skill, command, Markdown workflow, or internal quality mechanism.
 Rule: Describe documentation-only contracts as workflow behavior, tables, templates, and verification checks; integrate internal mechanisms at the existing workflow step where they belong.
@@ -46,7 +50,7 @@ Evidence: User feedback.
 Impact: High
 Confidence: Established
 Hit count: 2
-Prevented: 1
+Prevented: 0
 Created: 2026-05-26
 Last used: 2026-05-26
 
@@ -57,15 +61,16 @@ Use this shape when adding an active rule:
 ```markdown
 ### IM-XXX: [Short rule name]
 Tags: [api, error-handling, testing, infra, ui, data-pipeline, security, observability, workflow, ...]
+Phase: [wb | design | spec | build | deploy | operate]
 File patterns: [optional glob patterns, e.g. src/api/**, tests/integration/**]
 Applies when: [Spec/component/risk conditions where this rule is relevant.]
 Rule: [Actionable implementation behavior.]
 Avoid: [Specific behavior to avoid.]
 Evidence: [Review feedback | user feedback | test failure | build defect | repeated pattern.]
 Impact: [Critical | High | Medium]
-Confidence: [Proven (prevented issues) | Established (applied successfully) | New (just added)]
+Confidence: [Proven (Prevented >= 1 backed by evidence) | Established (applied successfully) | New (just added)]
 Hit count: [N — number of builds where this rule was selected and applied]
-Prevented: [N — number of times this rule demonstrably prevented an issue]
+Prevented: [N — number of times this rule demonstrably prevented an issue; increment only with concrete evidence that the rule stopped something]
 Created: [YYYY-MM-DD]
 Last used: [YYYY-MM-DD]
 Builds on: [[IM-YYY]] (optional — reference to a related/prerequisite rule)

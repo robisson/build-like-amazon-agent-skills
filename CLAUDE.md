@@ -132,7 +132,7 @@ Even without explicit slash commands, activate relevant skills when:
 | Path | Purpose |
 |------|---------|
 | `AGENTS.md` | Core operating behaviors + approval gate rules |
-| `skills/` | 27 workflow skills organized by lifecycle phase |
+| `skills/` | 28 workflow skills organized by lifecycle phase |
 | `agents/` | 10 bar raiser personas for specialized review |
 | `patterns/INDEX.md` | Lightweight pattern catalog — read ONLY this during `/design` and `/spec` to decide relevance. Load full `PATTERN.md` only when criteria match. |
 | `patterns/` | Full architectural pattern definitions (cell-based, SaaS, agentic AI) |

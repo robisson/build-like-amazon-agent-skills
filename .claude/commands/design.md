@@ -39,6 +39,8 @@ Before starting the full design flow, detect the project state and classify the 
 
 ## Execution Order (MANDATORY — do NOT skip or reorder)
 
+Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING that is still open removes the option to approve and advance: the only remaining options are fix it, accept it with the risk recorded in the accepted-risk table, or pause. A review report without a parseable verdict block counts as BLOCKING. This applies to the threat model of Step 3 and the design review of Step 4 in particular: an open `Critical` or `High` finding from `agents/security-guardian.md`, or an open BLOCKING finding from `agents/design-bar-raiser.md`, holds the gate until it is fixed, accepted with the risk recorded, or the design is paused. The mapping from each surface's own label to the canonical level is in `AGENTS.md` → *One Severity Scale and One Verdict Scale*.
+
 ### Step 0a: Dependency Context Assessment
 - Read skill: skills/dependency-management/SKILL.md
 - Before writing the design document, identify whether the system crosses any network, database, cache, queue, third-party API, service, or configuration boundary.
@@ -96,6 +98,7 @@ Before starting the full design flow, detect the project state and classify the 
 
 ### Step 3: Threat Modeling (if security-sensitive)
 - Read skill: skills/threat-modeling/SKILL.md
+- Load `agents/security-guardian.md` and review the design through the security guardian lens.
 - Produce: Threat model with mitigations
 - 🚦 GATE: Present the threat model. Ask: "Any security concerns I missed?"
 - ⛔ DO NOT proceed to Step 4 until the user approves.
@@ -103,8 +106,10 @@ Before starting the full design flow, detect the project state and classify the 
 
 ### Step 4: Design Review Checklist
 - Read skill: skills/design-review/SKILL.md
-- Run the design review checklist against your own design
-- Present findings and self-assessment
+- Load `agents/design-bar-raiser.md` and review the design through the design bar raiser lens. **Self-assessment is not a design review.** For a **Medium** or **Large** design, dispatch it as a sub-agent with author-isolated context: it receives the design artifacts, the API contract(s) and `requirements.md`, and **not** your rationale for any of them — a reviewer handed the author's reasoning reviews the reasoning instead of the design. For **Trivial** and **Small**, activate the persona in this context; the ceremony ladder scopes it (`AGENTS.md` → *Match the Ceremony to the Change*). It is the same review either way, with the reviewer isolated from the author where that pays for itself.
+- Run the design review checklist as the dispatched reviewer, against the artifacts rather than against the intent behind them
+- Present the reviewer's findings and checklist result, attributed to the reviewer — not a self-assessment of your own design
+- If the review is contested — two defensible options and no agreement — load `agents/principal-engineer.md` and break the tie through the principal engineer lens.
 - 🚦 GATE: Ask: "Ready to proceed to implementation planning?"
 - ⛔ DO NOT proceed to Step 5 until the user approves.
 
@@ -123,6 +128,27 @@ Before starting the full design flow, detect the project state and classify the 
 - Output is saved to `specs/<slice-name>/coherence-review.md` with a structured "Action Items for Build Agent" section that the build agent treats as binding constraints.
 - If the review verdict is **NEEDS REVISION**, go back and fix the spec artifacts before releasing to `/build`.
 - See `skills/spec-driven-implementation/SKILL.md` → Step 7 for full details and output format.
+
+## Finding format
+
+Every finding in a persisted report is written in this one shape:
+
+`[SEVERITY] file:line — <concrete condition> → <observable wrong result> → <required fix>`
+
+- The admission rule is **no anchor, no entry**: a finding with no `file:line` anchor — `file:section` for a document — does not enter the report. If you cannot point at the line, you have a suspicion to go investigate, not a finding to report.
+- **ID** — `F-01`, `F-02`, … assigned in the order found and stable for the life of the report. A re-review reuses the ID and never renumbers, because the ID is how the fix, the re-review and any accepted-risk row all refer to the same thing.
+- **Impact** — what breaks in production, in one line. This is the golden rule's answer, written down.
+- **Confidence** — `high`, `medium` or `low`: how sure you are that the condition actually holds.
+- **Minimal fix** — the smallest change that removes the condition, not the redesign you would prefer.
+- **Status** — one of `OPEN`, `FIXED`, `ACCEPTED-WITH-RISK`, `NOT-REPRODUCIBLE`, `SUPERSEDED`, defined in `skills/code-review-bar-raising/SKILL.md` → *Finding lifecycle in a persisted report*.
+
+`[SEVERITY]` is a slot, not a literal: write the label this surface already uses and let the canonical level appear in the report's `Findings:` counts line (`AGENTS.md` → *One Severity Scale and One Verdict Scale*).
+
+Order the findings by impact. The rule is literal: **priority is impact, never confidence.** A `low`-confidence finding about silent data loss outranks a `high`-confidence finding about a name. Confidence tells the author how hard to look before acting; it never demotes a finding and is never a reason to leave one out.
+
+**IDs and the lifecycle apply only to a report persisted to disk** — the Medium and Large ceremony levels, where a file exists for a later review to update. An inline review of a Trivial change carries no IDs and no lifecycle: there is no file, so there is nothing to renumber and nothing to supersede. The anchor rule and the golden rule still apply; they cost nothing.
+
+The threat model of Step 3 and the review checklist of Step 4 are persisted reports, so both carry IDs and the lifecycle. For a design finding the anchor is the design document's section (`design-doc.md §4`) or the contract artifact and the path inside it (`openapi.yaml` → `/orders` `post`) — that is this surface's `file:line`.
 
 ## Important: Boundary with /build
 

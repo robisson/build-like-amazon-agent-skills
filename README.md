@@ -5,10 +5,10 @@
 **Production-grade engineering skills for AI coding agents, built on Amazon Way of building services.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Skills](https://img.shields.io/badge/skills-27-blue.svg)](#all-27-skills)
+[![Skills](https://img.shields.io/badge/skills-28-blue.svg)](#all-28-skills)
 [![Agents](https://img.shields.io/badge/bar_raiser_agents-10-orange.svg)](#10-agent-personas)
 
-[Getting Started](docs/getting-started.md) · [Quick Start](#quick-start) · [All Skills](#all-27-skills) · [Agent Personas](#10-agent-personas) · [Philosophy](#philosophy) · [Contributing](#contributing)
+[Getting Started](docs/getting-started.md) · [Quick Start](#quick-start) · [All Skills](#all-28-skills) · [Agent Personas](#10-agent-personas) · [Philosophy](#philosophy) · [Contributing](#contributing)
 
 </div>
 
@@ -66,7 +66,7 @@ This circular lifecycle means every operational lesson feeds back into the next 
 <details>
 <summary><strong>Kiro IDE & CLI</strong></summary>
 
-Kiro uses three mechanisms: **skills** (workflow guidance), **steering** (persistent operating rules), and **commands** (slash commands). To get the full workflow running:
+Kiro uses two mechanisms in this repository: **skills** (workflow guidance) and **commands** (slash commands). To get the full workflow running:
 
 **With Kiro IDE, you dont need to execute /spec command, because kiro alreadt an excepcional native support to spec driven developmentm but the other commands area still very useful**
 
@@ -78,12 +78,11 @@ cd your-project
 cp -r build-like-amazon/.kiro/skills/ .kiro/skills/
 cp -r build-like-amazon/skills/ .kiro/skills/amazon/
 
-# 2. Steering — operating contract (approval gates, assumptions, simplicity)
-mkdir -p .kiro/steering
-cp build-like-amazon/AGENTS.md .kiro/steering/amazon-engineering.md
-
-# 3. Commands — slash commands (/wb, /design, /build, /deploy, etc.)
+# 2. Commands — slash commands (/wb, /design, /build, /deploy, etc.)
 cp -r build-like-amazon/.kiro/commands/ .kiro/prompts/
+
+# 3. Operating contract — approval gates, assumptions, simplicity
+cp build-like-amazon/AGENTS.md ./AGENTS.md
 ```
 
 Then use slash commands directly:
@@ -95,7 +94,7 @@ Then use slash commands directly:
 /deploy Plan progressive deployment for the API v2 release
 ```
 
-See [Kiro docs](https://kiro.dev/docs/skills/) for more on skills, steering, and commands.
+See [Kiro docs](https://kiro.dev/docs/skills/) for more on skills and commands.
 </details>
 
 <details>
@@ -231,13 +230,13 @@ git clone https://github.com/robisson/build-like-amazon.git .build-like-amazon
 
 Point your agent to:
 - `AGENTS.md` — Core operating behaviors (approval gates, assumptions, simplicity)
-- `skills/` — 27 workflow skills organized by lifecycle phase
+- `skills/` — 28 workflow skills organized by lifecycle phase
 - `agents/` — 10 bar raiser personas for specialized review
 
 See [docs/getting-started.md](docs/getting-started.md) for the full setup guide.
 </details>
 
-## All 27 Skills
+## All 28 Skills
 
 ### Working Backwards (6 skills)
 
@@ -261,7 +260,7 @@ See [docs/getting-started.md](docs/getting-started.md) for the full setup guide.
 | Dependency Management | [`design-dependencies.md`](skills/dependency-management/SKILL.md) | Design dependency failure behavior — timeouts, retries, circuit breakers, bulkheads, graceful degradation |
 | Feature Flag Lifecycle | [`design-flags.md`](skills/feature-flag-lifecycle/SKILL.md) | Design controlled exposure — safe defaults, kill switches, rollout metrics, and cleanup |
 
-### Build (6 skills)
+### Build (7 skills)
 
 | Skill | File | Description |
 |-------|------|-------------|
@@ -271,13 +270,13 @@ See [docs/getting-started.md](docs/getting-started.md) for the full setup guide.
 | Infrastructure as Code | [`build-iac.md`](skills/infrastructure-as-code/SKILL.md) | Define infrastructure declaratively with reviewable, testable, rollback-aware changes |
 | Technical Debt | [`build-tech-debt.md`](skills/operational-code/SKILL.md) | Identify, classify, and systematically address technical debt |
 | Spec-Driven Implementation | [`spec-driven-implementation/SKILL.md`](skills/spec-driven-implementation/SKILL.md) | Bridge between Design Document and code — decompose into vertical specs (requirements → design → tasks) with dependency ordering and parallel execution |
+| Implementation Memory | [`implementation-memory/SKILL.md`](skills/implementation-memory/SKILL.md) | Capture recurring implementation learnings as a fixed-size, procedural rule set selected by tags and file patterns during `/build` |
 
-### Deploy (3 skills)
+### Deploy (2 skills)
 
 | Skill | File | Description |
 |-------|------|-------------|
 | Progressive Deployment | [`deploy-progressive.md`](skills/progressive-deployment/SKILL.md) | Canary → regional → global rollout with automated rollback triggers |
-| Feature Flags | [`deploy-flags.md`](skills/feature-flag-lifecycle/SKILL.md) | Execute flag rollout — gradual activation, guardrails, cleanup, and emergency kill |
 | Rollback Playbook | [`deploy-rollback.md`](skills/pipeline-safety/SKILL.md) | Decision framework for rollback vs. roll-forward with time-bound criteria |
 
 ### Operate (2 skills)
@@ -300,11 +299,14 @@ See [docs/getting-started.md](docs/getting-started.md) for the full setup guide.
 |-------|------|-------------|
 | Brownfield Discovery | [`brownfield-discovery/SKILL.md`](skills/brownfield-discovery/SKILL.md) | Reverse-engineer an existing project — produce Design Doc, API contracts, Threat Model from real code, IaC, observability. Run once per brownfield project; output anchors all subsequent `/spec` and `/build`. |
 
-### Meta (1 skill)
+### Meta (2 skills)
 
 | Skill | File | Description |
 |-------|------|-------------|
-| Skill Authoring | [`meta-authoring.md`](docs/skill-anatomy.md) | How to write new skills — anatomy, rationalizations, verification |
+| Using Amazon Skills | [`using-amazon-skills/SKILL.md`](skills/using-amazon-skills/SKILL.md) | Meta-skill that routes an ambiguous request to the right lifecycle phase and skill chain |
+| Mechanism Creation | [`mechanism-creation/SKILL.md`](skills/mechanism-creation/SKILL.md) | Turn good intentions into a mechanism — owner, instrumentation, inspection cadence, and auditability |
+
+For writing new skills, see the document [`docs/skill-anatomy.md`](docs/skill-anatomy.md) — skill anatomy, rationalizations, and verification checkpoints. It is a reference document, not a skill, so it is not counted above.
 
 ## Architectural Patterns
 

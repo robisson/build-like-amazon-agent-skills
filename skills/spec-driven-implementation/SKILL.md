@@ -216,7 +216,12 @@ Once a spec is approved:
 4. Continue until all waves are complete
 5. Load `agents/implementation-verifier.md` and apply the `implementation-verifier` persona to validate PBT properties
 
-Parallel execution within a wave is safe by construction—the `task-planner` guarantees no intra-wave dependencies.
+Parallel execution within a wave is safe only when **both** of these invariants hold:
+
+1. **No intra-wave logical dependency.** No task in the wave consumes an output produced by another task in the same wave. This one the `task-planner` does guarantee — it is exactly what the dependency graph models.
+2. **No intersection of files written within the wave.** No two tasks in the wave write the same file. This one the graph does **not** model: `skills/spec-driven-implementation/templates/tasks-template.md` carries `depends_on`, `wave`, `size`, `type` and `door` per task, and no file field at all. Nothing in the current artifact can prove invariant 2.
+
+Because invariant 2 is unmodelled, it must be established by reading the tasks before dispatching a wave. When two tasks in the same wave must write the same file — a barrel of exports, a router registration, a schema migration — the intersection is mandatory and parallel execution would produce a lost write or a conflict. Serialise them: keep one task in the wave and move the colliding task to the next wave.
 
 ### 6. Post-Spec Completion
 
@@ -468,7 +473,7 @@ Load `agents/requirements-analyzer.md` before performing this review.
 - Unstated assumptions: Requirements assume a database exists but no requirement specifies its creation
 - Missing edge cases: Happy path defined but no requirement for timeout, partial failure, or concurrent access
 
-**How it works**: Reads all requirements, builds a constraint graph, identifies contradictions and gaps, asks clarifying questions with suggested resolutions, then updates requirements.md with the resolved version.
+**How it works**: Reads all requirements, builds a constraint graph, identifies contradictions and gaps, asks clarifying questions with suggested resolutions, then reports — it does not edit. The analysis report carries the proposed resolutions; the producer of `requirements.md` applies them. The reviewer never writes to the artifact it reviewed, because an edited requirement no longer shows what was asked for versus what was found.
 
 ### task-planner
 
@@ -566,6 +571,7 @@ Before marking the spec process complete for a slice:
 - [ ] Approval gates have been passed for all three documents
 - [ ] `implementation-verifier` passes after final wave
 - [ ] At spec completion, every entry in `tasks.md` is `[x]` (done) or `[!]` (blocked, with documented reason). No task remains `[ ]` or `[-]`. The orchestrator (the agent running `/build`) is responsible for keeping this file truthful throughout execution — sub-agents never edit `tasks.md` directly.
+- [ ] The spec's execution closure has not been mistaken for delivery: if any `[!]` corresponds to an unimplemented acceptance criterion, `implementation-review.md` records `PASSED WITH FIXES NEEDED` or `FAILED`, never `PASSED`.
 
 ## Tenets
 

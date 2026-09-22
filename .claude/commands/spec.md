@@ -57,6 +57,7 @@ Before creating a spec, detect the project state and classify the requested chan
    - Extract requirements for THIS slice only (not the whole system)
    - Use EARS notation: "THE [Subject] SHALL [behavior]", "WHEN [condition] THE [Subject] SHALL [action]"
    - Reference the Design Document sections that cover this slice
+   - Load `agents/requirements-analyzer.md` and review the requirements through the requirements analyzer lens.
    - 🚦 **GATE**: Present requirements.md to the user. Ask: "Do these requirements capture what you want? Anything missing or wrong?"
    - ⛔ DO NOT proceed until the user approves.
 
@@ -73,6 +74,7 @@ Before creating a spec, detect the project state and classify the requested chan
 
    ### Step 3: tasks.md
    - Use the template from `skills/spec-driven-implementation/templates/tasks-template.md` VERBATIM
+   - Load `agents/task-planner.md` and decompose the design through the task planner lens.
    - Decompose into phased tasks with dependency graph
    - Include green-build gates, wave assignments, size estimates
    - Add Dependency Graph JSON at the bottom with waves
@@ -94,6 +96,7 @@ specs/<slice-name>/
 ├── requirements.md      (EARS notation, approved)
 ├── design.md            (Mermaid, interfaces, PBT props, approved)
 ├── tasks.md             (waves, dependency graph, approved)
+├── requirements-analysis.md (cross-requirement findings from agents/requirements-analyzer.md)
 └── coherence-review.md  (validation against Design Doc)
 ```
 

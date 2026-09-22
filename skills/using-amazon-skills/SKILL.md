@@ -78,7 +78,9 @@ Improvement → Metrics Review (identify gaps and measure current state)
 
 ## Core Operating Behaviors
 
-These behaviors underpin all skills and should be followed regardless of which specific skill you're applying:
+These nine entries are **cultural tenets** — the reasoning habits that underpin every skill in this repository. They are NOT the numbered Operating Behaviors of `AGENTS.md` (items 0-11), and this list is not a restatement of the operating contract.
+
+Precedence is explicit: where the two lists overlap, `AGENTS.md` is authoritative; where they conflict, `AGENTS.md` wins. The tenets here add cultural guidance that `AGENTS.md` does not carry, and they omit binding rules that it does — in particular **Respect Approval Gates** (`AGENTS.md` behavior 0) and **Surface Assumptions** (behavior 1) have no entry below and are binding regardless. Never read the absence of an item here as permission.
 
 ### 1. Customer Backwards
 

@@ -161,10 +161,10 @@ git commit --no-verify -m "message"
 
 ### Setup
 
-Pre-commit hooks are installed automatically when the repository is cloned (via setup script or git template). No manual installation required. If a developer doesn't have hooks, their first PR will fail CI checks (which run the same validations).
+This document is a specification, not an installed hook. This repository ships no installation mechanism: there is no setup script, no git template and no CI. A developer who wants these checks installs the hook by hand — write the checks above into an executable `.git/hooks/pre-commit`.
 
 ---
 
 ## Relationship to CI
 
-Pre-commit catches issues at the developer's desk. CI runs the same checks (and more) on the server. If pre-commit is skipped, CI will still catch it—but the feedback loop is longer. Pre-commit is for developer convenience; CI is for enforcement.
+There is no CI in this repository, so nothing re-runs these checks on the server. Until CI exists, a hand-installed pre-commit hook is the only place the checks run, and skipping it means they do not run at all. If CI is added later, it should run the same checks so that enforcement no longer depends on each developer's local setup.

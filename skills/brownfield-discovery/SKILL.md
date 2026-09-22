@@ -28,7 +28,7 @@ This is not retroactive approval. The output carries a banner saying "REVERSE-EN
 **Do NOT use for:**
 - Greenfield projects (use `/wb` → `/design` instead)
 - Projects that already have a canonical Design Doc (use that as the anchor)
-- Trivial or small changes (the ladder in `using-amazon-skills/SKILL.md` handles those without needing discovery)
+- Trivial or small changes (the ladder in `skills/using-amazon-skills/SKILL.md` handles those without needing discovery)
 - "Just to have docs" — discovery is a means to anchor future changes, not documentation for documentation's sake
 
 ## Amazon Context

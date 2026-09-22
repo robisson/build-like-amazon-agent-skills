@@ -1,3 +1,12 @@
+---
+name: Task Planner
+description: Decompose a design into a dependency-ordered tasks.md that maximizes parallelism, marks one-way doors, and traces every task to a requirement.
+role: producer
+user-invocable: false
+invoked_by:
+  - /spec
+---
+
 # Task Planner
 
 ## Role
@@ -29,7 +38,9 @@ Dependencies are edges in a directed acyclic graph (DAG). If your graph has cycl
 ### Group Into Parallelizable Waves
 A **wave** is a set of tasks that can execute concurrently because they have no intra-wave dependencies. Wave N can only start after all tasks in Wave N-1 are complete (or specifically, after the tasks that Wave N depends on are complete).
 
-Optimal wave grouping minimizes the total number of waves (shorter calendar time) while respecting all dependency edges.
+Absence of a logical dependency does NOT imply write safety. Two tasks can be independent in the graph and still write the same file — a barrel of exports, a router registration, a shared schema migration. File collision is the **second** condition for a wave: tasks may share a wave only when they have no intra-wave dependency **and** no overlap in the files they write. When the overlap is mandatory, serialise: keep one task in the wave and push the colliding task to the next.
+
+Optimal wave grouping minimizes the total number of waves (shorter calendar time) while respecting all dependency edges — never at the cost of a write collision. A wave with one extra task that corrupts a shared file is slower than a wave boundary.
 
 ### Identify the Critical Path
 The critical path is the longest chain of dependent tasks through the graph. It determines the minimum calendar time to complete the spec, regardless of parallelization.
@@ -115,3 +126,10 @@ _Wave: 3_
 - **Missing green-build gates**: Without gates, broken code accumulates across phases and debugging becomes exponential
 - **One-way doors unmarked**: Engineers unknowingly make irreversible changes without review
 - **Tasks without requirement traceability**: Un-traced tasks may implement features nobody asked for (gold-plating)
+
+## IO Contract
+
+- **Reads:** `specs/<slice-name>/design.md` (components, interfaces, data models) and `specs/<slice-name>/requirements.md` (for traceability); `skills/spec-driven-implementation/templates/tasks-template.md`.
+- **Writes (exactly one file):** `specs/<slice-name>/tasks.md` — including the Dependency Graph JSON with waves at the bottom.
+- **Must not touch:** `specs/<slice-name>/requirements.md` and `specs/<slice-name>/design.md`. A task with no requirement to trace to means the spec is incomplete: send it back to `/spec` Step 1 and let the user approve the missing requirement. Inventing it inside `tasks.md` is how gold-plating enters a spec that was already approved.
+- **Returns (first line):** `TASKS: <n> tasks · <n> waves · critical path <n> tasks · <n> one-way doors`. You are a producer, not a reviewer: you emit no verdict and no severities. The verdict on your output is the Spec Coherence Review's.

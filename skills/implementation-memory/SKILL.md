@@ -25,22 +25,26 @@ Implementation memory can be fed from multiple workflow stages — not only `/bu
 
 | Source | When | What to extract |
 |--------|------|-----------------|
+| `/design` (design gate) | After a requirement bounces at the design gate 3 or more times | The recurring reason the requirement keeps failing the gate, stated as a rule for future design work |
+| `/spec` (coherence review) | After a coherence-review finding recurs across specs | The cross-spec inconsistency pattern that coherence review keeps catching |
 | `/build` (post-implementation review) | After PASSED WITH FIXES NEEDED or user validation | Procedural lessons from fix tasks, debug cycles, review findings |
 | `/review` (code review) | After review feedback is resolved | Recurring review findings that apply beyond one PR |
 | `/learn` (COE) | After corrective actions are defined | Operational lessons that should influence future implementation |
 
-All sources use the same Quality Memory Review process, admission checks, and rejection rules.
+All sources use the same Quality Memory Review process, admission checks, and rejection rules. Record the capturing phase in the rule's `Phase` field so later selection scopes it correctly.
 
 ## Internal Flow Hooks
 
 Use this mechanism in these places:
 
-1. **Before `/build` task execution**: read the current spec/tasks first, then select only active memory rules whose `Applies when` field AND `Tags`/`File patterns` match the current work.
+1. **Before `/build` task execution**: read the current spec/tasks first, then select active memory rules as defined in **Pre-Build Selection** below — a rule is selected if its `Phase` is `build` and ANY signal matches (`Tags`, `File patterns`, or `Applies when`). That section is the single definition of the selection semantics; this hook only says when it runs.
 2. **After implementation review (semi-automatic trigger)**: when the verdict is PASSED WITH FIXES NEEDED, the agent MUST automatically extract up to 2 candidate learnings from the fix findings and present them to the user for Accept / Reject / Edit. This is the primary memory population path. When the verdict is PASSED, prompt the user to test the delivered behavior and bring back failures or feedback.
 3. **After user validation or explicit request**: run a Quality Memory Review using implementation results, implementation review, test/debug feedback, and user feedback to decide whether memory should be updated.
 4. **After `/review` findings are resolved**: if the review surfaced recurring patterns (same finding across 2+ PRs or explicitly flagged as "this keeps happening"), extract candidates and present for Accept / Reject / Edit.
 5. **After `/learn` corrective actions**: if a COE produces an implementation-level corrective action (not an org/process action), extract a candidate and present for Accept / Reject / Edit.
-6. **Periodic nudge**: after 3 builds without a memory update (tracked via `Last build without update` counter at the bottom of the memory file), include in the end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
+6. **After a requirement bounces at the `/design` gate 3 or more times**: extract a candidate with `Phase: design` describing why the requirement kept failing the gate, and present for Accept / Reject / Edit. Without this hook a requirement rejected three times leaves no trace.
+7. **After a coherence-review finding recurs across specs**: when `/spec` produces the same coherence finding in 2 or more specs, extract a candidate with `Phase: spec` and present for Accept / Reject / Edit.
+8. **Periodic nudge**: after 3 builds without a memory update (tracked via `Last build without update` counter at the bottom of the memory file), include in the end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
 
 Do not use this skill to replace requirements, design documents, ADRs, release notes, PR/FAQ, postmortems, or review artifacts.
 
@@ -71,15 +75,16 @@ Every active rule must use this shape:
 ```markdown
 ### IM-XXX: [Short rule name]
 Tags: [api, error-handling, testing, infra, ui, data-pipeline, security, observability, workflow, ...]
+Phase: [wb | design | spec | build | deploy | operate]
 File patterns: [optional glob patterns, e.g. src/api/**, tests/integration/**]
 Applies when: [Spec/component/risk conditions where this rule is relevant.]
 Rule: [Actionable implementation behavior.]
 Avoid: [Specific behavior to avoid.]
 Evidence: [Review feedback | user feedback | test failure | build defect | repeated pattern.]
 Impact: [Critical | High | Medium]
-Confidence: [Proven (prevented issues) | Established (applied successfully) | New (just added)]
+Confidence: [Proven (Prevented >= 1 backed by evidence) | Established (applied successfully) | New (just added)]
 Hit count: [N — number of builds where this rule was selected and applied]
-Prevented: [N — number of times this rule demonstrably prevented an issue]
+Prevented: [N — number of times this rule demonstrably prevented an issue; increment only with concrete evidence that the rule stopped something]
 Created: [YYYY-MM-DD]
 Last used: [YYYY-MM-DD]
 Builds on: [[IM-YYY]] (optional — reference to a related/prerequisite rule)
@@ -87,19 +92,26 @@ Builds on: [[IM-YYY]] (optional — reference to a related/prerequisite rule)
 
 Use stable IDs. When removing a rule, do not renumber unrelated rules unless the file is being deliberately compacted for readability.
 
+`Prevented` is an evidence counter, not a confidence signal. Increment it only when something concrete stopped: a validator blocked, a test failed before merge, or a review cited the rule by ID. Applying a rule, or believing it helped, is not evidence. `Confidence: Proven` therefore requires `Prevented >= 1` backed by such evidence; a rule whose only evidence is unattributed feedback stays at `Established` with `Prevented: 0`.
+
 ## Pre-Build Selection
 
 Before implementation starts:
 
+0. Determine the current phase from the command in flight: `/wb` → `wb`, `/design` → `design`, `/spec` → `spec`, `/build` → `build`, `/deploy` → `deploy`, `/operate` → `operate`. This section runs at the start of every phase, not only `/build`.
 1. Read the current `specs/<slice-name>/requirements.md`, `design.md`, `tasks.md`, and `coherence-review.md` if present.
 2. Read `docs/implementation-memory.md` if it exists.
-3. Select active rules using this multi-signal matching (a rule is selected if ANY signal matches):
+3. Select active rules using this multi-signal matching. A rule is selected when its `Phase` matches the current phase determined in step 0 AND any one of the following signals matches:
    - **Tags match**: rule tags overlap with the current spec's domain/technology areas.
    - **File patterns match**: the spec's tasks touch files matching the rule's glob patterns.
    - **Applies when matches**: the LLM judges the prose description to be relevant to the current spec, task, component, dependency, or risk profile.
+
+   The three signals above remain an OR among themselves — one is enough. `Phase` is an additional filter layered on top, not a replacement: a rule whose `Phase` does not match the current phase is never selected, however strongly its tags, file patterns, or prose match. A rule with no `Phase` line is treated as `build`.
 4. Convert selected rules into implementation guardrails, test checks, or review checks.
 5. Ignore unmatched rules. They are not requirements for the current build.
 6. Increment `Hit count` for each selected rule.
+
+Phase scoping changes which rules are selected, never how many may exist: the cap defined in **Memory Limits** above is unchanged at 12 active rules in total, not 12 per phase.
 
 Memory rules never override approved requirements, design, tasks, or coherence-review action items.
 
@@ -175,6 +187,8 @@ A candidate learning must pass at least 2 of these checks:
 - Improves tests, security, operations, or rollout safety.
 - Applies beyond one feature.
 - Corrects a recurring agent tendency.
+
+A defect that recurs even though a memory rule already covers it means memory is the wrong remedy: promote it to a declared project pattern or a mechanism via `skills/mechanism-creation/SKILL.md`, and do not add a second memory rule for the same defect.
 
 ## Rejection Rules
 

@@ -21,6 +21,8 @@ At Amazon, this is not optional. A team that attempts a big-bang release—weeks
 - Any time a change would touch more than ~200 lines of production code
 - When you notice a PR has grown beyond a single logical change
 
+The `~200 lines` above is the **trigger** for applying this skill — the point at which ad-hoc implementation stops being safe — not a limit on a slice or on a PR. This skill carries three different size numbers with three different roles; they are deliberately not unified.
+
 ## Amazon Context
 
 Amazon deploys million times per year across its services. This velocity is only possible because each deployment is small, reversible, and independent. The culture of "one commit per slice" emerged from painful lessons: large merges cause cascading failures, extended debugging sessions, and blocked pipelines.
@@ -42,6 +44,8 @@ Given a design document, decompose the feature into slices using these criteria:
 | Size | 50-200 lines of production code | 1000+ lines |
 | Reviewability | One reviewer can understand in 30 min | Requires 2-hour review meeting |
 | Rollback safety | Can be reverted without data migration | Creates irreversible schema changes |
+
+The `50-200 lines` in the Size row is the **healthy target range** for one slice — a diagnostic band you aim at, not a gate anything rejects; `1000+` is what a bad slice looks like.
 
 ### 2. Ordering Slices
 
@@ -176,6 +180,8 @@ If the answer is no, the code is not done. Rename until functions describe thems
 | Pipeline bake times | Each deployment observed before proceeding | Deploy canary stages |
 | Commit message linting | One logical change per commit | Conventional commits enforced in CI |
 | Deployment frequency dashboard | Teams track deployment cadence | Weekly metrics review surfaces stalled code |
+
+`Max 400 lines per PR` is the **hard ceiling** — the highest number in this skill, meant to be enforced by a CI check that rejects the PR. This repository has no CI yet, so the ceiling is currently a convention rather than a mechanism.
 
 ## Common Rationalizations
 
