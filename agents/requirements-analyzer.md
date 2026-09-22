@@ -24,7 +24,8 @@ Terms that seem clear in isolation but have multiple valid interpretations.
 
 ### Conflicting Constraints
 Requirements that individually seem reasonable but cannot all be satisfied together.
-- Low latency + strong consistency + high availability (CAP theorem)
+- Strong consistency + high availability **under a network partition** (CAP theorem: when the network partitions, you choose consistency or availability, not both)
+- Low latency + strong consistency **when there is no partition** (PACELC: even with the network healthy, cross-region agreement costs round trips, so latency trades against consistency)
 - Zero data loss + sub-second writes + cost efficiency
 - Rich audit trail + minimal storage + fast queries + GDPR deletion
 
