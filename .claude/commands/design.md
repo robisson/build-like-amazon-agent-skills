@@ -96,6 +96,7 @@ Before starting the full design flow, detect the project state and classify the 
 
 ### Step 3: Threat Modeling (if security-sensitive)
 - Read skill: skills/threat-modeling/SKILL.md
+- Load `agents/security-guardian.md` and review the design through the security guardian lens.
 - Produce: Threat model with mitigations
 - 🚦 GATE: Present the threat model. Ask: "Any security concerns I missed?"
 - ⛔ DO NOT proceed to Step 4 until the user approves.
@@ -103,8 +104,10 @@ Before starting the full design flow, detect the project state and classify the 
 
 ### Step 4: Design Review Checklist
 - Read skill: skills/design-review/SKILL.md
+- Load `agents/design-bar-raiser.md` and review the design through the design bar raiser lens.
 - Run the design review checklist against your own design
 - Present findings and self-assessment
+- If the review is contested — two defensible options and no agreement — load `agents/principal-engineer.md` and break the tie through the principal engineer lens.
 - 🚦 GATE: Ask: "Ready to proceed to implementation planning?"
 - ⛔ DO NOT proceed to Step 5 until the user approves.
 

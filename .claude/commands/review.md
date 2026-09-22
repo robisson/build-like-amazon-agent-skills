@@ -10,6 +10,8 @@ You are activating the **review** skill chain: `code-review-bar-raising` → `op
 2. Perform a comprehensive review of the code or system under examination.
 
 ### Step 1: Code Review (Bar Raising)
+Load `agents/code-review-bar-raiser.md` and review the code through the code review bar raiser lens.
+
 Review code against these dimensions:
 - **Correctness**: Does it do what it claims? Edge cases handled?
 - **Simplicity**: Is there a simpler way? Remove unnecessary abstractions.
@@ -26,6 +28,8 @@ Provide feedback as:
 - 💡 **Consider** — optional improvements (style, alternative approaches)
 
 ### Step 2: Operational Readiness Review
+Load `agents/ops-bar-raiser.md` and review the change through the operations bar raiser lens.
+
 Before production deployment, verify:
 - Runbook exists for common failure scenarios
 - Alarms fire before customers notice

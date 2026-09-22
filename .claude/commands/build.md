@@ -220,7 +220,7 @@ After ALL tasks in a spec's `tasks.md` are marked `[x]` (or `[!]` with a documen
 
 **Verify the marker invariant first.** Re-read `tasks.md` and confirm no task is left in `[ ]` or `[-]`. If any are, the previous wave was not properly closed — go back, finish the missing tasks, and only then proceed to review.
 
-**Then run an implementation review.** This is NOT optional — it is a quality gate equivalent to green-build gates.
+**Then run an implementation review.** This is NOT optional — it is a quality gate equivalent to green-build gates. Load `agents/implementation-verifier.md` and verify the implementation through the implementation verifier lens.
 
 ### What to Check
 

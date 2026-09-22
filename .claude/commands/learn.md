@@ -24,6 +24,8 @@ Key COE principles:
 - Be brutally honest — the goal is learning, not looking good.
 - Action items must be mechanisms, not heroics.
 
+Once the COE is drafted, load `agents/coe-reviewer.md` and review it through the COE reviewer lens.
+
 ### Step 2: Mechanism Creation
 Convert learnings into durable mechanisms:
 - **Automation**: Replace manual steps with automated checks.
