@@ -10,8 +10,8 @@ Skills are located in the `skills/` directory. Each skill is a standalone markdo
 
 1. **Check the command**: If the user invokes a slash command (e.g., `/wb`, `/design`, `/deploy`), load the corresponding skill file directly.
 2. **Use the meta-skill when no command is clear**: If there is no slash command and the right workflow is unclear, read `skills/using-amazon-skills/SKILL.md` first. Use it to route the request to the correct lifecycle phase and skill chain.
-3. **Check triggers**: Each skill's frontmatter contains `triggers` — natural language phrases that indicate the skill should be activated.
-4. **Check the phase**: If you know what lifecycle phase the work is in, browse skills in that phase.
+3. **Read the frontmatter**: every `skills/*/SKILL.md` opens with a YAML block carrying exactly three keys — `name`, `description` and `leadership_principles` (verified on all 28 skills). There is no `triggers` field: judge fit from `description`, which states what the skill is for and when it applies.
+4. **Check the phase**: skills carry no `phase` field either. The lifecycle grouping lives outside the files — in the skill catalogue in `README.md` (*All 28 Skills*), grouped by phase, and in the routing flow of `skills/using-amazon-skills/SKILL.md`. Use those to browse by phase.
 5. **When in doubt, ask**: If multiple skills could apply after consulting the meta-skill, ask the user which workflow they want to follow rather than guessing.
 
 ### Skill Loading Protocol
