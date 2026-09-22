@@ -96,6 +96,7 @@ specs/<slice-name>/
 ├── requirements.md      (EARS notation, approved)
 ├── design.md            (Mermaid, interfaces, PBT props, approved)
 ├── tasks.md             (waves, dependency graph, approved)
+├── requirements-analysis.md (cross-requirement findings from agents/requirements-analyzer.md)
 └── coherence-review.md  (validation against Design Doc)
 ```
 
