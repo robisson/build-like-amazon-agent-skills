@@ -328,20 +328,22 @@ Currently in the catalog:
 
 ## 10 Agent Personas
 
-Bar Raiser agents and specialized sub-agents provide review and verification at critical stages:
+Bar Raiser agents and specialized sub-agents provide review and verification at critical stages. Each row below is one file in [`agents/`](agents/); `Role` and `Invoked By` are the file's own frontmatter, not a description of it:
 
 | Persona | Role | Invoked By | Focus |
 |---------|------|-----------|-------|
-| **Customer Obsession Bar Raiser** | Validates customer-centricity | `/wb`, `/listen`, `/define` | Is this solving a real customer problem? Is the narrative clear? |
-| **Architecture Bar Raiser** | Reviews system design | `/design` | Simplicity, blast radius, operational burden, evolution path |
-| **Code Quality Bar Raiser** | Enforces implementation standards | `/build`, `/review` | Readability, testability, error handling, naming |
-| **Security Bar Raiser** | Validates security posture | `/design`, `/build` | Threat model coverage, least privilege, data protection |
-| **Operations Bar Raiser** | Ensures operational excellence | `/deploy`, `/operate` | Observability, rollback capability, failure modes |
-| **Simplicity Bar Raiser** | Guards against over-engineering | All phases | Is this the simplest solution that could work? YAGNI enforcement |
-| **Learning Bar Raiser** | Ensures lessons are captured | `/learn` | Root cause depth, action item quality, knowledge sharing |
-| **Requirements Analyzer** | Cross-requirement consistency check | `spec-driven-implementation` | Ambiguities, conflicts, unstated assumptions, missing edge cases |
-| **Task Planner** | Dependency ordering and parallelization | `spec-driven-implementation` | Dependency graph, waves, critical path, one-way door decisions |
-| **Implementation Verifier** | Property-based verification | `spec-driven-implementation` | PBT properties, regression detection, design divergence |
+| **Code Review Bar Raiser** — [`code-review-bar-raiser.md`](agents/code-review-bar-raiser.md) | reviewer | `/review` | Correctness, operability, testability, backward compatibility, readability |
+| **Security Guardian** — [`security-guardian.md`](agents/security-guardian.md) | reviewer | `/design` | Threat model coverage, least privilege, data protection, blast radius |
+| **Requirements Analyzer** — [`requirements-analyzer.md`](agents/requirements-analyzer.md) | reviewer | `/spec` | Ambiguities, conflicts, unstated assumptions, missing edge cases |
+| **Implementation Verifier** — [`implementation-verifier.md`](agents/implementation-verifier.md) | reviewer | `/build` | PBT properties, regression detection, design divergence |
+| **Doc Bar Raiser** — [`doc-bar-raiser.md`](agents/doc-bar-raiser.md) | reviewer | `/onboard` | Customer obsession, clarity, data over opinion, genuinely hard FAQs |
+| **Design Bar Raiser** — [`design-bar-raiser.md`](agents/design-bar-raiser.md) | advisor | `/design` | Simplicity, honest alternatives, blast radius, operational burden, evolution path |
+| **Ops Bar Raiser** — [`ops-bar-raiser.md`](agents/ops-bar-raiser.md) | advisor | `/deploy`, `/review` | Observability, rollback capability, failure modes, capacity, runbooks |
+| **Principal Engineer** — [`principal-engineer.md`](agents/principal-engineer.md) | advisor | `/design` | Tie-breaking a disputed decision with a named trade-off and a system-wide call |
+| **COE Reviewer** — [`coe-reviewer.md`](agents/coe-reviewer.md) | advisor | `/learn` | Root cause depth, blameless framing, action items with owners and dates |
+| **Task Planner** — [`task-planner.md`](agents/task-planner.md) | producer | `/spec` | Dependency graph, waves, critical path, one-way door decisions |
+
+Two bar raisers on this list have no file, on purpose, and are not missing: **Customer Obsession** and **Simplicity** are Operating Behaviors, always on, not agents you invoke. Customer Obsession is the first question every review asks — *is this solving a real customer problem?* — and the Simplicity Bar Raiser is active at every decision point, asking whether this is the simplest solution that could work and what can be removed (YAGNI). Both are defined in [`AGENTS.md`](AGENTS.md) under Operating Behaviors, and the ordering of all bar raisers, conceptual and file-backed, is fixed there under *When Multiple Bar Raisers Apply*.
 
 Each bar raiser asks pointed questions and can **block progression** to the next phase if their criteria aren't met. This mirrors Amazon's actual bar raiser program where designated reviewers ensure hiring/design/operational standards don't erode over time.
 
