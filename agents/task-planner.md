@@ -1,3 +1,12 @@
+---
+name: Task Planner
+description: Decompose a design into a dependency-ordered tasks.md that maximizes parallelism, marks one-way doors, and traces every task to a requirement.
+role: producer
+user-invocable: false
+invoked_by:
+  - /spec
+---
+
 # Task Planner
 
 ## Role
@@ -117,3 +126,10 @@ _Wave: 3_
 - **Missing green-build gates**: Without gates, broken code accumulates across phases and debugging becomes exponential
 - **One-way doors unmarked**: Engineers unknowingly make irreversible changes without review
 - **Tasks without requirement traceability**: Un-traced tasks may implement features nobody asked for (gold-plating)
+
+## IO Contract
+
+- **Reads:** `specs/<slice-name>/design.md` (components, interfaces, data models) and `specs/<slice-name>/requirements.md` (for traceability); `skills/spec-driven-implementation/templates/tasks-template.md`.
+- **Writes (exactly one file):** `specs/<slice-name>/tasks.md` — including the Dependency Graph JSON with waves at the bottom.
+- **Must not touch:** `specs/<slice-name>/requirements.md` and `specs/<slice-name>/design.md`. A task with no requirement to trace to means the spec is incomplete: send it back to `/spec` Step 1 and let the user approve the missing requirement. Inventing it inside `tasks.md` is how gold-plating enters a spec that was already approved.
+- **Returns (first line):** `TASKS: <n> tasks · <n> waves · critical path <n> tasks · <n> one-way doors`. You are a producer, not a reviewer: you emit no verdict and no severities. The verdict on your output is the Spec Coherence Review's.

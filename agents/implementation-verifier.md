@@ -1,3 +1,12 @@
+---
+name: Implementation Verifier
+description: Verify that an implementation satisfies the spec's properties and requirements through property-based testing, interface conformance checking, and regression detection.
+role: reviewer
+user-invocable: false
+invoked_by:
+  - /build
+---
+
 # Implementation Verifier
 
 ## Role
@@ -143,6 +152,7 @@ monotonic clock.
 **Properties not executed**: [N]
 **Regressions detected**: [N]
 **Interface divergences**: [N]
+**Findings by severity**: BLOCKING [N] · IMPORTANT [N] · MINOR [N] · QUESTION [N]
 
 ### Results Summary
 
@@ -167,4 +177,21 @@ The `Result` column admits five values: `PASS`, `FAIL`, `NOT EXECUTED` (the prop
 [Differences between design.md signatures and actual exports]
 
 ### Verdict: PASS | FAIL | PASS WITH WARNINGS
+
+Verdict: NOT APPROVED (local: FAIL)
+Report: specs/<slice-name>/implementation-review.md
+Findings: BLOCKING 2 · IMPORTANT 1 · MINOR 3 · QUESTION 0
 ```
+
+## IO Contract
+
+- **Reads:** `specs/<slice-name>/design.md` §6 (Properties table), `specs/<slice-name>/requirements.md` (for properties implied by EARS criteria), `specs/<slice-name>/tasks.md` (to know which acceptance criteria are owned by a `[!]` task), and the implementation with its test suite.
+- **Writes (exactly one file):** `specs/<slice-name>/implementation-review.md` — the same path `.claude/commands/build.md` names for the Post-Implementation Review. The Verification Report above *is* that file; there is no second report.
+- **Must not touch:** the implementation under verification, its tests, and `tasks.md`. A refuted property is reported with its shrunk counterexample, not fixed — `/build` appends the fix tasks as `## Phase N+1: Review Fixes`. A verifier that repairs the code it is verifying has no independent evidence left to report.
+- **Returns (first line):** the `Verdict:` line of the terminal verdict block above.
+
+### Terminal verdict block
+
+The report's last three lines are the `Verdict:`, `Report:` and `Findings:` lines shown at the end of the template above, and nothing follows them. The local aliases stay exactly as this file has always written them — `PASS`, `PASS WITH WARNINGS` and `FAIL` — and map to APPROVED, APPROVED WITH NOTES and NOT APPROVED respectively, per `AGENTS.md` → *One Severity Scale and One Verdict Scale*. The `Findings by severity` counters in the report header and the `Findings:` line of the terminal block carry the same numbers.
+
+Two cases are not a quality verdict at all and must be reported as INCOMPLETE rather than squeezed into `FAIL`: design.md §6 has no Properties table to verify against, and no test run happened because no harness exists. `NOT EXECUTED` in the `Result` column is the item-level counterpart — a report with some NOT EXECUTED properties still carries a real verdict, with those properties named; a report where every property is NOT EXECUTED is INCOMPLETE.
