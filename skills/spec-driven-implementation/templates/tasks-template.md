@@ -49,6 +49,7 @@ The resume rule is **not** defined here. See `.claude/commands/build.md` → "Re
 - `Depends on: Task X.Y` — Explicit dependency (must complete before this task starts)
 - `Blocks: Task X.Y` — This task blocks another (forward reference)
 - `Wave: N` — Parallel execution group (all tasks in same wave can run concurrently)
+- `Writes: path, path` — The files this task writes. Two tasks may share a wave only when their `Writes` sets do **not** intersect; a path ending in `/` is a directory and collides with everything beneath it. A task that changes no file in the repository carries no `Writes` annotation — there is then nothing for the wave check to compare on its behalf.
 
 ---
 
@@ -66,6 +67,7 @@ _Size: S | Requirements: N/A (infrastructure) | Design: §2.1_
 _Depends on: None_
 _Wave: 1_
 _Blocks: Task 1.2, Task 1.3_
+_Writes: tsconfig.json, jest.config.js, src/domain/types.ts, src/api/generated/_
 
 - [ ] Create directory structure per design architecture
 - [ ] Add configuration files (tsconfig, eslint, jest config)
@@ -82,6 +84,7 @@ _Size: M | Requirements: 3.1.1 | Design: §4.2_
 _Depends on: Task 1.1_
 _Wave: 1_
 _Blocks: Task 2.1, Task 2.2_
+_Writes: migrations/0001_create_resource.sql, migrations/0001_create_resource.rollback.sql, src/db/schema.ts_
 
 ⚠️ **One-way door**: Schema migration is irreversible in production. Requires review before execution.
 
@@ -100,6 +103,7 @@ _Blocks: Task 2.1, Task 2.2_
 _Size: S | Requirements: N/A (infrastructure) | Design: §2.1_
 _Depends on: Task 1.1_
 _Wave: 1_
+_Writes: config/feature-flags.json, src/api/flag-gate.ts, test/flag-gate.test.ts_
 
 - [ ] Register feature flag `[flag-name]` in configuration system
 - [ ] Set default to OFF (disabled)
@@ -124,6 +128,7 @@ _Size: M | Requirements: 3.1.1, 3.1.2 | Design: §3.3, §4_
 _Depends on: Task 1.2_
 _Wave: 2_
 _Blocks: Task 2.3_
+_Writes: src/db/resource-repository.ts, test/resource-repository.test.ts, test/integration/resource-repository.it.ts_
 
 - [ ] Implement `save()` method with conflict detection
 - [ ] Implement `findById()` method with null handling
@@ -140,6 +145,7 @@ _Blocks: Task 2.3_
 _Size: S | Requirements: 3.1.1 AC-1, 3.3.1 | Design: §3.1_
 _Depends on: Task 1.1_
 _Wave: 2_
+_Writes: src/domain/validators.ts, test/validators.pbt.ts_
 
 - [ ] Implement input validation (name length, metadata constraints)
 - [ ] Implement business rule validation
@@ -156,6 +162,7 @@ _Size: L | Requirements: 3.1.1, 3.1.2 | Design: §3.2_
 _Depends on: Task 2.1, Task 2.2_
 _Wave: 3_
 _Blocks: Task 3.1_
+_Writes: src/service/resource-service.ts, test/resource-service.test.ts, test/integration/create-get-roundtrip.it.ts_
 
 - [ ] Implement `createResource()` with idempotency check
 - [ ] Implement `getResource()` with not-found handling
@@ -181,6 +188,7 @@ _Blocks: Task 3.1_
 _Size: M | Requirements: 3.3.1 | Design: §5.2, §5.3_
 _Depends on: Task 2.3_
 _Wave: 4_
+_Writes: src/resilience/retry.ts, src/resilience/circuit-breaker.ts, test/resilience.test.ts_
 
 - [ ] Implement exponential backoff with jitter (per design §5.2)
 - [ ] Implement circuit breaker with configured thresholds (per design §5.3)
@@ -197,6 +205,7 @@ _Wave: 4_
 _Size: S | Requirements: 3.3.1 | Design: §3.1 Error Contract_
 _Depends on: Task 2.3_
 _Wave: 4_
+_Writes: src/api/error-mapper.ts, test/error-mapper.test.ts_
 
 - [ ] Map each domain error to HTTP status code per design §3.1
 - [ ] Include structured error body with `code`, `message`, context fields
@@ -212,6 +221,7 @@ _Wave: 4_
 _Size: M | Requirements: 3.2.1 | Design: §4.1_
 _Depends on: Task 2.1_
 _Wave: 4_
+_Writes: src/db/optimistic-lock.ts, test/concurrency.test.ts_
 
 - [ ] Implement optimistic concurrency control (version field)
 - [ ] Handle version conflict with appropriate error
@@ -235,6 +245,7 @@ _Wave: 4_
 _Size: M | Requirements: 4.3 | Design: §2.1_
 _Depends on: Task 2.3_
 _Wave: 5_
+_Writes: src/observability/metrics.ts, src/observability/logger.ts, test/metrics.test.ts_
 
 - [ ] Emit latency metric for each operation (p50, p95, p99)
 - [ ] Emit error count metric by error category
@@ -251,6 +262,7 @@ _Wave: 5_
 _Size: S | Requirements: 4.3 | Design: §5.1_
 _Depends on: Task 4.1_
 _Wave: 5_
+_Writes: infra/alarms.ts, infra/dashboard.ts_
 
 - [ ] Create alarm for error rate > [threshold]
 - [ ] Create alarm for latency p99 > [threshold]
@@ -266,6 +278,7 @@ _Wave: 5_
 _Size: S | Requirements: N/A | Design: §3.1_
 _Depends on: Task 3.2_
 _Wave: 5_
+_Writes: openapi.yaml, docs/operations/runbook.md_
 
 - [ ] Write API reference documentation (OpenAPI spec)
 - [ ] Write operational runbook for common failure scenarios
@@ -290,6 +303,8 @@ _Size: S | Requirements: N/A | Design: N/A_
 _Depends on: All Phase 4 tasks_
 _Wave: 6_
 
+This task changes no file in the repository — it deploys code that is already committed — so it declares no `Writes` annotation. Wave 6 holds it alone, so there is no intersection to compute either.
+
 - [ ] Deploy all code to production with feature flag OFF
 - [ ] Verify no regression in existing behavior
 - [ ] Verify metrics are emitting (even with flag off, infrastructure metrics should appear)
@@ -305,6 +320,8 @@ _Size: S | Requirements: N/A | Design: N/A_
 _Depends on: Task 5.1_
 _Wave: 7_
 
+No `Writes` annotation either: the flag value lives in the configuration system at runtime, not in the tree.
+
 - [ ] Enable feature flag for 1% of traffic (or internal users only)
 - [ ] Monitor latency, error rate, and throughput for 24 hours
 - [ ] Verify acceptance criteria pass with real traffic
@@ -319,6 +336,7 @@ _Wave: 7_
 _Size: S | Requirements: N/A | Design: N/A_
 _Depends on: Task 5.2_
 _Wave: 8_
+_Writes: config/feature-flags.json, src/api/flag-gate.ts_
 
 - [ ] Increase to 10% → monitor 4 hours
 - [ ] Increase to 50% → monitor 4 hours
@@ -342,21 +360,21 @@ _Wave: 8_
     "parallelism_factor": 1.8
   },
   "tasks": {
-    "1.1": { "depends_on": [], "wave": 1, "size": "S", "type": "infrastructure", "door": "two-way" },
-    "1.2": { "depends_on": ["1.1"], "wave": 1, "size": "M", "type": "infrastructure", "door": "one-way" },
-    "1.3": { "depends_on": ["1.1"], "wave": 1, "size": "S", "type": "infrastructure", "door": "two-way" },
-    "2.1": { "depends_on": ["1.2"], "wave": 2, "size": "M", "type": "implementation", "door": "two-way" },
-    "2.2": { "depends_on": ["1.1"], "wave": 2, "size": "S", "type": "implementation", "door": "two-way" },
-    "2.3": { "depends_on": ["2.1", "2.2"], "wave": 3, "size": "L", "type": "implementation", "door": "two-way" },
-    "3.1": { "depends_on": ["2.3"], "wave": 4, "size": "M", "type": "implementation", "door": "two-way" },
-    "3.2": { "depends_on": ["2.3"], "wave": 4, "size": "S", "type": "implementation", "door": "two-way" },
-    "3.3": { "depends_on": ["2.1"], "wave": 4, "size": "M", "type": "implementation", "door": "two-way" },
-    "4.1": { "depends_on": ["2.3"], "wave": 5, "size": "M", "type": "implementation", "door": "two-way" },
-    "4.2": { "depends_on": ["4.1"], "wave": 5, "size": "S", "type": "infrastructure", "door": "two-way" },
-    "4.3": { "depends_on": ["3.2"], "wave": 5, "size": "S", "type": "documentation", "door": "two-way" },
+    "1.1": { "depends_on": [], "wave": 1, "size": "S", "type": "infrastructure", "door": "two-way", "writes": ["tsconfig.json", "jest.config.js", "src/domain/types.ts", "src/api/generated/"] },
+    "1.2": { "depends_on": ["1.1"], "wave": 1, "size": "M", "type": "infrastructure", "door": "one-way", "writes": ["migrations/0001_create_resource.sql", "migrations/0001_create_resource.rollback.sql", "src/db/schema.ts"] },
+    "1.3": { "depends_on": ["1.1"], "wave": 1, "size": "S", "type": "infrastructure", "door": "two-way", "writes": ["config/feature-flags.json", "src/api/flag-gate.ts", "test/flag-gate.test.ts"] },
+    "2.1": { "depends_on": ["1.2"], "wave": 2, "size": "M", "type": "implementation", "door": "two-way", "writes": ["src/db/resource-repository.ts", "test/resource-repository.test.ts", "test/integration/resource-repository.it.ts"] },
+    "2.2": { "depends_on": ["1.1"], "wave": 2, "size": "S", "type": "implementation", "door": "two-way", "writes": ["src/domain/validators.ts", "test/validators.pbt.ts"] },
+    "2.3": { "depends_on": ["2.1", "2.2"], "wave": 3, "size": "L", "type": "implementation", "door": "two-way", "writes": ["src/service/resource-service.ts", "test/resource-service.test.ts", "test/integration/create-get-roundtrip.it.ts"] },
+    "3.1": { "depends_on": ["2.3"], "wave": 4, "size": "M", "type": "implementation", "door": "two-way", "writes": ["src/resilience/retry.ts", "src/resilience/circuit-breaker.ts", "test/resilience.test.ts"] },
+    "3.2": { "depends_on": ["2.3"], "wave": 4, "size": "S", "type": "implementation", "door": "two-way", "writes": ["src/api/error-mapper.ts", "test/error-mapper.test.ts"] },
+    "3.3": { "depends_on": ["2.1"], "wave": 4, "size": "M", "type": "implementation", "door": "two-way", "writes": ["src/db/optimistic-lock.ts", "test/concurrency.test.ts"] },
+    "4.1": { "depends_on": ["2.3"], "wave": 5, "size": "M", "type": "implementation", "door": "two-way", "writes": ["src/observability/metrics.ts", "src/observability/logger.ts", "test/metrics.test.ts"] },
+    "4.2": { "depends_on": ["4.1"], "wave": 5, "size": "S", "type": "infrastructure", "door": "two-way", "writes": ["infra/alarms.ts", "infra/dashboard.ts"] },
+    "4.3": { "depends_on": ["3.2"], "wave": 5, "size": "S", "type": "documentation", "door": "two-way", "writes": ["openapi.yaml", "docs/operations/runbook.md"] },
     "5.1": { "depends_on": ["4.1", "4.2", "4.3", "3.1", "3.2", "3.3"], "wave": 6, "size": "S", "type": "deployment", "door": "two-way" },
     "5.2": { "depends_on": ["5.1"], "wave": 7, "size": "S", "type": "deployment", "door": "two-way" },
-    "5.3": { "depends_on": ["5.2"], "wave": 8, "size": "S", "type": "deployment", "door": "two-way" }
+    "5.3": { "depends_on": ["5.2"], "wave": 8, "size": "S", "type": "deployment", "door": "two-way", "writes": ["config/feature-flags.json", "src/api/flag-gate.ts"] }
   },
   "waves": {
     "1": ["1.1", "1.2", "1.3"],

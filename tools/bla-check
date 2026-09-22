@@ -133,6 +133,42 @@ def is_skipped_dir(parent, name):
     return name == "fixtures" and os.path.basename(parent) == "tests"
 
 
+def normalise_write(path):
+    """Canonical form of one declared write path: no leading `./`, forward slashes."""
+    text = str(path).strip().replace("\\", "/")
+    while text.startswith("./"):
+        text = text[2:]
+    return text
+
+
+def declared_writes(node):
+    """A task's declared write set, or None when the task declares none.
+
+    None and `[]` are different answers: None means the task said nothing, `[]`
+    means the task said it writes nothing.
+    """
+    value = node.get("writes")
+    if not isinstance(value, list):
+        return None
+    return [normalise_write(item) for item in value]
+
+
+def writes_collide(left, right):
+    """True when two declared write paths cannot be written in parallel.
+
+    Equal paths collide. A path ending in `/` is a directory and collides with
+    everything beneath it, so `src/api/generated/` collides with
+    `src/api/generated/handler.ts`.
+    """
+    if left == right:
+        return True
+    if left.endswith("/") and right.startswith(left):
+        return True
+    if right.endswith("/") and left.startswith(right):
+        return True
+    return False
+
+
 def cmd_tasks(spec_dir):
     """Check `<spec-dir>/tasks.md`: markers, blocked reasons, and the task graph."""
     findings = []
@@ -244,6 +280,55 @@ def cmd_tasks(spec_dir):
                     FALHA, "task-dep-blocked", path, line_of(task_id),
                     "task %s is done while its dependency task %s is blocked"
                     % (task_id, dep)))
+
+    # (f) wave-writes-intersection — two tasks in one wave claiming the same path.
+    #     Parallel dispatch of that pair is a lost write, whatever the graph says.
+    # (g) wave-writes-undeclared — the comparison above cannot be made for a task
+    #     that declares nothing. A spec where NO task declares `writes` is skipped
+    #     in silence (an old spec must not be born red); a wave that mixes declared
+    #     and undeclared tasks gets a warning, because there the check is partial.
+    waves = {}
+    for task_id in sorted(json_ids):
+        node = graph.get(task_id) or {}
+        if "wave" not in node:
+            continue
+        waves.setdefault(str(node["wave"]), []).append(task_id)
+    someone_declares = [
+        t for t in json_ids if declared_writes(graph.get(t) or {}) is not None]
+
+    for wave in sorted(waves):
+        members = sorted(waves[wave])
+        for index, first in enumerate(members):
+            first_writes = declared_writes(graph.get(first) or {})
+            if first_writes is None:
+                # A wave with one task has no pair to intersect, so a missing
+                # declaration there cannot make any verdict weaker.
+                if someone_declares and len(members) > 1:
+                    findings.append(finding(
+                        AVISO, "wave-writes-undeclared", path, graph_line,
+                        "wave %s: task %s declares no writes[] — the intersection "
+                        "check for this wave is incomplete" % (wave, first)))
+                continue
+            for second in members[index + 1:]:
+                second_writes = declared_writes(graph.get(second) or {})
+                if second_writes is None:
+                    continue
+                for left in second_writes:
+                    for right in first_writes:
+                        if not writes_collide(left, right):
+                            continue
+                        if left == right:
+                            shared, detail = left, ""
+                        elif right.endswith("/"):
+                            shared = right
+                            detail = " (task %s writes %s, inside it)" % (second, left)
+                        else:
+                            shared = left
+                            detail = " (task %s writes %s, inside it)" % (first, right)
+                        findings.append(finding(
+                            FALHA, "wave-writes-intersection", path, graph_line,
+                            "wave %s: task %s and task %s both write %s%s"
+                            % (wave, first, second, shared, detail)))
     return findings
 
 
@@ -322,6 +407,11 @@ def main(argv=None):
             "notes:\n"
             "  --json must come before the subcommand, and prints one JSON array of\n"
             "  {severity, rule, path, line, message} and nothing else.\n"
+            "  `tasks` compares the `writes` sets of the tasks in one wave: the pairwise\n"
+            "  intersection must be empty, and a path ending in `/` is a directory that\n"
+            "  collides with everything beneath it. A spec where no task declares\n"
+            "  `writes` is skipped in silence; a wave that mixes declared and undeclared\n"
+            "  tasks gets an AVISO, because there the comparison is only partial.\n"
             "  `links` reads markdown link syntax only: HTML attributes such as src=\n"
             "  and href= are out of scope, as are reference-style link definitions.\n"
             "  `links` resolves a target only against the directory of the file that\n"
@@ -335,7 +425,8 @@ def main(argv=None):
 
     p_tasks = sub.add_parser(
         "tasks",
-        help="check <spec-dir>/tasks.md: open markers, blocked reasons, task graph")
+        help=("check <spec-dir>/tasks.md: open markers, blocked reasons, task graph, "
+              "per-wave write collisions"))
     p_tasks.add_argument("spec_dir", metavar="<spec-dir>")
 
     p_links = sub.add_parser(

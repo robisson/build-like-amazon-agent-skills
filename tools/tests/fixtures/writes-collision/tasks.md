@@ -3,10 +3,10 @@
 Two tasks share wave 1 with no dependency between them, yet both declare that they
 write `src/api/handler.ts`. Dispatched in parallel they would clobber each other.
 
-Expect `FALHA [wave-writes-intersection]` and exit 1 **once the rule exists**. Until
-then the runner reports this case as `SKIP`: the rule is owned by the feature that
-adds `writes[]` to the task graph, and a fixture asserted before its rule lands
-would be a test that fails for the right reason at the wrong time.
+Expect `FALHA [wave-writes-intersection]` and exit 1: the pairwise intersection of the
+`writes` sets inside a wave must be empty, and here it is not. Task 1.1 also declares the
+directory form `src/api/generated/` with a trailing slash — that entry collides with
+anything beneath it, and with nothing that merely sits next to it.
 
 ## Phase 1: Foundation
 

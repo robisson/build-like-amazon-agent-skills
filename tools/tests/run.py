@@ -38,8 +38,7 @@ CASES = [
      ["FALHA [link-broken]", "nope.md"], ["a.md (resolved", "also-nope.md"], None),
     ("writes-collision",
      ["tasks", os.path.join(FIXTURES, "writes-collision")], 1,
-     ["FALHA [wave-writes-intersection]"], [],
-     "the wave-writes-intersection rule is not implemented yet"),
+     ["FALHA [wave-writes-intersection]", "src/api/handler.ts"], [], None),
 ]
 
 

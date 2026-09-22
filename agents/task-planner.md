@@ -40,6 +40,8 @@ A **wave** is a set of tasks that can execute concurrently because they have no 
 
 Absence of a logical dependency does NOT imply write safety. Two tasks can be independent in the graph and still write the same file — a barrel of exports, a router registration, a shared schema migration. File collision is the **second** condition for a wave: tasks may share a wave only when they have no intra-wave dependency **and** no overlap in the files they write. When the overlap is mandatory, serialise: keep one task in the wave and push the colliding task to the next.
 
+Mechanically: every task declares `writes` — the set of paths it changes — and for every **pair** of tasks in one wave the intersection of their `writes` sets must be **empty**. A path ending in `/` is a directory and collides with anything beneath it, so `src/api/generated/` and `src/api/generated/handler.ts` intersect. A task that changes no file in the repository declares no `writes`, and there is then nothing to intersect on its behalf. Emptiness is a set comparison, not a judgement: `python3 tools/bla-check tasks specs/<slice-name>` runs it over the graph you emit and reports `FALHA [wave-writes-intersection]` on every colliding pair, so check your own output before you hand it over.
+
 Optimal wave grouping minimizes the total number of waves (shorter calendar time) while respecting all dependency edges — never at the cost of a write collision. A wave with one extra task that corrupts a shared file is slower than a wave boundary.
 
 ### Identify the Critical Path
@@ -69,7 +71,7 @@ If a task is XL, challenge yourself: can this be split into two M tasks with a d
 6. **Group into waves**: Tasks with no mutual dependency go in the same wave.
 7. **Compute critical path**: Find the longest path through the dependency DAG.
 8. **Validate traceability**: Every requirement must have at least one task. Every task must trace to a requirement.
-9. **Generate dependency graph JSON**: Machine-readable format for tooling and visualization.
+9. **Generate dependency graph JSON**: Machine-readable format for tooling and visualization. Every task node carries `writes` — the paths that task changes, a trailing `/` meaning a directory — except a task that changes no file at all, which omits it. Before you emit the file, compute the pairwise intersection within each wave yourself and confirm it is empty; if it is not, move a task to the next wave rather than shipping a graph that authorises a parallel clobber.
 
 ## Example Output
 
@@ -84,6 +86,7 @@ _Size: M | Requirements: 3.1.1, 3.1.2 | Design: §3.3_
 _Depends on: Task 1.2 (schema migration)_
 _Wave: 2_
 _Blocks: Task 2.3 (service layer needs repository)_
+_Writes: src/db/user-repository.ts, test/user-repository.it.ts_
 
 - [ ] Implement save() with conflict detection
 - [ ] Implement findById() with null → Optional mapping
@@ -97,6 +100,7 @@ _Size: S | Requirements: 3.3.1 | Design: §3.1_
 _Depends on: Task 1.1 (project scaffold)_
 _Wave: 2_
 _Blocks: Task 2.3_
+_Writes: src/domain/input-validator.ts, test/input-validator.pbt.ts_
 
 - [ ] Implement email format validation (RFC 5322)
 - [ ] Implement name length constraints (1-255)
@@ -109,6 +113,7 @@ _Blocks: Task 2.3_
 _Size: L | Requirements: 3.1.1, 3.1.2, 3.2.1 | Design: §3.2_
 _Depends on: Task 2.1, Task 2.2_
 _Wave: 3_
+_Writes: src/service/user-service.ts, test/user-service.it.ts_
 
 - [ ] Wire validator → service → repository
 - [ ] Implement createUser() with idempotency
@@ -132,4 +137,4 @@ _Wave: 3_
 - **Reads:** `specs/<slice-name>/design.md` (components, interfaces, data models) and `specs/<slice-name>/requirements.md` (for traceability); `skills/spec-driven-implementation/templates/tasks-template.md`.
 - **Writes (exactly one file):** `specs/<slice-name>/tasks.md` — including the Dependency Graph JSON with waves at the bottom.
 - **Must not touch:** `specs/<slice-name>/requirements.md` and `specs/<slice-name>/design.md`. A task with no requirement to trace to means the spec is incomplete: send it back to `/spec` Step 1 and let the user approve the missing requirement. Inventing it inside `tasks.md` is how gold-plating enters a spec that was already approved.
-- **Returns (first line):** `TASKS: <n> tasks · <n> waves · critical path <n> tasks · <n> one-way doors`. You are a producer, not a reviewer: you emit no verdict and no severities. The verdict on your output is the Spec Coherence Review's.
+- **Returns (first line):** `TASKS: <n> tasks · <n> waves · critical path <n> tasks · <n> one-way doors · writes-intersection empty in every wave`. Report the emptiness as you measured it: if any wave still intersects, say `writes-intersection NOT empty: wave <n>` instead and name the pair. You are a producer, not a reviewer: you emit no verdict and no severities. The verdict on your output is the Spec Coherence Review's.
