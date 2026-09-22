@@ -1,0 +1,369 @@
+#!/usr/bin/env python3
+"""bla-check — deterministic checks for a Build Like Amazon repository.
+
+One file, standard library only, no manifest and no lockfile: this repository is
+documentation, and a checker that needs an install step would not be run.
+
+Output contract, mandatory and stable:
+
+    FALHA [rule-name] path:line message     a violation; any FALHA makes the exit code 1
+    AVISO [rule-name] path:line message     a warning; never changes the exit code
+
+`--json` prints one JSON array of {severity, rule, path, line, message} and nothing else.
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+
+FALHA = "FALHA"
+AVISO = "AVISO"
+
+# Directories `links` never walks into.
+SKIP_DIRS = (".git", ".agents", ".worktrees", "node_modules")
+
+FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+CHECKBOX_RE = re.compile(r"^\s*[-*+]\s+\[([ xX!\-])\]\s*(.*)$")
+TASK_NAMED_RE = re.compile(r"^\**Task\s+([0-9]+(?:\.[0-9]+)*)")
+TASK_HEADING_RE = re.compile(r"^(#{1,6})\s+Task\s+([0-9]+(?:\.[0-9]+)*)")
+HEADING_RE = re.compile(r"^(#{1,6})\s")
+CODE_SPAN_RE = re.compile(r"`+[^`]*`+")
+LINK_RE = re.compile(r"\]\(\s*(<[^>]*>|[^()\s]+)")
+IGNORED_LINK_PREFIXES = ("http:", "https:", "mailto:")
+REASON_DELIMITERS = (":", "\u2014", " - ")
+
+
+def finding(severity, rule, path, line, message):
+    """Build one finding. `line` may be None for a document-level observation."""
+    return {
+        "severity": severity,
+        "rule": rule,
+        "path": path,
+        "line": line,
+        "message": message,
+    }
+
+
+def read_lines(path):
+    with open(path, "r", encoding="utf-8", errors="replace") as handle:
+        return handle.read().split("\n")
+
+
+def strip_fences(lines):
+    """Yield (lineno, text) for every line *outside* a fenced code block.
+
+    A fence closes only on the same fence character with a length greater than or
+    equal to the opener (CommonMark). Both delimiter lines are withheld, and an
+    unterminated fence swallows the rest of the document, exactly as CommonMark
+    closes it at end of input.
+    """
+    opener = None
+    for lineno, raw in enumerate(lines, start=1):
+        text = raw.rstrip("\r\n")
+        match = FENCE_RE.match(text)
+        if opener is None:
+            if match:
+                opener = match.group(1)
+            else:
+                yield (lineno, text)
+        elif match and match.group(1)[0] == opener[0] and len(match.group(1)) >= len(opener):
+            opener = None
+
+
+def fenced_blocks(lines):
+    """Yield (lineno_of_opener, info_string, block_lines) for each fenced block."""
+    opener = None
+    start = 0
+    info = ""
+    body = []
+    for lineno, raw in enumerate(lines, start=1):
+        text = raw.rstrip("\r\n")
+        match = FENCE_RE.match(text)
+        if opener is None:
+            if match:
+                opener = match.group(1)
+                start = lineno
+                info = text[match.end():].strip()
+                body = []
+        elif match and match.group(1)[0] == opener[0] and len(match.group(1)) >= len(opener):
+            yield (start, info, body)
+            opener = None
+        else:
+            body.append(text)
+    if opener is not None:
+        yield (start, info, body)
+
+
+def has_reason(remainder):
+    """True when the text after a `[!]` marker carries an actual reason.
+
+    The remainder must contain one of `:`, an em dash, or ` - `, followed by at
+    least four non-space characters. `- [!] Task 2.3` is a marker without a
+    reason; `- [!] Task 2.3: blocked — upstream API not deployed` is a reason.
+    """
+    for delimiter in REASON_DELIMITERS:
+        index = remainder.find(delimiter)
+        if index >= 0:
+            tail = remainder[index + len(delimiter):]
+            if len("".join(tail.split())) >= 4:
+                return True
+    return False
+
+
+def marker_state(marker):
+    if marker == "!":
+        return "blocked"
+    if marker in (" ", "-"):
+        return "open"
+    return "done"
+
+
+def is_skipped_dir(parent, name):
+    """True when `links` must not descend into <parent>/<name>.
+
+    Besides the fixed list, a directory named `fixtures` directly inside a
+    directory named `tests` is skipped: its files are deliberately malformed
+    inputs for a checker, not documentation. Pointing the subcommand straight at
+    such a directory still checks it — only descent from above is pruned.
+    """
+    if name in SKIP_DIRS:
+        return True
+    return name == "fixtures" and os.path.basename(parent) == "tests"
+
+
+def cmd_tasks(spec_dir):
+    """Check `<spec-dir>/tasks.md`: markers, blocked reasons, and the task graph."""
+    findings = []
+    path = os.path.join(spec_dir, "tasks.md")
+    if not os.path.isfile(path):
+        findings.append(finding(
+            FALHA, "tasks-file-absent", path, 1,
+            "no tasks.md to check in %s" % spec_dir))
+        return findings
+
+    lines = read_lines(path)
+    body = list(strip_fences(lines))
+
+    # Task state as the document declares it, by two channels.
+    checkbox_state = {}   # task id -> (marker, lineno); a checkbox wins over a section
+    section_markers = {}  # task id -> [marker, ...] seen inside the `### Task <id>` section
+    section_line = {}     # task id -> lineno of the heading
+    open_section = None
+    open_level = 0
+
+    for lineno, text in body:
+        heading = TASK_HEADING_RE.match(text)
+        if heading:
+            open_section = heading.group(2)
+            open_level = len(heading.group(1))
+            section_markers.setdefault(open_section, [])
+            section_line.setdefault(open_section, lineno)
+            continue
+        generic = HEADING_RE.match(text)
+        if generic and len(generic.group(1)) <= open_level:
+            open_section = None
+            open_level = 0
+
+        checkbox = CHECKBOX_RE.match(text)
+        if not checkbox:
+            continue
+        marker, remainder = checkbox.group(1), checkbox.group(2)
+
+        # (a) task-marker-open — an unfinished marker survived into the report.
+        if marker in (" ", "-"):
+            findings.append(finding(
+                FALHA, "task-marker-open", path, lineno,
+                "marker is still [%s]: %s" % (marker, remainder.strip() or "(no text)")))
+        # (b) task-blocked-no-reason — a blocked marker with nothing a reader can act on.
+        elif marker == "!" and not has_reason(remainder):
+            findings.append(finding(
+                FALHA, "task-blocked-no-reason", path, lineno,
+                "[!] carries no reason: %s" % (remainder.strip() or "(no text)")))
+
+        named = TASK_NAMED_RE.match(remainder)
+        if named:
+            checkbox_state[named.group(1)] = (marker, lineno)
+        elif open_section is not None:
+            section_markers[open_section].append(marker)
+
+    graph, graph_line = task_graph(lines)
+    if graph is None:
+        findings.append(finding(
+            AVISO, "task-graph-absent", path, None,
+            "no ```json fence with a \"tasks\" object — graph rules skipped"))
+        return findings
+
+    def state_of(task_id):
+        if task_id in checkbox_state:
+            return marker_state(checkbox_state[task_id][0])
+        markers = section_markers.get(task_id)
+        if markers is None:
+            return None
+        if "!" in markers:
+            return "blocked"
+        if " " in markers or "-" in markers:
+            return "open"
+        if [m for m in markers if m in ("x", "X")]:
+            return "done"
+        return None
+
+    def line_of(task_id):
+        if task_id in checkbox_state:
+            return checkbox_state[task_id][1]
+        return section_line.get(task_id, graph_line)
+
+    json_ids = set(graph.keys())
+    doc_ids = set(checkbox_state.keys()) | set(section_markers.keys())
+
+    # (d) task-graph-orphan — the two sets must be EQUAL, in both directions.
+    for task_id in sorted(json_ids - doc_ids):
+        findings.append(finding(
+            FALHA, "task-graph-orphan", path, graph_line,
+            "task %s is in the dependency graph but has no `Task %s` section or checkbox"
+            % (task_id, task_id)))
+    for task_id in sorted(doc_ids - json_ids):
+        findings.append(finding(
+            FALHA, "task-graph-orphan", path, line_of(task_id),
+            "task %s is in the document but has no entry in the dependency graph" % task_id))
+
+    # (e) task-dep-blocked — a done task standing on a blocked one.
+    for task_id in sorted(json_ids & doc_ids):
+        if state_of(task_id) is None:
+            findings.append(finding(
+                AVISO, "task-state-unknown", path, line_of(task_id),
+                "no marker found for task %s — state not derivable" % task_id))
+            continue
+        if state_of(task_id) != "done":
+            continue
+        node = graph.get(task_id) or {}
+        for dep in node.get("depends_on") or []:
+            if state_of(str(dep)) == "blocked":
+                findings.append(finding(
+                    FALHA, "task-dep-blocked", path, line_of(task_id),
+                    "task %s is done while its dependency task %s is blocked"
+                    % (task_id, dep)))
+    return findings
+
+
+def task_graph(lines):
+    """Return (tasks_dict, lineno) from the first ```json fence carrying "tasks"."""
+    for lineno, info, block in fenced_blocks(lines):
+        if info.split(None, 1)[:1] not in ([], ["json"]):
+            continue
+        try:
+            parsed = json.loads("\n".join(block))
+        except ValueError:
+            continue
+        if isinstance(parsed, dict) and isinstance(parsed.get("tasks"), dict):
+            return parsed["tasks"], lineno
+    return None, None
+
+
+def cmd_links(root):
+    """Check every relative markdown link target under <dir> resolves to a real path.
+
+    One resolution rule and no fallback: a link resolves only against the directory
+    of the file that contains it. A second base (the repository root) is what lets
+    broken links pass unnoticed.
+    """
+    findings = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(d for d in dirnames if not is_skipped_dir(dirpath, d))
+        for name in sorted(filenames):
+            if not name.endswith(".md"):
+                continue
+            path = os.path.join(dirpath, name)
+            for lineno, text in strip_fences(read_lines(path)):
+                text = CODE_SPAN_RE.sub(" ", text)
+                for match in LINK_RE.finditer(text):
+                    target = match.group(1)
+                    if target.startswith("<") and target.endswith(">"):
+                        target = target[1:-1]
+                    if not target or target.startswith("#"):
+                        continue
+                    lowered = target.lower()
+                    if [p for p in IGNORED_LINK_PREFIXES if lowered.startswith(p)]:
+                        continue
+                    bare = target.split("#", 1)[0]
+                    if not bare:
+                        continue
+                    resolved = os.path.normpath(os.path.join(dirpath, bare))
+                    if not os.path.exists(resolved):
+                        findings.append(finding(
+                            FALHA, "link-broken", path, lineno,
+                            "%s (resolved %s)" % (target, resolved)))
+    return findings
+
+
+def report(findings, as_json):
+    """Print the findings and return the process exit code."""
+    if as_json:
+        print(json.dumps(findings))
+    else:
+        for item in findings:
+            where = item["path"]
+            if item["line"] is not None:
+                where = "%s:%s" % (where, item["line"])
+            print("%s [%s] %s %s" % (item["severity"], item["rule"], where, item["message"]))
+    return 1 if [f for f in findings if f["severity"] == FALHA] else 0
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="bla-check",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=(
+            "Deterministic checks for a Build Like Amazon repository.\n"
+            "Violations print FALHA [rule] path:line message and exit 1;\n"
+            "AVISO lines are warnings and never change the exit code."),
+        epilog=(
+            "notes:\n"
+            "  --json must come before the subcommand, and prints one JSON array of\n"
+            "  {severity, rule, path, line, message} and nothing else.\n"
+            "  `links` reads markdown link syntax only: HTML attributes such as src=\n"
+            "  and href= are out of scope, as are reference-style link definitions.\n"
+            "  `links` resolves a target only against the directory of the file that\n"
+            "  contains it, with no second base. It skips .git, .agents, .worktrees,\n"
+            "  node_modules, and a tests/fixtures directory (deliberately malformed\n"
+            "  inputs), unless you point it straight at one.\n"))
+    parser.add_argument(
+        "--json", action="store_true",
+        help="print findings as one JSON array instead of FALHA/AVISO lines")
+    sub = parser.add_subparsers(dest="command", metavar="<subcommand>")
+
+    p_tasks = sub.add_parser(
+        "tasks",
+        help="check <spec-dir>/tasks.md: open markers, blocked reasons, task graph")
+    p_tasks.add_argument("spec_dir", metavar="<spec-dir>")
+
+    p_links = sub.add_parser(
+        "links", help="check that relative markdown links under <dir> resolve")
+    p_links.add_argument("root", metavar="<dir>", nargs="?", default=".")
+
+    sub.add_parser(
+        "artifacts",
+        help=("not implemented — needs a template-residue detector and the repository "
+              "has zero filled artifacts to calibrate against"))
+    sub.add_parser(
+        "review",
+        help=("not implemented — needs a parseable verdict block in a persisted report "
+              "to calibrate against"))
+
+    args = parser.parse_args(argv)
+    if args.command == "tasks":
+        return report(cmd_tasks(args.spec_dir), args.json)
+    if args.command == "links":
+        return report(cmd_links(args.root), args.json)
+    if args.command in ("artifacts", "review"):
+        sys.stderr.write(
+            "bla-check: `%s` is registered but does nothing yet; see --help for why\n"
+            % args.command)
+        return 2
+    parser.print_help()
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
