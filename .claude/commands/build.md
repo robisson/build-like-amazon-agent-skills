@@ -15,11 +15,15 @@ When the user invokes `/build` (with no other instruction), the agent MUST:
 5. After each spec, run the Post-Implementation Review automatically (see end of this file). If verdict is **PASSED** or **PASSED WITH FIXES NEEDED**, proceed to the next spec without asking. Only **FAILED** stops execution to surface to the user.
 6. Stop only when **all specs in `specs/` are in a terminal state** (every task `[x]` or `[!]`). At that point, present a single end-of-build summary.
 
+> **Execution closure is not delivery.** "Every task `[x]` or `[!]`" is the *execution closure* condition — it says the orchestrator has nothing left to dispatch. It does not say the spec was delivered. A spec with at least one `[!]` corresponding to an unimplemented acceptance criterion **cannot** receive verdict `PASSED` in `implementation-review.md`: the best available verdict is `PASSED WITH FIXES NEEDED`, or `FAILED` if an entire requirement is unimplemented. Closure ends execution; the verdict reports delivery.
+
 ### When to stop and ask the user (the only valid reasons)
 
 The agent MAY only stop autonomous execution when one of these is true:
 
 - **Hard blocker**: a sub-agent reports `[!]` blocked and the blocker requires human input (missing credential, missing upstream service, ambiguous design that needs clarification, etc.). Mark the task `[!]` with reason and present.
+
+  Not every `[!]` is a hard blocker, and the difference decides whether execution stops. If the blocker **requires human input** to resolve, stop and present. If the blocker is **workaroundable or merely local** — one task cannot proceed but the rest of the wave can — mark that task `[!]` with its reason, leave its dependents `[ ]`, and let the wave finish. Both outcomes use the same four markers; no new state is introduced.
 - **Failed Post-Implementation Review**: verdict is `FAILED` (fundamentally wrong implementation, requirement entirely unimplemented, architectural gap). Present `implementation-review.md` and wait for guidance.
 - **Green-build gate fails and cannot self-recover**: tests broken in a way that cannot be fixed with a follow-up task within scope.
 - **The user explicitly asked to pause/checkpoint** (see override below).
@@ -97,6 +101,7 @@ Before executing anything, classify the invocation against the repo state and th
    - **ALWAYS execute all tasks in Wave 1 IN PARALLEL** (these have no dependencies — parallelization is mandatory, not optional).
    - After Wave 1 completes, verify green-build gate passes (all tests green, no regressions).
    - **Execute all Wave 2 tasks IN PARALLEL** (they depend on Wave 1 outputs but NOT on each other).
+   - **Dispatch only tasks whose dependencies are all `[x]`.** A task marked `[!]` never satisfies another task's dependency — a blocked task produced no output for a dependent to build on. So when a task ends `[!]`, every task that depends on it (directly or transitively) is **not dispatched**, stays `[ ]`, and is reported as not dispatched with the blocking task named. The rest of the wave proceeds normally.
    - Continue until all waves in the current phase are complete.
    - Verify the phase-level green-build gate before advancing to the next phase.
 4. **Track task status in `tasks.md` — the orchestrator owns this file, not sub-agents.**
@@ -116,8 +121,10 @@ Before executing anything, classify the invocation against the repo state and th
    1. **Before dispatching the wave**: edit `tasks.md` and flip every task in the wave from `- [ ]` to `- [-]`. Save the file. *Then* dispatch sub-agents. This ordering is critical: if the session is interrupted between the edit and the dispatch, a resume can scan `[-]` markers and pick up cleanly.
    2. **While sub-agents work**: do not touch `tasks.md`.
    3. **As each sub-agent reports back**: if it succeeded, edit `tasks.md` and flip its task from `- [-]` to `- [x]`. If it reports a blocker, flip to `- [!]` with the reason inline.
-   4. **Before declaring the wave complete**: re-read `tasks.md` and verify that *every* task in the wave is `[x]` or `[!]`. If any task is still `[ ]` or `[-]`, you have a bug — either a sub-agent finished without reporting, or you skipped a transition. Stop and reconcile.
+   4. **Before declaring the wave complete**: re-read `tasks.md` and verify that *every* task in the wave is `[x]` or `[!]`. If any task is still `[ ]` or `[-]`, you have a bug — either a sub-agent finished without reporting, or you skipped a transition. Stop and reconcile. The single exception: a task left `[ ]` because it was **not dispatched** (a dependency ended `[!]`) is not a bug, but it must be named explicitly in the wave report alongside the blocking task.
    5. **Only then** advance to the next wave.
+
+   **Closing the spec.** Undispatched tasks may sit at `[ ]` while waves run, but they may not survive into closure. Before declaring the spec closed, flip every task still `[ ]` whose dependency chain ends in a `[!]` to `[!]` itself, with the reason inline (e.g. `- [!] Task 3.1: not dispatched — depends on Task 2.3, which is [!]`). Execution closure then still means what it says: every task `[x]` or `[!]`, no new state introduced.
 
    **Resuming after interruption**: when resuming a `/build` session, scan `tasks.md` first.
    - `[-]` = work in flight when interrupted; verify what was actually completed (look at the codebase) and reconcile to `[x]` or `[ ]`.
@@ -138,6 +145,7 @@ Before executing anything, classify the invocation against the repo state and th
    - Read the dependency graph from tasks.md (JSON at the bottom)
    - Identify which tasks are in the same wave
    - Start ALL tasks in that wave at the same time (one sub-agent per task)
+   - Skip any task whose `depends_on` includes a task that is not `[x]` — a task marked `[!]` never satisfies another task's dependency, so its dependents are left `[ ]` and reported as not dispatched rather than dispatched with missing inputs
    - Wait for all sub-agents in the wave to complete
    - Only then advance to the next wave
 
@@ -202,7 +210,7 @@ For each completed spec:
 - Implementation code (all tasks marked `[x]` in tasks.md)
 - Tests (unit + integration, matching acceptance criteria from requirements.md)
 - Observability instrumentation (logs, metrics, alarms)
-- `tasks.md` is in a terminal state: every task is `[x]` (done) or `[!]` (blocked, with reason). No `[ ]` or `[-]` may remain when the spec is declared complete. If any do, the spec is not done — reconcile before moving on.
+- `tasks.md` is in a terminal state: every task is `[x]` (done) or `[!]` (blocked, with reason). No `[ ]` or `[-]` may remain when the spec is declared complete. If any do, the spec is not done — reconcile before moving on. This is *execution closure*, not delivery: it means nothing is left to dispatch, not that everything was delivered. What was delivered is stated by the verdict in `implementation-review.md`.
 
 ---
 
@@ -254,6 +262,8 @@ Produce the following structured review and save it to `specs/<slice-name>/imple
 
 ### Verdicts and Actions
 
+**Precondition on `PASSED`.** Execution closure is not delivery. A spec whose `tasks.md` contains at least one `[!]` corresponding to an unimplemented acceptance criterion **cannot** be given verdict `PASSED`, however clean the rest of the run was — the lowest admissible verdict is `PASSED WITH FIXES NEEDED`, and `FAILED` when an entire requirement is unimplemented. `PASSED` asserts that every acceptance criterion in `requirements.md` is met; a blocked task that owns one of them contradicts that assertion.
+
 | Verdict | Action |
 |---------|--------|
 | **PASSED** | Proceed to next spec or `/deploy` **without asking the user**. No fixes needed. The review is informational, not a gate. |
@@ -263,7 +273,7 @@ Produce the following structured review and save it to `specs/<slice-name>/imple
 ### Execution Rules
 
 1. **Generate the review** by comparing every requirement + acceptance criterion in `requirements.md` against the actual implementation.
-2. **Check PBT properties** from `design.md` — run them if a test runner is available, otherwise manually verify the implementation satisfies them.
+2. **Check PBT properties** from `design.md` — run them if a test runner is available, otherwise manually verify the implementation satisfies them. **Record which route you took for each property**: a property checked by reading the code is reported as `NOT EXECUTED` or `VERIFIED BY INSPECTION`, never as a pass. A report verified by reading must not be indistinguishable from one backed by 1,000 green cases, and the count of properties not executed belongs in the review.
 3. **Check for scope creep** — scan implementation for functionality not traced to any requirement. Flag it.
 4. **Write the structured output** to `specs/<slice-name>/implementation-review.md`.
 5. **Implementation memory — verdict-dependent behavior**:
@@ -300,7 +310,10 @@ Produce the following structured review and save it to `specs/<slice-name>/imple
 - Every spec has a `specs/<slice-name>/implementation-review.md` with verdict PASSED or PASSED WITH FIXES NEEDED.
 - No spec is left unstarted.
 
-Only at that point do you produce the **end-of-build summary** to the user:
+Only at that point do you produce the **end-of-build summary** to the user. **The header is conditional on the blocked-task count** — do not print a green checkmark over a run that left work blocked:
+
+- `Blocked tasks == 0` → `✅ /build complete`
+- `Blocked tasks > 0` → `⚠️ /build ended with <N> blocked task(s)`, with N the actual count
 
 ```
 ✅ /build complete
@@ -328,6 +341,25 @@ Next steps:
 
 Blocked items needing your attention:
 - spec-3 / Task 4.2: <reason — what's needed from user>
+```
+
+When the blocked count is greater than zero, the same body is used with the warning header instead, and the blocked items are the first thing the user reads:
+
+```
+⚠️ /build ended with 2 blocked task(s)
+
+Specs executed: 3
+- spec-1: PASSED (8 tasks done)
+- spec-2: PASSED WITH FIXES NEEDED (11 tasks done, 2 fix-tasks applied)
+- spec-3: PASSED WITH FIXES NEEDED (6 tasks done, 2 blocked)
+
+Blocked items needing your attention:
+- spec-3 / Task 4.2: blocked — upstream payments API not deployed to staging
+- spec-3 / Task 4.5: not dispatched — depends on Task 4.2
+
+Total tasks done: 25
+Blocked tasks: 2
+...
 ```
 
 If at any point during execution one of the four valid stop reasons fires, present **that** information instead and wait. Otherwise, do not stop.

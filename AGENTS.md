@@ -175,7 +175,7 @@ The orchestrator (the agent running `/build`) owns `tasks.md`. Sub-agents do not
 - Before dispatching a wave: flip every task in the wave from `[ ]` to `[-]` and save the file.
 - As each sub-agent reports back: flip its task to `[x]` (success) or `[!]` (blocked, with reason).
 - Before declaring the wave complete: re-read `tasks.md` and verify no task is still `[ ]` or `[-]`.
-- A spec is only complete when every task is `[x]` or `[!]`.
+- A spec is only complete when every task is `[x]` or `[!]`. That is *execution closure* — nothing left to dispatch — and it is not the same as delivery: a spec holding a `[!]` on an unimplemented acceptance criterion cannot be given verdict `PASSED` in `implementation-review.md`.
 
 For the full state-transition protocol and resume rules, see `.claude/commands/build.md`.
 
