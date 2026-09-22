@@ -25,11 +25,13 @@ Implementation memory can be fed from multiple workflow stages — not only `/bu
 
 | Source | When | What to extract |
 |--------|------|-----------------|
+| `/design` (design gate) | After a requirement bounces at the design gate 3 or more times | The recurring reason the requirement keeps failing the gate, stated as a rule for future design work |
+| `/spec` (coherence review) | After a coherence-review finding recurs across specs | The cross-spec inconsistency pattern that coherence review keeps catching |
 | `/build` (post-implementation review) | After PASSED WITH FIXES NEEDED or user validation | Procedural lessons from fix tasks, debug cycles, review findings |
 | `/review` (code review) | After review feedback is resolved | Recurring review findings that apply beyond one PR |
 | `/learn` (COE) | After corrective actions are defined | Operational lessons that should influence future implementation |
 
-All sources use the same Quality Memory Review process, admission checks, and rejection rules.
+All sources use the same Quality Memory Review process, admission checks, and rejection rules. Record the capturing phase in the rule's `Phase` field so later selection scopes it correctly.
 
 ## Internal Flow Hooks
 
@@ -40,7 +42,9 @@ Use this mechanism in these places:
 3. **After user validation or explicit request**: run a Quality Memory Review using implementation results, implementation review, test/debug feedback, and user feedback to decide whether memory should be updated.
 4. **After `/review` findings are resolved**: if the review surfaced recurring patterns (same finding across 2+ PRs or explicitly flagged as "this keeps happening"), extract candidates and present for Accept / Reject / Edit.
 5. **After `/learn` corrective actions**: if a COE produces an implementation-level corrective action (not an org/process action), extract a candidate and present for Accept / Reject / Edit.
-6. **Periodic nudge**: after 3 builds without a memory update (tracked via `Last build without update` counter at the bottom of the memory file), include in the end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
+6. **After a requirement bounces at the `/design` gate 3 or more times**: extract a candidate with `Phase: design` describing why the requirement kept failing the gate, and present for Accept / Reject / Edit. Without this hook a requirement rejected three times leaves no trace.
+7. **After a coherence-review finding recurs across specs**: when `/spec` produces the same coherence finding in 2 or more specs, extract a candidate with `Phase: spec` and present for Accept / Reject / Edit.
+8. **Periodic nudge**: after 3 builds without a memory update (tracked via `Last build without update` counter at the bottom of the memory file), include in the end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
 
 Do not use this skill to replace requirements, design documents, ADRs, release notes, PR/FAQ, postmortems, or review artifacts.
 
