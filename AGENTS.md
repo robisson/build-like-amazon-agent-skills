@@ -196,7 +196,7 @@ While writing code in `/build`:
 - **Functions do one thing at one level of abstraction.** Small and shallow.
 - **Cyclomatic complexity is a smell, not a metric.** High branching means decomposition, not tolerance.
 - **No comments that describe *what*; only *why*.** Rename and extract until comments are unnecessary.
-- **No dead code, no premature abstractions, no `any`/`unknown` escape hatches, no mutable globals.**
+- **No dead code, no premature abstractions, no `any`/`unknown` escape hatches, no mutable globals.** `unknown` at the boundary, validated before use, is correct; `unknown` that flows into business logic is the escape hatch.
 - **Errors are values at boundaries, exceptions inside.** Provider exceptions don't leak into business logic.
 
 For the full bar, see `skills/incremental-implementation/SKILL.md` → "Code Quality Bar".
