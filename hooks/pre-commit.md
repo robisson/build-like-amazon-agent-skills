@@ -161,10 +161,10 @@ git commit --no-verify -m "message"
 
 ### Setup
 
-This document is a specification, not an installed hook. This repository ships no installation mechanism: there is no setup script, no git template and no CI. A developer who wants these checks installs the hook by hand — write the checks above into an executable `.git/hooks/pre-commit`.
+This document is a specification, not an installed hook. This repository ships no installation mechanism for it: there is no setup script and no git template. A developer who wants these checks installs the hook by hand — write the checks above into an executable `.git/hooks/pre-commit`.
 
 ---
 
 ## Relationship to CI
 
-There is no CI in this repository, so nothing re-runs these checks on the server. Until CI exists, a hand-installed pre-commit hook is the only place the checks run, and skipping it means they do not run at all. If CI is added later, it should run the same checks so that enforcement no longer depends on each developer's local setup.
+CI exists — `.github/workflows/check.yml` re-runs the repository's deterministic document checks on the server for every push and pull request, so document truth no longer depends on each developer's local setup. **Its checks are not these checks.** The workflow verifies the documents (README counts, frontmatter, label integrity, cross-references, links, `markdownlint`, secret scan); the hook above verifies the *change you are about to commit* (spec presence, marker state, artifact residue) at the only moment that information still exists. The overlap is deliberate and partial, and the hook is still hand-installed, so skipping it means its own checks do not run at all until the workflow catches whatever it can catch after the fact.

@@ -8,13 +8,14 @@
 [![Skills](https://img.shields.io/badge/skills-28-blue.svg)](#all-28-skills)
 [![Agents](https://img.shields.io/badge/bar_raiser_agents-10-orange.svg)](#10-agent-personas)
 
-[Getting Started](docs/getting-started.md) · [Quick Start](#quick-start) · [All Skills](#all-28-skills) · [Agent Personas](#10-agent-personas) · [Philosophy](#philosophy) · [Contributing](#contributing)
+[Getting Started](docs/getting-started.md) · [Quick Start](#quick-start) · [All Skills](#all-28-skills) · [Agent Personas](#10-agent-personas) · [Philosophy](#philosophy) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
 ---
 > **Author's disclaimer:**
 > *"Amazon, in my opinion, has a very unique way of designing, building, and operating large-scale distributed services. This is publicly available in a variety of formats, from YouTube videos to blog articles, knowledge frameworks like the Well-Architected Framework, and the Amazon Builders Library. My idea here was to organize this knowledge so that AI Agents can leverage this way of seeing a problem and convert it into customer-centric value, accelerating the developer's work."*
+
 ## Overview
 
 Amazon Agent Skills encode Amazon's engineering workflows as structured markdown that AI coding agents follow consistently. Instead of relying on tribal knowledge or hoping your agent "figures it out," these skills provide deterministic, repeatable processes that mirror how Amazon builds software at scale.
@@ -154,7 +155,7 @@ Read .build-like-amazon/AGENTS.md for operating behaviors.
 Start with /wb for new features. Run /design before implementation. Never skip approval gates.
 ```
 
-See [docs/cursor-setup.md](docs/getting-started.md) for detailed configuration.
+See [docs/getting-started.md](docs/getting-started.md) for detailed configuration.
 </details>
 
 <details>

@@ -181,7 +181,7 @@ If the answer is no, the code is not done. Rename until functions describe thems
 | Commit message linting | One logical change per commit | Conventional commits enforced in CI |
 | Deployment frequency dashboard | Teams track deployment cadence | Weekly metrics review surfaces stalled code |
 
-`Max 400 lines per PR` is the **hard ceiling** — the highest number in this skill, meant to be enforced by a CI check that rejects the PR. This repository has no CI yet, so the ceiling is currently a convention rather than a mechanism.
+`Max 400 lines per PR` is the **hard ceiling** — the highest number in this skill, meant to be enforced by a CI check that rejects the PR. This repository's CI (`.github/workflows/check.yml`) does not measure PR size, so this particular ceiling is still a convention rather than a mechanism.
 
 ## Common Rationalizations
 

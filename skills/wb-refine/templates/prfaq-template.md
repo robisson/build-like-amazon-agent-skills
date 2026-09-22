@@ -82,7 +82,7 @@ Q2: How much does it cost us to build?
 
 [One sentence following this formula: "For [target customer] who [need/pain], [Product Name] is [category] that [primary benefit]."]
 
-[City name][Date] - [Company Name] announces [Product Name], [one sentence: what it is and what it does for customers]. [One sentence: why this matters now]. [One sentence: the single most important outcome for the customer].
+[City name] — [Date] - [Company Name] announces [Product Name], [one sentence: what it is and what it does for customers]. [One sentence: why this matters now]. [One sentence: the single most important outcome for the customer].
 
 [Target customers] today spend [quantified time/money/effort] on [painful current process]. When [triggering situation occurs], they are forced to [specific painful workaround], resulting in [quantified negative impact — hours lost, dollars wasted, errors introduced, customers affected]. [Data point from research/industry source] confirms this is not an edge case — [scope of the problem across the market].
 

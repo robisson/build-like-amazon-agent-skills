@@ -1,0 +1,16 @@
+# gitleaks configuration for the secret scan in .github/workflows/check.yml.
+#
+# The default rule set is the whole configuration: this repository is documentation and has no
+# credentials of its own, so there is nothing to tune and every custom rule would be a guess.
+[extend]
+useDefault = true
+
+# There is NO baseline file on purpose, and none should be committed pre-emptively.
+#
+# A baseline freezes the findings of a scan that has not happened yet, which converts an unknown
+# into an approved exception. The first scan runs clean or it does not; if it flags something, the
+# finding is read first and only then is a baseline generated — with a comment naming each entry and
+# why it is not a secret — via `gitleaks detect --report-path .gitleaks-baseline.json` and wired in
+# with the action's `GITLEAKS_CONFIG` / baseline input.
+#
+# A predicate in the wave's verification block asserts that .gitleaks-baseline.json does not exist.
