@@ -9,6 +9,20 @@ and numbers nothing: the names here are the names those files already use. When 
 changes, this file changes in the same commit — `AGENTS.md` → *Keep the Documentation Truthful in the Same
 Commit* applies to it like to any other cross-reference.
 
+**Four rows come from somewhere other than an `## Output` list, and are named here so that a reader who
+greps for them and finds nothing does not read the gap as a stale catalog.** Measured over all 14 commands:
+39 distinct artefact filenames are cited across the `## Output` sections and 38 of them are in this
+catalog — the 39th is `model.yml`, a dbt illustration inside the store-native parenthetical of `/design`
+Step 2, not a path this flow writes. In the other direction, four rows are not in any `## Output` list.
+`specs/<slice-name>/.reports/<task-id>.md` comes from `.claude/commands/build.md` Step 3, which fixes its
+first line because that line is what the wave close matches on. `docs/implementation-memory.md` comes from
+the memory step of `/build`, `/review` and `/learn`, not from what they save at the end. The two Optional
+Working Backwards rows come from the skills the commands activate and from their templates: the 5CQ screen
+from `skills/working-backwards/SKILL.md` → *The 5 Customer Questions (5CQ)*, and the Dear Customer Letter
+from the format table in `skills/wb-refine/SKILL.md` — no command's `## Output` names either, and they are
+catalogued because a template on disk that this file never names is an orphan, which is the defect this
+catalog was written to end.
+
 Two reading rules:
 
 - **`Canonical path`** uses `<feature-name>`, `<service-name>`, `<slice-name>` and `<incident-name>`

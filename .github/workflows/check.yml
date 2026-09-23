@@ -70,6 +70,17 @@ jobs:
           [ "$dirs" = "$real" ] \
             || { echo "FALHA [skill-dir-exact-set] skills/ has $dirs directories but $real SKILL.md files"; f=1; }
 
+          # The third count README states about disk. docs/references.md numbers its rows 1..N in the
+          # first column of every section table, so N is derivable; the "## How These Map to Skills"
+          # table cites #IDs and holds no numbered row, which is why the pattern anchors on `| <n> |`.
+          # README said 49 while disk held 48 until this arm was added — the same defect class as
+          # badge-count, in the one count that had no reader.
+          refs=$(grep -oE '^\| *[0-9]+ *\|' docs/references.md | grep -oE '[0-9]+' | sort -n | tail -1)
+          [ -n "$refs" ] \
+            || { echo "FALHA [reference-count-unparsed] docs/references.md no longer numbers its rows; this predicate can no longer read the count it compares"; f=1; refs=0; }
+          grep -q "list of $refs references" README.md \
+            || { echo "FALHA [reference-count] README.md does not say 'list of $refs references', which is what docs/references.md numbers"; f=1; }
+
           # A section heading glued to the paragraph above it is not a style nit: CommonMark does not
           # open an ATX heading there in every renderer, so the section silently stops being a section.
           glued=$(awk '/^## /{ if (prev != "") printf " %d", NR } {prev=$0}' README.md)

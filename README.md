@@ -399,7 +399,7 @@ All the skills in this project are grounded in publicly available resources. Key
 - **[Amazon Leadership Principles](https://www.aboutamazon.com/about-us/leadership-principles)** — Customer Obsession, Bias for Action, Ownership, Insist on Highest Standards
 - **[Working Backwards (book)](https://www.workingbackwards.com/)** — By Colin Bryar & Bill Carr, the definitive guide to Amazon's product development process
 
-See [`docs/references.md`](docs/references.md) for the full list of 49 references with URLs and descriptions.
+See [`docs/references.md`](docs/references.md) for the full list of 48 references with URLs and descriptions.
 
 ## License
 
