@@ -9,6 +9,7 @@ subprocess exercises that.
 Run from anywhere: python3 tools/tests/run.py
 """
 
+import json
 import os
 import subprocess
 import sys
@@ -43,6 +44,26 @@ CASES = [
      ["tasks", os.path.join(FIXTURES, "tasks-evidence-missing")], 1,
      ["FALHA [task-evidence-missing]", "1.2.md does not exist",
       "does not open with"], ["FALHA [tasks-file-absent]", "task 1.1"], None),
+    # The AVISO half of the output contract: a warning is reported and the exit code
+    # stays 0. Without these three cases the invariant stated at the top of
+    # tools/bla-check was asserted nowhere.
+    ("tasks-no-graph",
+     ["tasks", os.path.join(FIXTURES, "tasks-no-graph")], 0,
+     ["AVISO [task-graph-absent]"], ["FALHA"], None),
+    ("tasks-partial-graph",
+     ["tasks", os.path.join(FIXTURES, "tasks-partial-graph")], 0,
+     ["AVISO [task-state-unknown]", "AVISO [wave-writes-undeclared]"], ["FALHA"], None),
+    # --wave is the wave-close invocation: an open marker on a task in another wave is
+    # out of scope, which is the whole reason the flag exists.
+    ("wave-scope-excludes-other-waves",
+     ["tasks", os.path.join(FIXTURES, "tasks-open-marker"), "--wave", "2"], 0,
+     [], ["FALHA"], None),
+    ("wave-scope-keeps-own-wave",
+     ["tasks", os.path.join(FIXTURES, "tasks-open-marker"), "--wave", "1"], 1,
+     ["FALHA [task-marker-open]"], [], None),
+    ("wave-scope-empty",
+     ["tasks", os.path.join(FIXTURES, "tasks-open-marker"), "--wave", "9"], 0,
+     ["AVISO [wave-scope-empty]"], ["FALHA"], None),
 ]
 
 
@@ -91,6 +112,36 @@ def main():
         failed += 1
         print("FAIL help-registers-unimplemented: expected 2 'not implemented' "
               "entries, got %d" % output.count("not implemented"))
+
+    # The --json contract is documented as mandatory and stable, so it is asserted as
+    # a shape and not as a substring: one array, one object per finding, exactly the
+    # five declared keys, and nothing printed alongside it.
+    code, output = run(["--json", "tasks", os.path.join(FIXTURES, "tasks-open-marker")])
+    problems = []
+    if code != 1:
+        problems.append("expected exit 1 got %d" % code)
+    try:
+        parsed = json.loads(output)
+    except ValueError as error:
+        parsed = None
+        problems.append("output is not one JSON document: %s" % error)
+    if isinstance(parsed, list):
+        if len(parsed) != 1:
+            problems.append("expected 1 finding, got %d" % len(parsed))
+        for item in parsed:
+            keys = sorted(item)
+            if keys != ["line", "message", "path", "rule", "severity"]:
+                problems.append("unexpected key set %r" % keys)
+            if item.get("severity") != "FALHA" or item.get("rule") != "task-marker-open":
+                problems.append("unexpected finding %r" % item)
+    elif parsed is not None:
+        problems.append("expected a JSON array, got %s" % type(parsed).__name__)
+    if problems:
+        failed += 1
+        print("FAIL json-contract: %s" % "; ".join(problems))
+    else:
+        passed += 1
+        print("ok json-contract")
 
     tail = "%d passed, %d failed" % (passed, failed)
     if skipped:
