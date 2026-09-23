@@ -14,8 +14,8 @@ greps for them and finds nothing does not read the gap as a stale catalog.** Mea
 39 distinct artefact filenames are cited across the `## Output` sections and 38 of them are in this
 catalog — the 39th is `model.yml`, a dbt illustration inside the store-native parenthetical of `/design`
 Step 2, not a path this flow writes. In the other direction, four rows are not in any `## Output` list.
-`specs/<slice-name>/.reports/<task-id>.md` comes from `.claude/commands/build.md` Step 3, which fixes its
-first line because that line is what the wave close matches on. `docs/implementation-memory.md` comes from
+`specs/<slice-name>/.reports/<task-id>.md` comes from `.claude/commands/build.md` → `### Execution Flow`
+item 6, which fixes its first line because that line is what the wave close matches on. `docs/implementation-memory.md` comes from
 the memory step of `/build`, `/review` and `/learn`, not from what they save at the end. The two Optional
 Working Backwards rows come from the skills the commands activate and from their templates: the 5CQ screen
 from `skills/working-backwards/SKILL.md` → *The 5 Customer Questions (5CQ)*, and the Dear Customer Letter
@@ -67,11 +67,12 @@ which is why no markdown template can stand in for them.
 | Spec design | `specs/<slice-name>/design.md` | Mandatory | `skills/spec-driven-implementation/templates/design-template.md` | `/spec`, `/design` Step 5 | `agents/task-planner.md`, `/build`, `agents/implementation-verifier.md` |
 | Tasks | `specs/<slice-name>/tasks.md` | Mandatory | `skills/spec-driven-implementation/templates/tasks-template.md` | `/spec`, written by `agents/task-planner.md` | `/build`, `agents/implementation-verifier.md`, `tools/bla-check tasks` |
 | Requirements analysis | `specs/<slice-name>/requirements-analysis.md` | Mandatory | — | `/spec`, written by `agents/requirements-analyzer.md` | the producer of `requirements.md`, `/build` |
-| Spec coherence review | `specs/<slice-name>/coherence-review.md` | Mandatory | — | `/spec` Step 7, `/design` Step 5b | `/build`, which treats its action items as binding |
+| Spec coherence review | `specs/<slice-name>/coherence-review.md` | Mandatory | — | `/spec` → `## What to Do` item 3, `/design` Step 5b | `/build`, which treats its action items as binding |
 
 A `—` in `Template` means the shape comes from the skill's prose: `requirements-analysis.md` is the
 Requirements Analysis Report defined in `agents/requirements-analyzer.md`, including its terminal verdict
-block, and `coherence-review.md` is defined in `skills/spec-driven-implementation/SKILL.md` Step 7.
+block, and `coherence-review.md` is defined in `skills/spec-driven-implementation/SKILL.md` →
+`### 7. Spec Coherence Review (Pre-Build Gate)`.
 
 ## Build
 
