@@ -70,7 +70,7 @@ You are a principal-level engineer who reviews design documents for technical so
 
 ## IO Contract
 
-- **Reads:** `docs/design/<feature-name>/design-doc.md`, the API contract artifact(s) beside it, `patterns/INDEX.md`, and `skills/design-review/SKILL.md`.
-- **Writes (exactly one file):** `docs/design/<feature-name>/review-checklist.md` — the checklist with your findings against it.
+- **Reads:** `.bla/design/<feature-name>/design-doc.md`, the API contract artifact(s) beside it, `patterns/INDEX.md`, and `skills/design-review/SKILL.md`.
+- **Writes (exactly one file):** `.bla/design/<feature-name>/review-checklist.md` — the checklist with your findings against it.
 - **Must not touch:** the design document. You ask for the missing alternative; you do not write it in. A design improved by its reviewer no longer shows whether its author understood the trade-off.
 - **Returns (first line):** `ADVISORY — design bar raiser: <n> questions · <n> concerns · <n> pattern gaps`. You are an advisor: you emit no verdict. The design review verdict is the one `skills/design-review/SKILL.md` produces, and your findings feed it using the canonical severities in `AGENTS.md` → *One Severity Scale and One Verdict Scale*.

@@ -9,10 +9,10 @@ This command creates a **single new spec** (vertical slice of value) when the de
 Before creating a spec, detect the project state and classify the requested change. The user should not have to think about which path is right — the agent decides, and asks only when there is genuine ambiguity.
 
 1. **Read repo state**:
-   - Does `docs/design/<feature-or-service>/design-doc.md` exist (greenfield with full flow)?
-   - Does `docs/design/` contain a reverse-engineered Design Doc (banner says "REVERSE-ENGINEERED" — produced by `/onboard`)?
+   - Does `.bla/design/<feature-or-service>/design-doc.md` exist (greenfield with full flow)?
+   - Does `.bla/design/` contain a reverse-engineered Design Doc (banner says "REVERSE-ENGINEERED" — produced by `/onboard`)?
    - Does the project have significant code, IaC, CI but no BLA artifacts (brownfield, no onboarding done)?
-   - Are there existing specs in `specs/` that already cover this slice?
+   - Are there existing specs in `.bla/specs/` that already cover this slice?
 
 2. **Classify the requested change** using the ladder in `skills/using-amazon-skills/SKILL.md`: Trivial / Small / Medium / Large.
 
@@ -49,7 +49,7 @@ Before creating a spec, detect the project state and classify the requested chan
    - Identify any operational-excellence decisions already captured in the Design Document
    - Read `skills/spec-driven-implementation/SKILL.md` for the full process
    - Read the templates in `skills/spec-driven-implementation/templates/`
-   - Read `skills/implementation-memory/SKILL.md` and, if `docs/implementation-memory.md` exists, read it and select active rules whose `Phase` matches `spec` AND for which any one signal matches (Tags overlap the slice's domain, File patterns match files this slice will touch, or `Applies when` prose is judged relevant). Convert the selected rules into constraints on how this spec is written, increment their `Hit count`, and ignore unmatched rules — they MUST NOT become requirements. If the file does not exist, continue without memory constraints.
+   - Read `skills/implementation-memory/SKILL.md` and, if `.bla/implementation-memory.md` exists, read it and select active rules whose `Phase` matches `spec` AND for which any one signal matches (Tags overlap the slice's domain, File patterns match files this slice will touch, or `Applies when` prose is judged relevant). Convert the selected rules into constraints on how this spec is written, increment their `Hit count`, and ignore unmatched rules — they MUST NOT become requirements. If the file does not exist, continue without memory constraints.
 
 2. **Create the spec following the templates EXACTLY:**
 
@@ -93,7 +93,7 @@ Before creating a spec, detect the project state and classify the requested chan
 
 A complete spec directory:
 ```
-specs/<slice-name>/
+.bla/specs/<slice-name>/
 ├── requirements.md      (EARS notation, approved)
 ├── design.md            (Mermaid, interfaces, PBT props, approved)
 ├── tasks.md             (waves, dependency graph, approved)
@@ -105,7 +105,7 @@ Ready for execution with `/build`.
 
 **Flow metrics.** `/spec` owns four of the six events for the `spec` phase — `phase_started`,
 `phase_completed`, `gate_approved` and `gate_rework` — and appends each as one JSON line to
-`docs/bla-metrics.jsonl`, with `spec` set to the slice name: `phase_started` at the end of Step 0, once the
+`.bla/metrics.jsonl`, with `spec` set to the slice name: `phase_started` at the end of Step 0, once the
 proportionality check returns Medium or above; `phase_completed` once the spec directory above is saved;
 and `gate_approved` or `gate_rework` at the coherence review of step 3, according to its verdict
 (APPROVED → `gate_approved`, NEEDS REVISION → `gate_rework`). `spec_completed` belongs to `/build`, not

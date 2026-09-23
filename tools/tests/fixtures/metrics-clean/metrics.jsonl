@@ -1,6 +1,6 @@
 {"event": "phase_started", "ts": "2026-02-02T09:00:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design"}
 {"event": "gate_rework", "ts": "2026-02-02T11:30:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design", "gate": "design-review", "verdict": "NEEDS REVISION"}
-{"event": "review_blocking_finding", "ts": "2026-02-02T11:30:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design", "finding_id": "F-03", "artefact": "docs/design/checkout/review-checklist.md"}
+{"event": "review_blocking_finding", "ts": "2026-02-02T11:30:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design", "finding_id": "F-03", "artefact": ".bla/design/checkout/review-checklist.md"}
 {"event": "gate_approved", "ts": "2026-02-02T15:10:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design", "gate": "design-review", "verdict": "APPROVED"}
 {"event": "phase_completed", "ts": "2026-02-02T15:20:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design"}
 {"event": "phase_started", "ts": "2026-02-03T08:45:00Z", "phase": "build", "spec": "checkout-api", "level": "medium", "source": "/build"}

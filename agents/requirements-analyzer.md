@@ -159,9 +159,9 @@ Write 🔴 or 🟡 in the `[SEVERITY]` slot. The anchor for a requirements findi
 
 ## IO Contract
 
-- **Reads:** every requirement in `specs/<slice-name>/requirements.md` — all of them, before commenting — plus the System Design Document sections this slice references.
-- **Writes (exactly one file):** `specs/<slice-name>/requirements-analysis.md` — the Requirements Analysis Report.
-- **Must not touch:** `specs/<slice-name>/requirements.md` — the artifact you reviewed — and also `specs/<slice-name>/design.md`, `specs/<slice-name>/tasks.md` and any implementation file. Step 6 of *How You Work* is the whole rule: you report, the producer edits. A resolution the user chooses is applied by the producer of `requirements.md`, not by you, and a contradiction is never quietly settled in the artifact instead of being recorded in the report.
+- **Reads:** every requirement in `.bla/specs/<slice-name>/requirements.md` — all of them, before commenting — plus the System Design Document sections this slice references.
+- **Writes (exactly one file):** `.bla/specs/<slice-name>/requirements-analysis.md` — the Requirements Analysis Report.
+- **Must not touch:** `.bla/specs/<slice-name>/requirements.md` — the artifact you reviewed — and also `.bla/specs/<slice-name>/design.md`, `.bla/specs/<slice-name>/tasks.md` and any implementation file. Step 6 of *How You Work* is the whole rule: you report, the producer edits. A resolution the user chooses is applied by the producer of `requirements.md`, not by you, and a contradiction is never quietly settled in the artifact instead of being recorded in the report.
 - **Returns (first line):** the `Verdict:` line of the terminal verdict block below.
 
 ### Terminal verdict block
@@ -170,7 +170,7 @@ Write 🔴 or 🟡 in the `[SEVERITY]` slot. The anchor for a requirements findi
 
 ```markdown
 Verdict: NOT APPROVED (local: unresolved 🔴 inconsistency)
-Report: specs/<slice-name>/requirements-analysis.md
+Report: .bla/specs/<slice-name>/requirements-analysis.md
 Findings: BLOCKING 1 (🔴 1) · IMPORTANT 2 (🟡 2) · MINOR 0 · QUESTION 4
 ```
 

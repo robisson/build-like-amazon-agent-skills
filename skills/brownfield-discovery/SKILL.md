@@ -20,7 +20,7 @@ This is not retroactive approval. The output carries a banner saying "REVERSE-EN
 
 ## When to Use
 
-- The project already exists (significant code, IaC, CI present) and there are no BLA artifacts (`docs/design/`, `docs/working-backwards/`)
+- The project already exists (significant code, IaC, CI present) and there are no BLA artifacts (`.bla/design/`, `.bla/working-backwards/`)
 - The user asks for a **medium or large** change in such a project (small / trivial changes don't need this — they go through the proportionality ladder directly)
 - The user explicitly invokes `/onboard`
 - Periodically, when the project drifts significantly from the prior reverse-engineered baseline (architecture change, major refactor)
@@ -101,7 +101,7 @@ For each inference, note your **confidence level** (high / medium / low) and the
 
 #### 3. Reverse-engineer the Design Document
 
-Produce `docs/design/<service-name>/design-doc.md` using the canonical template (`skills/design-document/templates/design-doc-template.md`), with these adjustments:
+Produce `.bla/design/<service-name>/design-doc.md` using the canonical template (`skills/design-document/templates/design-doc-template.md`), with these adjustments:
 
 - **Banner at top** — must say:
   > ⚠️ **REVERSE-ENGINEERED** — produced by `brownfield-discovery` from the existing codebase on `<date>`. Not approved by any bar raiser. Use as context for future changes, not as a historical record of decisions made. Sections marked LOW CONFIDENCE were inferred without strong evidence and should be reviewed.
@@ -130,7 +130,7 @@ The Design Doc is **not pristine** — it carries the project's existing debt vi
 
 For each API surface identified in step 2, produce the canonical contract artifact (per `skills/api-contract-first/SKILL.md` mapping):
 
-- **REST**: if `openapi.yaml` exists, link it; if not, generate one from route definitions in code (Express/Fastify routes, FastAPI decorators, Spring `@RequestMapping`, etc.). Save to `docs/design/<service>/openapi.yaml`.
+- **REST**: if `openapi.yaml` exists, link it; if not, generate one from route definitions in code (Express/Fastify routes, FastAPI decorators, Spring `@RequestMapping`, etc.). Save to `.bla/design/<service>/openapi.yaml`.
 - **gRPC**: link existing `.proto` files; if missing (rare), reconstruct from generated stubs.
 - **GraphQL**: link existing schema; if absent (rare), inspect resolvers.
 - **Events / async**: produce an `asyncapi.yaml` describing channels (queues / topics) and operations (publish / subscribe), plus payload schemas (JSON Schema / Avro / Protobuf) inferred from event producers' code.
@@ -141,7 +141,7 @@ Each artifact carries a header comment: `# REVERSE-ENGINEERED from <source files
 
 #### 5. Reverse-engineer the Threat Model
 
-Produce `docs/design/<service>/threat-model.md`:
+Produce `.bla/design/<service>/threat-model.md`:
 
 - **Trust boundaries observed** — where untrusted input enters; auth/authz checkpoints; encryption boundaries.
 - **Existing controls** — auth middleware, input validation, encryption at rest / in transit, secrets management (where), audit logging.
@@ -162,7 +162,7 @@ Don't recommend pattern changes here — that's a future `/design` decision. Onl
 
 After steps 1–6, present the closing summary via `AskUserQuestion`:
 
-> Path A complete. Produced in `docs/design/<service>/`:
+> Path A complete. Produced in `.bla/design/<service>/`:
 > - `design-doc.md` — confidence: HIGH on architecture/operations, LOW on customer problem and alternatives
 > - API contracts — confidence HIGH (one artifact per protocol used)
 > - `threat-model.md` — baseline only
@@ -174,7 +174,7 @@ After steps 1–6, present the closing summary via `AskUserQuestion`:
 
 If [A]: save artifacts; brief end-of-onboarding summary; done.
 If [B]: walk through LOW-confidence sections; prompt for input; update.
-If [C]: delete or move to `docs/design/_discarded/`.
+If [C]: delete or move to `.bla/design/_discarded/`.
 
 **Skip Steps 7+ if Path A was chosen.**
 
@@ -184,7 +184,7 @@ If [C]: delete or move to `docs/design/_discarded/`.
 
 #### 7. Reverse-engineer the WB artifacts (~10–20min)
 
-Produce inferred WB artifacts in `docs/working-backwards/<service-name>/`. Each artifact carries the same banner as the Design Doc — **REVERSE-ENGINEERED, INFERRED**, with per-section confidence.
+Produce inferred WB artifacts in `.bla/working-backwards/<service-name>/`. Each artifact carries the same banner as the Design Doc — **REVERSE-ENGINEERED, INFERRED**, with per-section confidence.
 
 Sources for inference:
 - README, top-level project docs, comments
@@ -207,13 +207,13 @@ Produce these files (DRAFT, INFERRED):
 
 Activate the `doc-bar-raiser` persona (`agents/doc-bar-raiser.md`) in **"Inferred PR/FAQ review" mode**. The persona's job here is *not* to bless the PR/FAQ — it's to surface **the questions the user has to answer themselves** by talking to real customers / sponsors / stakeholders.
 
-Produce `docs/working-backwards/<service-name>/bar-raiser-questions.md` with the structured questions, grouped by section (customer, problem, solution, business case, metrics).
+Produce `.bla/working-backwards/<service-name>/bar-raiser-questions.md` with the structured questions, grouped by section (customer, problem, solution, business case, metrics).
 
 #### 9. Path B closing gate
 
 Present via `AskUserQuestion`:
 
-> Path B complete. Produced everything from Path A, plus inferred WB artifacts in `docs/working-backwards/<service>/`.
+> Path B complete. Produced everything from Path A, plus inferred WB artifacts in `.bla/working-backwards/<service>/`.
 >
 > Notably: the doc-bar-raiser surfaced N questions where the code cannot tell us *why*. Strongly recommend you answer them before continuing.
 >
@@ -239,11 +239,11 @@ Hand off to the canonical `working-backwards` skill (`skills/working-backwards/S
 
 **Equally critical**: do *not* let the existing project bias the WB. The whole point of Path C is to re-derive from the customer outwards. If the WB says "build Y" and Y already exists, that's a useful confirmation. If WB says "build Z" and the system actually does W, that's a strategic gap — record it.
 
-The WB artifacts go to `docs/working-backwards/<service>/` as canonical (no INFERRED banner — they were produced through the real WB process with the user).
+The WB artifacts go to `.bla/working-backwards/<service>/` as canonical (no INFERRED banner — they were produced through the real WB process with the user).
 
 #### 8'. Gap Analysis (~10–20min)
 
-After WB approval, produce `docs/design/<service>/gap-analysis.md`:
+After WB approval, produce `.bla/design/<service>/gap-analysis.md`:
 
 - **Capabilities in the new WB** — what the PR/FAQ says the product enables for the customer
 - **Capabilities in the existing system** — derived from the Design Doc produced in Steps 1–6
@@ -260,8 +260,8 @@ The recommendations are *suggestions for future `/design` invocations* — Path 
 Present via `AskUserQuestion`:
 
 > Path C complete. Produced:
-> - Full canonical WB artifacts in `docs/working-backwards/<service>/`
-> - Reverse-engineered design artifacts in `docs/design/<service>/` (from steps 1–6)
+> - Full canonical WB artifacts in `.bla/working-backwards/<service>/`
+> - Reverse-engineered design artifacts in `.bla/design/<service>/` (from steps 1–6)
 > - `gap-analysis.md` cross-referencing them
 >
 > [A] Accept all. Future `/spec` and `/build` use the design artifacts as anchor; the gap-analysis informs the next `/design`.
@@ -272,7 +272,7 @@ Present via `AskUserQuestion`:
 
 | Intention | Mechanism |
 |---|---|
-| "I'll remember the project's architecture" | Persisted in `docs/design/<service>/design-doc.md` so the next agent invocation reads it instead of re-inferring |
+| "I'll remember the project's architecture" | Persisted in `.bla/design/<service>/design-doc.md` so the next agent invocation reads it instead of re-inferring |
 | "I'll be careful not to break things" | Threat model + existing alarms documented; patterns catalog cross-referenced so future changes know what's load-bearing |
 | "We'll add docs later" | Discovery is a one-time investment that pays back on every subsequent `/spec` and `/build` |
 | "Reverse-engineered docs are as good as designed ones" | Banner + per-section confidence + non-inferable sections marked explicitly |
@@ -301,14 +301,14 @@ Present via `AskUserQuestion`:
 - [ ] User explicitly chose a path (A / B / C) via Step 0 — choice is logged in the output summary
 - [ ] Inventory pass produced a concrete list of languages, IaC, CI, observability, deps, data stores, auth boundaries
 - [ ] Architecture inference produced a Mermaid diagram with confidence ratings on each component
-- [ ] `docs/design/<service>/design-doc.md` exists with the REVERSE-ENGINEERED banner and per-section confidence
+- [ ] `.bla/design/<service>/design-doc.md` exists with the REVERSE-ENGINEERED banner and per-section confidence
 - [ ] At least one API contract artifact exists per identified API surface, with the standard appropriate to the protocol (OpenAPI / `.proto` / AsyncAPI / etc.)
 - [ ] Threat model baseline exists with trust boundaries, existing controls, obvious gaps
 - [ ] Pattern catalog cross-reference exists in the Design Doc and as a separate `patterns-observed.md`
 - [ ] Subsequent `/spec` and `/design` invocations are aware of these artifacts (they appear in repo state detection)
 
 ### Path B (in addition to A)
-- [ ] WB artifacts exist in `docs/working-backwards/<service>/` with **REVERSE-ENGINEERED, INFERRED** banner and per-section confidence
+- [ ] WB artifacts exist in `.bla/working-backwards/<service>/` with **REVERSE-ENGINEERED, INFERRED** banner and per-section confidence
 - [ ] No customer story / problem / metric was fabricated — sections that depend on customer evidence are marked `INFERRED — needs validation`
 - [ ] `bar-raiser-questions.md` exists with structured hard questions from the doc-bar-raiser
 

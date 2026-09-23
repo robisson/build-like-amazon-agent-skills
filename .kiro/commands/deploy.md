@@ -52,12 +52,12 @@ Ensure the deployment pipeline enforces:
 
 ## Output
 
-Save to `docs/deployment/<feature-name>/`:
+Save to `.bla/deployment/<feature-name>/`:
 - `rollout-plan.md`
 - `pipeline-config.md`
 
 **Flow metrics.** `/deploy` owns two of the six events for the `deploy` phase — `phase_started` and
-`phase_completed` — and appends each as one JSON line to `docs/bla-metrics.jsonl`: `phase_started` once the
+`phase_completed` — and appends each as one JSON line to `.bla/metrics.jsonl`: `phase_started` once the
 change is classified as Medium or above, `phase_completed` once the artifacts above are saved. It owns no
 gate event: the promotion approvals of Step 2 are the deployment's own gates, not gates over a BLA
 artefact, and `/deploy` persists no review report, so `gate_approved`, `gate_rework` and

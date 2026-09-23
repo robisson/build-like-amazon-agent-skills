@@ -28,6 +28,6 @@ You are activating the **wb-listen** skill. This is Phase 1 of Working Backwards
 
 ## Output
 
-Save to `docs/working-backwards/<feature-name>/customer-profile.md`.
+Save to `.bla/working-backwards/<feature-name>/customer-profile.md`.
 
 Ask: "Would you like to proceed to /define (problem statement)?"

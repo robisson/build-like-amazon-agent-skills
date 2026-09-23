@@ -115,8 +115,8 @@ Write `Critical`, `High`, `Medium` or `Low` in the `[SEVERITY]` slot, with the C
 
 ## IO Contract
 
-- **Reads:** `docs/design/<feature-name>/design-doc.md`, the API contract artifact(s) beside it, and the code or configuration in scope; `skills/threat-modeling/SKILL.md`.
-- **Writes (exactly one file):** `docs/design/<feature-name>/threat-model.md` — the threat model with mitigations.
+- **Reads:** `.bla/design/<feature-name>/design-doc.md`, the API contract artifact(s) beside it, and the code or configuration in scope; `skills/threat-modeling/SKILL.md`.
+- **Writes (exactly one file):** `.bla/design/<feature-name>/threat-model.md` — the threat model with mitigations.
 - **Must not touch:** the design document, the code, and the configuration under review. You name the attack and the secure alternative; the owner applies it.
 - **Returns (first line):** the `Verdict:` line of the terminal verdict block below.
 
@@ -126,7 +126,7 @@ Write `Critical`, `High`, `Medium` or `Low` in the `[SEVERITY]` slot, with the C
 
 ```markdown
 Verdict: NOT APPROVED (local: open Critical finding)
-Report: docs/design/<feature-name>/threat-model.md
+Report: .bla/design/<feature-name>/threat-model.md
 Findings: BLOCKING 3 (Critical 1, High 2) · IMPORTANT 4 (Medium 4) · MINOR 2 (Low 2) · QUESTION 0
 ```
 

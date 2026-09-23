@@ -73,7 +73,7 @@ Order the findings by impact. The rule is literal: **priority is impact, never c
 
 **IDs and the lifecycle apply only to a report persisted to disk** — the Medium and Large ceremony levels, where a file exists for a later review to update. An inline review of a Trivial change carries no IDs and no lifecycle: there is no file, so there is nothing to renumber and nothing to supersede. The anchor rule and the golden rule still apply; they cost nothing.
 
-🚫 **Must fix**, ⚠️ **Should fix** and 💡 **Consider** go in the `[SEVERITY]` slot. Both outputs of this command — `docs/reviews/<feature-name>/code-review.md` and `orr-checklist.md` — are persisted reports, so both carry IDs and the lifecycle, and a second review of the same feature updates them instead of overwriting them.
+🚫 **Must fix**, ⚠️ **Should fix** and 💡 **Consider** go in the `[SEVERITY]` slot. Both outputs of this command — `.bla/reviews/<feature-name>/code-review.md` and `orr-checklist.md` — are persisted reports, so both carry IDs and the lifecycle, and a second review of the same feature updates them instead of overwriting them.
 
 ## Implementation Memory Capture
 
@@ -83,18 +83,18 @@ After the review is complete and findings are resolved, check whether any findin
 2. Generate a self-reflection: "What recurring implementation mistake does this finding reveal? What rule would prevent it in future builds?"
 3. Extract up to 2 candidate learnings.
 4. Present candidates to the user for Accept / Reject / Edit (same format as `/build` semi-automatic trigger).
-5. Apply admission checks and rejection rules before writing to `docs/implementation-memory.md`.
+5. Apply admission checks and rejection rules before writing to `.bla/implementation-memory.md`.
 
 If no recurring pattern is identified, skip this step silently.
 
 ## Output
 
-Save review findings to `docs/reviews/<feature-name>/`:
+Save review findings to `.bla/reviews/<feature-name>/`:
 - `code-review.md` (findings and recommendations)
 - `orr-checklist.md` (operational readiness status)
 
 **Flow metrics.** `/review` owns three of the six events and appends each as one JSON line to
-`docs/bla-metrics.jsonl`, with `phase` set to `review`: `gate_approved` or `gate_rework` per gate — Step 1
+`.bla/metrics.jsonl`, with `phase` set to `review`: `gate_approved` or `gate_rework` per gate — Step 1
 and Step 2 are each a gate — according to the verdict, and one `review_blocking_finding` per finding
 admitted at canonical severity BLOCKING (🚫 **Must fix** is this command's spelling of it), carrying its
 `F-NN` ID and the path of the report that persists it. It owns **no** `phase_started` or `phase_completed`:

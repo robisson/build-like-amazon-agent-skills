@@ -33,6 +33,8 @@ cp build-like-amazon/tools/bla-check your-project/tools/bla-check
 
 That's it. Open your project, start Claude Code, and use the slash commands directly.
 
+The first command you run creates a `.bla/` directory in your project and writes its artifacts there. It is hidden by default — `ls -la` to see it — and it belongs in version control, not in `.gitignore`.
+
 ---
 
 ## 2. The 60-second mental model
@@ -82,7 +84,7 @@ This is the canonical Amazon flow. Use `/wb` first, the agent will guide the res
 What happens:
 - The agent walks you through 5 stages: Listen → Define → Invent → Refine → Test
 - Each stage **stops for your approval** — you review the output before moving on
-- Output: an approved PR/FAQ + success metrics in `docs/working-backwards/`
+- Output: an approved PR/FAQ + success metrics in `.bla/working-backwards/`
 
 After approval, you say `/design`. The agent reads your PR/FAQ and produces:
 - Design Doc (with patterns considered, dependency behavior, operational concerns)
@@ -125,7 +127,7 @@ Detected: existing project, no BLA artifacts. How would you like to use /onboard
 
 You pick a letter. Most people start with **[A]** — fast, pragmatic, anchors everything. Use **[B]** when you suspect you built without clarity on the "why". Use **[C]** for strategic re-evaluation.
 
-Output: `docs/design/<service>/` with a `REVERSE-ENGINEERED` banner. Path B also produces `docs/working-backwards/<service>/` with an inferred PR/FAQ + questions. Path C produces canonical WB artifacts (approved through the real process with you) + a gap analysis.
+Output: `.bla/design/<service>/` with a `REVERSE-ENGINEERED` banner. Path B also produces `.bla/working-backwards/<service>/` with an inferred PR/FAQ + questions. Path C produces canonical WB artifacts (approved through the real process with you) + a gap analysis.
 
 ### Scenario C — "I want to make a small change in an existing project"
 
@@ -225,10 +227,20 @@ For trivial work, no — the agent skips ceremony. For real features, yes initia
 Yes. Cursor, Gemini CLI, Kiro, GitHub Copilot, OpenAI Codex, OpenCode, Aider — all supported with their own setup snippets in the [README](../README.md#quick-start).
 
 **Where do my project files live?**
-- `docs/working-backwards/` — PR/FAQ, success metrics
-- `docs/design/<feature>/` — Design Doc, API contracts, Threat Model
-- `specs/<slice>/` — requirements + design + tasks for each implementation slice
-- `docs/coe/` — incident analyses
+All of them under `.bla/` in your own project — never in `docs/`, which holds this library's own documentation:
+- `.bla/working-backwards/<feature>/` — customer profile, problem statement, solution sketch, PR/FAQ, success metrics
+- `.bla/design/<feature>/` — Design Doc, API contracts, Threat Model, design review checklist
+- `.bla/specs/<slice>/` — requirements + design + tasks for each implementation slice, plus the requirements analysis and the coherence review
+- `.bla/reviews/<feature>/` — code review, review-time ORR checklist
+- `.bla/deployment/<feature>/` — rollout plan, pipeline configuration
+- `.bla/operations/<service>/` — runbook, alarm definitions, launch-time ORR checklist, escalation matrix
+- `.bla/coe/<incident>/` — COE report, action items, mechanisms
+- `.bla/implementation-memory.md` — the fixed-size implementation quality memory
+- `.bla/metrics.jsonl` — the flow-metric series, if you opt into measurement
+
+Because `.bla` starts with a dot it is hidden by default: `ls` hides it, Finder hides it (`⌘⇧.` reveals it), and VS Code / Cursor hide it unless you adjust `files.exclude`. Use `ls -la` to list it from a terminal.
+
+Keep it committed. `.bla/` is not build output or a cache — it is the record a reviewer reads at a gate, so an approval on a design doc or threat model that is not in the tree is not possible. Adding it to `.gitignore` throws away the artifacts the flow exists to produce.
 
 **My team has its own way of doing things. Can I adapt?**
 Adjust the ceremony, terminology, thresholds. But don't remove the hard parts (gates, bar raisers, mechanisms) — they exist because real incidents demanded them.

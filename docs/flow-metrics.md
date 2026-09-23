@@ -4,13 +4,13 @@ Six events, and nothing more. This document is the whole specification of what t
 flow measures about itself: the closed set of events, the shape of a line, who owns each event, and the
 three rules that decide whether a recorded series is worth reading at all.
 
-The series lives in the **adopting** project, at `docs/bla-metrics.jsonl`, append-only, one JSON object
-per line. **This repository does not carry one**, deliberately: a `docs/bla-metrics.jsonl` committed here
+The series lives in the **adopting** project, at `.bla/metrics.jsonl`, append-only, one JSON object
+per line. **This repository does not carry one**, deliberately: a `.bla/metrics.jsonl` committed here
 would be a series nobody measured, and a fabricated series is worse than no series. The only JSONL files
 in this repository are the fixtures under `tools/tests/fixtures/metrics-*/`, which exist to test the
 reader.
 
-The reader is `python3 tools/bla-check metrics docs/bla-metrics.jsonl`.
+The reader is `python3 tools/bla-check metrics .bla/metrics.jsonl`.
 
 ## The six events
 
@@ -54,7 +54,7 @@ Example lines, in the order they would be appended:
 ```json
 {"event": "phase_started", "ts": "2026-02-02T09:00:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design"}
 {"event": "gate_rework", "ts": "2026-02-02T11:30:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design", "gate": "design-review", "verdict": "NEEDS REVISION"}
-{"event": "review_blocking_finding", "ts": "2026-02-02T11:30:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design", "finding_id": "F-03", "artefact": "docs/design/checkout/review-checklist.md"}
+{"event": "review_blocking_finding", "ts": "2026-02-02T11:30:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design", "finding_id": "F-03", "artefact": ".bla/design/checkout/review-checklist.md"}
 {"event": "gate_approved", "ts": "2026-02-02T15:10:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design", "gate": "design-review", "verdict": "APPROVED"}
 {"event": "phase_completed", "ts": "2026-02-02T15:20:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design"}
 ```
@@ -175,7 +175,7 @@ seventh event added quietly.
 ## Reading the series
 
 ```sh
-python3 tools/bla-check metrics docs/bla-metrics.jsonl
+python3 tools/bla-check metrics .bla/metrics.jsonl
 ```
 
 It computes two things and refuses to compute anything else:

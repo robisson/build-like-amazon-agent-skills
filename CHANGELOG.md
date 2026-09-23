@@ -33,6 +33,46 @@ a plausible shape, which is worse than no date.
      definition). Both rules are enabled in .markdownlint-cli2.jsonc. Do not "fix" these headings back into
      brackets: the brackets buy nothing here, because no heading links anywhere. -->
 
+## 0.4.0 — 2026-09-23
+
+Flow artifacts moved out of `docs/` and into `.bla/`. `docs/` in an adopter's project no longer means two
+things at once — this library's documentation and the adopter's own PR/FAQs, design docs and runbooks.
+
+What changed for a user of the library:
+
+- **Every artifact path is now under `.bla/`.** `.bla/working-backwards/`, `.bla/design/`, `.bla/specs/`,
+  `.bla/reviews/`, `.bla/deployment/`, `.bla/operations/`, `.bla/coe/`,
+  `.bla/implementation-memory.md`, `.bla/metrics.jsonl`. The spec trio moved too: a spec is
+  `.bla/specs/<slice-name>/`, not a root-level directory.
+- **The metric series lost its prefix:** `docs/bla-metrics.jsonl` is now `.bla/metrics.jsonl`. Pass the new
+  path to `python3 tools/bla-check metrics`.
+- **A new deterministic check, `artifact-location`,** fails the build if a flow artifact is declared outside
+  `.bla/`. It excludes this file, which is why the table below may still name old paths.
+- No command, skill, agent, gate, severity label or verdict label was renamed.
+
+### Migration — one `git mv` per line
+
+Flow artifacts now live in `.bla/`. `docs/` keeps only this library's own documentation. If you have
+artifacts from 0.3.0 or earlier, move them:
+
+| Old | New |
+|---|---|
+| `docs/working-backwards/` | `.bla/working-backwards/` |
+| `docs/design/` | `.bla/design/` |
+| `docs/reviews/` | `.bla/reviews/` |
+| `docs/deployment/` | `.bla/deployment/` |
+| `docs/operations/` | `.bla/operations/` |
+| `docs/coe/` | `.bla/coe/` |
+| `specs/` | `.bla/specs/` |
+| `docs/implementation-memory.md` | `.bla/implementation-memory.md` |
+| `docs/bla-metrics.jsonl` | `.bla/metrics.jsonl` |
+
+One `git mv` per line resolves it — `mkdir -p .bla && git mv docs/design .bla/design`, and so on. Nothing
+inside the files changes: no artifact was renamed except the metric series, which loses the `bla-` prefix
+because it stutters inside a folder already called `.bla`. `.bla/` is a hidden dotfolder — list it with
+`ls -la` — and it is meant to be **committed**, not ignored: a reviewer cannot approve a PR/FAQ, a design
+doc or a threat model that is not in the tree.
+
 ## 0.3.0 — 2026-09-23
 
 A minor bump: user-visible behaviour changed across three waves of work and nothing was removed. No command,

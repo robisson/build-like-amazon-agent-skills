@@ -16,7 +16,7 @@ The output anchors all subsequent `/spec` and `/build` invocations — instead o
 
 ## When to Use
 
-- The project already has significant code, IaC, CI, and possibly observability — but no Build Like Amazon artifacts (`docs/design/`, `docs/working-backwards/`)
+- The project already has significant code, IaC, CI, and possibly observability — but no Build Like Amazon artifacts (`.bla/design/`, `.bla/working-backwards/`)
 - A medium or large change is coming, and anchoring the agent on the real state of the project will pay back many times
 - The user explicitly invokes `/onboard`
 - The project has drifted significantly from the prior reverse-engineered baseline (architecture change, major refactor, new pattern adopted)
@@ -39,7 +39,7 @@ The output anchors all subsequent `/spec` and `/build` invocations — instead o
 
 Before running discovery, confirm with `AskUserQuestion`:
 
-1. Detect whether `docs/design/` already contains a Design Doc (canonical or reverse-engineered).
+1. Detect whether `.bla/design/` already contains a Design Doc (canonical or reverse-engineered).
    - If it exists with the **REVERSE-ENGINEERED** banner: ask whether the user wants to refresh it. If no significant drift, recommend skipping.
    - If it exists as canonical (no banner): warn that onboarding would overwrite. Recommend cancellation unless explicitly desired.
 2. Detect project size / complexity. If the project is trivially small (a single file, a script), recommend skipping onboarding and going directly via `/build` or `/spec`.
@@ -82,7 +82,7 @@ In Path B, step 8 is the Doc Bar Raiser pass: load `agents/doc-bar-raiser.md` an
 
 ### Path A
 ```
-docs/design/<service-name>/
+.bla/design/<service-name>/
 ├── design-doc.md           (REVERSE-ENGINEERED banner, per-section confidence)
 ├── api-contracts.md        (pointers to canonical contracts when they exist)
 ├── openapi.yaml            (or .proto, .graphql, asyncapi.yaml, etc., per protocol)
@@ -92,8 +92,8 @@ docs/design/<service-name>/
 
 ### Path B (Path A + WB inferred)
 ```
-docs/design/<service-name>/        (same as Path A)
-docs/working-backwards/<service-name>/
+.bla/design/<service-name>/        (same as Path A)
+.bla/working-backwards/<service-name>/
 ├── customer-profile.md           (REVERSE-ENGINEERED, INFERRED — needs validation)
 ├── problem-statement.md          (REVERSE-ENGINEERED, INFERRED)
 ├── solution-sketch.md            (REVERSE-ENGINEERED — higher confidence, derived from API/UI)
@@ -103,14 +103,14 @@ docs/working-backwards/<service-name>/
 
 ### Path C (Path A + canonical WB + gap analysis)
 ```
-docs/design/<service-name>/        (same as Path A)
-docs/working-backwards/<service-name>/
+.bla/design/<service-name>/        (same as Path A)
+.bla/working-backwards/<service-name>/
 ├── customer-profile.md           (canonical — produced through full WB flow with user)
 ├── problem-statement.md          (canonical)
 ├── solution-sketch.md            (canonical)
 ├── prfaq.md                      (canonical — approved through PR/FAQ review)
 └── success-metrics.md            (canonical)
-docs/design/<service-name>/gap-analysis.md   (extend / sunset / re-justify / align)
+.bla/design/<service-name>/gap-analysis.md   (extend / sunset / re-justify / align)
 ```
 
 ## Boundaries

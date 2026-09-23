@@ -18,7 +18,7 @@ You are activating the **Working Backwards** meta-skill. This is Amazon's produc
    - **Test** → How will we validate and measure success?
 4. **After each phase, STOP.** Present the full output to the user. Ask them to review and approve before moving to the next phase. Do NOT proceed without explicit user confirmation.
 5. For each phase, load the corresponding skill from `skills/wb-*`.
-6. Produce artifacts in `docs/working-backwards/` — customer profiles, problem statements, solution sketches, and the final PR/FAQ.
+6. Produce artifacts in `.bla/working-backwards/` — customer profiles, problem statements, solution sketches, and the final PR/FAQ.
 
 ## Approval Gates (Non-Negotiable)
 
@@ -33,7 +33,7 @@ After completing each stage, present your output and ask: "Here's what I have fo
 
 ## Output
 
-Create `docs/working-backwards/<feature-name>/` with:
+Create `.bla/working-backwards/<feature-name>/` with:
 - `customer-profile.md`
 - `problem-statement.md`
 - `solution-sketch.md`
@@ -42,7 +42,7 @@ Create `docs/working-backwards/<feature-name>/` with:
 
 **Flow metrics.** `/wb` owns four of the six events for the `wb` phase — `phase_started`,
 `phase_completed`, `gate_approved` and `gate_rework` — and appends each as one JSON line to
-`docs/bla-metrics.jsonl`: `phase_started` once the change is classified as Medium or above,
+`.bla/metrics.jsonl`: `phase_started` once the change is classified as Medium or above,
 `phase_completed` once the artifacts above are saved, and one `gate_approved` or `gate_rework` per stage
 gate depending on whether the user approved the stage or sent it back. It emits `spec_completed` and
 `review_blocking_finding` never — those belong to other commands, and no command emits an event another

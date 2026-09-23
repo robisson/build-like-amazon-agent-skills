@@ -29,7 +29,7 @@ Capture sources: `/design` (a requirement that bounced at the design gate 3 or m
 ### IM-001: Produce Required Workflow Artifacts
 Tags: [workflow, artifact-generation, build-output]
 Phase: build
-File patterns: specs/**/implementation-review.md, specs/**/coherence-review.md
+File patterns: .bla/specs/**/implementation-review.md, .bla/specs/**/coherence-review.md
 Applies when: Executing repository workflows that define review, coherence, implementation-review, or other persisted artifacts.
 Rule: Generate the required artifact file in the expected path before treating the workflow step as complete.
 Avoid: Replacing an artifact-producing workflow step with a chat-only summary.

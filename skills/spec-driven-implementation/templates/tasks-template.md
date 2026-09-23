@@ -278,7 +278,7 @@ _Writes: infra/alarms.ts, infra/dashboard.ts_
 _Size: S | Requirements: N/A | Design: §3.1_
 _Depends on: Task 3.2_
 _Wave: 6_
-_Writes: openapi.yaml, docs/operations/runbook.md_
+_Writes: openapi.yaml, .bla/operations/runbook.md_
 
 - [ ] Write API reference documentation (OpenAPI spec)
 - [ ] Write operational runbook for common failure scenarios
@@ -371,7 +371,7 @@ _Writes: config/feature-flags.json, src/api/flag-gate.ts_
     "3.3": { "depends_on": ["2.1"], "wave": 4, "size": "M", "type": "implementation", "door": "two-way", "writes": ["src/db/optimistic-lock.ts", "test/concurrency.test.ts"] },
     "4.1": { "depends_on": ["2.3"], "wave": 5, "size": "M", "type": "implementation", "door": "two-way", "writes": ["src/observability/metrics.ts", "src/observability/logger.ts", "test/metrics.test.ts"] },
     "4.2": { "depends_on": ["4.1"], "wave": 6, "size": "S", "type": "infrastructure", "door": "two-way", "writes": ["infra/alarms.ts", "infra/dashboard.ts"] },
-    "4.3": { "depends_on": ["3.2"], "wave": 6, "size": "S", "type": "documentation", "door": "two-way", "writes": ["openapi.yaml", "docs/operations/runbook.md"] },
+    "4.3": { "depends_on": ["3.2"], "wave": 6, "size": "S", "type": "documentation", "door": "two-way", "writes": ["openapi.yaml", ".bla/operations/runbook.md"] },
     "5.1": { "depends_on": ["4.1", "4.2", "4.3", "3.1", "3.2", "3.3"], "wave": 7, "size": "S", "type": "deployment", "door": "two-way" },
     "5.2": { "depends_on": ["5.1"], "wave": 8, "size": "S", "type": "deployment", "door": "two-way" },
     "5.3": { "depends_on": ["5.2"], "wave": 9, "size": "S", "type": "deployment", "door": "two-way", "writes": ["config/feature-flags.json", "src/api/flag-gate.ts"] }

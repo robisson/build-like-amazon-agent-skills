@@ -200,7 +200,7 @@ Checkpoints define what "done" means for each phase. They can be:
    - [ ] `python3 tools/tests/run.py` passes (`0 failed`)
    - [ ] `python3 tools/bla-check links .` is clean (no `FALHA` line)
    - [ ] `npx -y markdownlint-cli2@0.18.1 "**/*.md"` reports `Summary: 0 error(s)`
-   - [ ] If the project I am changing keeps a flow-metric series, `python3 tools/bla-check metrics <path-to-bla-metrics.jsonl>` is clean (no `FALHA` line). This repository ships no series of its own, so here it applies only to the fixtures under `tools/tests/fixtures/metrics-*/` — which `python3 tools/tests/run.py` already covers
+   - [ ] If the project I am changing keeps a flow-metric series, `python3 tools/bla-check metrics <path-to-jsonl>` is clean (no `FALHA` line). This repository ships no series of its own, so here it applies only to the fixtures under `tools/tests/fixtures/metrics-*/` — which `python3 tools/tests/run.py` already covers
    - [ ] If I edited `.claude/commands/<name>.md`, I copied the same change into `.gemini/commands/<name>.md` and `.kiro/commands/<name>.md`
    - [ ] `CHANGELOG.md` updated **only if** this change affects users
    - [ ] Counts stated in README match what is on disk

@@ -8,12 +8,12 @@
 
 When the user invokes `/build` (with no other instruction), the agent MUST:
 
-1. Read **all** specs in `specs/` and identify the execution order (hardest-first, established during `/design`).
+1. Read **all** specs in `.bla/specs/` and identify the execution order (hardest-first, established during `/design`).
 2. Execute **every spec in order**, end-to-end, without pausing between specs and without asking permission to continue.
 3. Within each spec, execute all waves wave-by-wave per the dependency graph, without pausing between waves.
 4. Within each wave, dispatch all tasks in parallel as sub-agents, without pausing between tasks.
 5. After each spec, run the Post-Implementation Review automatically (see end of this file). If verdict is **PASSED** or **PASSED WITH FIXES NEEDED**, proceed to the next spec without asking. Only **FAILED** stops execution to surface to the user.
-6. Stop only when **all specs in `specs/` are in a terminal state** (every task `[x]` or `[!]`). At that point, present a single end-of-build summary.
+6. Stop only when **all specs in `.bla/specs/` are in a terminal state** (every task `[x]` or `[!]`). At that point, present a single end-of-build summary.
 
 > **Execution closure is not delivery.** "Every task `[x]` or `[!]`" is the *execution closure* condition — it says the orchestrator has nothing left to dispatch. It does not say the spec was delivered. A spec with at least one `[!]` corresponding to an unimplemented acceptance criterion **cannot** receive verdict `PASSED` in `implementation-review.md`: the best available verdict is `PASSED WITH FIXES NEEDED`, or `FAILED` if an entire requirement is unimplemented. Closure ends execution; the verdict reports delivery.
 
@@ -32,7 +32,7 @@ The agent MAY only stop autonomous execution when one of these is true:
 >
 > ⛔ **Anti-pattern**: presenting a status summary mid-feature with the implication "let me know if you want me to continue." The agent continues unless one of the four reasons above applies.
 >
-> ⛔ **Anti-pattern**: declaring "I've completed the work!" while `tasks.md` still has `[ ]` or `[-]` entries, or while there are subsequent specs in `specs/` not yet executed. That is not "done"; that is stopping early.
+> ⛔ **Anti-pattern**: declaring "I've completed the work!" while `tasks.md` still has `[ ]` or `[-]` entries, or while there are subsequent specs in `.bla/specs/` not yet executed. That is not "done"; that is stopping early.
 
 ### Override: when the user wants step-by-step
 
@@ -52,9 +52,9 @@ You are activating the **build** skill chain: `incremental-implementation` → `
 Before executing anything, classify the invocation against the repo state and the change requested. The user should never have to think about which ceremony level applies — the agent decides, and only asks when there is genuine ambiguity.
 
 1. **Read repo state**:
-   - Does `specs/` exist with `requirements.md` + `design.md` + `tasks.md` for at least one slice?
-   - Does `docs/design/<feature-or-service>/` exist with a `design-doc.md`?
-   - Does `docs/working-backwards/` exist?
+   - Does `.bla/specs/` exist with `requirements.md` + `design.md` + `tasks.md` for at least one slice?
+   - Does `.bla/design/<feature-or-service>/` exist with a `design-doc.md`?
+   - Does `.bla/working-backwards/` exist?
    - Is the project structurally a brownfield (significant code, IaC, CI present) or greenfield (mostly empty)?
 
 2. **Read the user's request and classify the change** using the ladder in `skills/using-amazon-skills/SKILL.md` → "Match the Ceremony to the Change":
@@ -64,10 +64,10 @@ Before executing anything, classify the invocation against the repo state and th
 
    | State | Change size | Path |
    |---|---|---|
-   | `specs/` exists, ≥1 spec ready | any | Execute the existing specs autonomously per "Default Execution Mode" below. |
-   | No `specs/`, change is **Trivial** or **Small** | small | Switch to direct implementation: apply Code Quality Bar from `incremental-implementation`, write tests, modify code, single PR. Skip spec creation. Tell the user briefly what you're doing and why. |
-   | No `specs/`, change is **Medium** or **Large**, project is **brownfield** without BLA artifacts | medium / large | Use `AskUserQuestion` to offer 2-3 outcome-framed options (see "Asking the user" below). Do not proceed without picking one. |
-   | No `specs/`, change is **Medium** or **Large**, greenfield context | medium / large | Tell the user `/build` cannot create specs and recommend `/design` first. |
+   | `.bla/specs/` exists, ≥1 spec ready | any | Execute the existing specs autonomously per "Default Execution Mode" below. |
+   | No `.bla/specs/`, change is **Trivial** or **Small** | small | Switch to direct implementation: apply Code Quality Bar from `incremental-implementation`, write tests, modify code, single PR. Skip spec creation. Tell the user briefly what you're doing and why. |
+   | No `.bla/specs/`, change is **Medium** or **Large**, project is **brownfield** without BLA artifacts | medium / large | Use `AskUserQuestion` to offer 2-3 outcome-framed options (see "Asking the user" below). Do not proceed without picking one. |
+   | No `.bla/specs/`, change is **Medium** or **Large**, greenfield context | medium / large | Tell the user `/build` cannot create specs and recommend `/design` first. |
 
 4. **Asking the user — outcome-framed options only**. When ambiguity requires a choice, the question must offer concrete outcomes (time, scope, traceability), not process names. Example for *"add a red button on screen X"* in a brownfield without BLA artifacts:
 
@@ -88,15 +88,15 @@ Before executing anything, classify the invocation against the repo state and th
 ## What to do
 
 1. Read skills at `skills/incremental-implementation/`, `skills/test-driven-development/`, and `skills/operational-code/`.
-2. Read ALL specs in `specs/` directory. Identify the execution order (specs are ordered by dependency — hardest-first).
+2. Read ALL specs in `.bla/specs/` directory. Identify the execution order (specs are ordered by dependency — hardest-first).
 3. For the current spec, read `tasks.md` and execute tasks following the dependency graph.
 
 ### Execution Flow
 
-1. **Read existing specs** — Load `specs/<slice-name>/tasks.md` for the current slice. Do NOT create new specs.
+1. **Read existing specs** — Load `.bla/specs/<slice-name>/tasks.md` for the current slice. Do NOT create new specs.
 2. **Pick up `tasks.md`** — Parse the phases, waves, and dependency graph from the current spec.
-2b. **Check for coherence review** — If `specs/<slice-name>/coherence-review.md` exists, read the "Action Items for Build Agent" section. These action items are binding constraints that override or clarify tasks.md. Keep them visible throughout execution.
-2c. **Apply implementation memory** — After the current spec/tasks and coherence-review action items are known, read `skills/implementation-memory/SKILL.md`. If `docs/implementation-memory.md` exists, read it and select active rules using multi-signal matching: Tags overlap with the spec's domain, File patterns match files the tasks will touch, OR `Applies when` prose is judged relevant. A rule is selected only when its `Phase` matches the current phase — `build` here — and any one of those signals matches; a `Phase: design` or `Phase: operate` rule is never selected during `/build`. Convert selected rules into implementation guardrails, test checks, or review checks for this build. Increment `Hit count` for each selected rule. Unmatched rules are ignored and MUST NOT become requirements.
+2b. **Check for coherence review** — If `.bla/specs/<slice-name>/coherence-review.md` exists, read the "Action Items for Build Agent" section. These action items are binding constraints that override or clarify tasks.md. Keep them visible throughout execution.
+2c. **Apply implementation memory** — After the current spec/tasks and coherence-review action items are known, read `skills/implementation-memory/SKILL.md`. If `.bla/implementation-memory.md` exists, read it and select active rules using multi-signal matching: Tags overlap with the spec's domain, File patterns match files the tasks will touch, OR `Applies when` prose is judged relevant. A rule is selected only when its `Phase` matches the current phase — `build` here — and any one of those signals matches; a `Phase: design` or `Phase: operate` rule is never selected during `/build`. Convert selected rules into implementation guardrails, test checks, or review checks for this build. Increment `Hit count` for each selected rule. Unmatched rules are ignored and MUST NOT become requirements.
 3. **Execute tasks wave-by-wave:**
    - **ALWAYS execute all tasks in Wave 1 IN PARALLEL** (these have no dependencies — parallelization is mandatory, not optional).
    - After Wave 1 completes, verify green-build gate passes (all tests green, no regressions).
@@ -121,11 +121,11 @@ Before executing anything, classify the invocation against the repo state and th
    1. **Before dispatching the wave**: edit `tasks.md` and flip every task in the wave from `- [ ]` to `- [-]`. Save the file. *Then* dispatch sub-agents. This ordering is critical: if the session is interrupted between the edit and the dispatch, a resume can scan `[-]` markers and pick up cleanly.
    2. **While sub-agents work**: do not touch `tasks.md`.
    3. **As each sub-agent reports back**: if it succeeded, edit `tasks.md` and flip its task from `- [-]` to `- [x]`. If it reports a blocker, flip to `- [!]` with the reason inline.
-   4. **Before declaring the wave complete**: re-read `tasks.md` and verify that *every* task in the wave is `[x]` or `[!]`. If any task is still `[ ]` or `[-]`, you have a bug — either a sub-agent finished without reporting, or you skipped a transition. Stop and reconcile. The single exception: a task left `[ ]` because it was **not dispatched** (a dependency ended `[!]`) is not a bug, but it must be named explicitly in the wave report alongside the blocking task. Where a Python 3 runtime is available, `python3 tools/bla-check tasks specs/<slice-name> --wave <n>` performs this same marker check mechanically over the wave that is closing; `--wave <n>` is what keeps it honest mid-build, since a task in a later wave is legitimately still `[ ]` here and the unscoped run would report it. What to do when the runtime is unavailable is defined once, at the Post-Implementation Review's marker check.
+   4. **Before declaring the wave complete**: re-read `tasks.md` and verify that *every* task in the wave is `[x]` or `[!]`. If any task is still `[ ]` or `[-]`, you have a bug — either a sub-agent finished without reporting, or you skipped a transition. Stop and reconcile. The single exception: a task left `[ ]` because it was **not dispatched** (a dependency ended `[!]`) is not a bug, but it must be named explicitly in the wave report alongside the blocking task. Where a Python 3 runtime is available, `python3 tools/bla-check tasks .bla/specs/<slice-name> --wave <n>` performs this same marker check mechanically over the wave that is closing; `--wave <n>` is what keeps it honest mid-build, since a task in a later wave is legitimately still `[ ]` here and the unscoped run would report it. What to do when the runtime is unavailable is defined once, at the Post-Implementation Review's marker check.
 
-      Then reconcile the claim against reality. Record the git ref before dispatching the wave, and at the close run `git diff --name-only <wave-start-ref>` to list every path the wave actually changed. The spec's own bookkeeping — `specs/<slice-name>/tasks.md` and everything under `specs/<slice-name>/.reports/` — is claimed by the orchestrator and by the sub-agents' own reports, is written by the protocol above rather than by any task, and is therefore excluded from the comparison; no task declares it and none should. Each remaining path must appear in the `writes` set of some task **in this wave** — a path claimed only by a task in an earlier wave is unclaimed here, because the claim has to live where the change happened. **Unclaimed changed paths block stage completion**: the task that produced the path goes to `[!]` with the path named in the reason, not to `[x]`, and the wave does not close until either `tasks.md` claims the path or the change is reverted. This catches the case the declared sets cannot: two tasks that did not collide on paper and did collide on disk. Outside a git working tree the comparison is unavailable — say so in one line and continue, for the same reason the marker check degrades rather than blocking.
+      Then reconcile the claim against reality. Record the git ref before dispatching the wave, and at the close run `git diff --name-only <wave-start-ref>` to list every path the wave actually changed. The spec's own bookkeeping — `.bla/specs/<slice-name>/tasks.md` and everything under `.bla/specs/<slice-name>/.reports/` — is claimed by the orchestrator and by the sub-agents' own reports, is written by the protocol above rather than by any task, and is therefore excluded from the comparison; no task declares it and none should. Each remaining path must appear in the `writes` set of some task **in this wave** — a path claimed only by a task in an earlier wave is unclaimed here, because the claim has to live where the change happened. **Unclaimed changed paths block stage completion**: the task that produced the path goes to `[!]` with the path named in the reason, not to `[x]`, and the wave does not close until either `tasks.md` claims the path or the change is reverted. This catches the case the declared sets cannot: two tasks that did not collide on paper and did collide on disk. Outside a git working tree the comparison is unavailable — say so in one line and continue, for the same reason the marker check degrades rather than blocking.
 
-      At Medium and Large, a task may not be flipped to `[x]` without its evidence on disk: `specs/<slice-name>/.reports/<task-id>.md` must exist and its first line must be `**Agent:** <task-id>`. A task whose work is done but whose evidence file is missing stays out of `[x]` until the sub-agent's report is written. Be honest about what this buys, because it is less than it looks: nothing refuses the write at the moment it is skipped, so the omission is not prevented — it is converted from an invisible one into a visible finding at the wave close, where `python3 tools/bla-check tasks specs/<slice-name> --wave <n>` names it `FALHA [task-evidence-missing]`. The tool only looks when `specs/<slice-name>/.reports/` exists, so a Trivial or Small change that never opted in is never failed for it.
+      At Medium and Large, a task may not be flipped to `[x]` without its evidence on disk: `.bla/specs/<slice-name>/.reports/<task-id>.md` must exist and its first line must be `**Agent:** <task-id>`. A task whose work is done but whose evidence file is missing stays out of `[x]` until the sub-agent's report is written. Be honest about what this buys, because it is less than it looks: nothing refuses the write at the moment it is skipped, so the omission is not prevented — it is converted from an invisible one into a visible finding at the wave close, where `python3 tools/bla-check tasks .bla/specs/<slice-name> --wave <n>` names it `FALHA [task-evidence-missing]`. The tool only looks when `.bla/specs/<slice-name>/.reports/` exists, so a Trivial or Small change that never opted in is never failed for it.
    5. **Only then** advance to the next wave.
 
    **Closing the spec.** Undispatched tasks may sit at `[ ]` while waves run, but they may not survive into closure. Before declaring the spec closed, flip every task still `[ ]` whose dependency chain ends in a `[!]` to `[!]` itself, with the reason inline (e.g. `- [!] Task 3.1: not dispatched — depends on Task 2.3, which is [!]`). Execution closure then still means what it says: every task `[x]` or `[!]`, no new state introduced.
@@ -171,13 +171,13 @@ Before executing anything, classify the invocation against the repo state and th
 
    The orchestrator then translates that report into the correct marker in `tasks.md` (`[x]`, `[!]`, or revert to `[ ]` for retry).
 
-   **At Medium and Large, the report is also written to disk.** Before reporting back, the sub-agent writes `specs/<slice-name>/.reports/<task-id>.md` whose **first line** is exactly `**Agent:** <task-id>` — that line is the marker the orchestrator and `tools/bla-check` match on — followed by the files it touched, the test commands it ran verbatim, and their summarised output. It is the sub-agent's own file and nobody else's: writing it is not an exception to "do not edit `tasks.md`". Trivial and Small are excluded, because no sub-agent is dispatched at those levels and there is no report to persist.
+   **At Medium and Large, the report is also written to disk.** Before reporting back, the sub-agent writes `.bla/specs/<slice-name>/.reports/<task-id>.md` whose **first line** is exactly `**Agent:** <task-id>` — that line is the marker the orchestrator and `tools/bla-check` match on — followed by the files it touched, the test commands it ran verbatim, and their summarised output. It is the sub-agent's own file and nobody else's: writing it is not an exception to "do not edit `tasks.md`". Trivial and Small are excluded, because no sub-agent is dispatched at those levels and there is no report to persist.
 
    ⛔ **Anti-pattern**: Dispatching a sub-agent with only "implement Task 2.3" and no context. The sub-agent will guess, hallucinate interfaces, or duplicate work.
 
    ⛔ **Anti-pattern**: Executing Wave 1 tasks one-by-one sequentially when they have no dependencies between them. This wastes time and defeats the purpose of wave-based planning.
 
-7. **After all tasks in a spec are done, run the Post-Implementation Review and immediately move to the next spec** — Do NOT pause to ask the user. Follow the spec ordering established during `/design`. The agent stops only when *all* specs in `specs/` are in a terminal state, or when one of the four valid stop reasons (top of this file) applies.
+7. **After all tasks in a spec are done, run the Post-Implementation Review and immediately move to the next spec** — Do NOT pause to ask the user. Follow the spec ordering established during `/design`. The agent stops only when *all* specs in `.bla/specs/` are in a terminal state, or when one of the four valid stop reasons (top of this file) applies.
 
 ### For Each Task
 
@@ -219,7 +219,7 @@ For each completed spec:
 - `tasks.md` is in a terminal state: every task is `[x]` (done) or `[!]` (blocked, with reason). No `[ ]` or `[-]` may remain when the spec is declared complete. If any do, the spec is not done — reconcile before moving on. This is *execution closure*, not delivery: it means nothing is left to dispatch, not that everything was delivered. What was delivered is stated by the verdict in `implementation-review.md`.
 
 **Flow metrics.** `/build` owns all six events for the `build` phase and appends each as one JSON line to
-`docs/bla-metrics.jsonl`: `phase_started` at the end of Step 0, once the proportionality check returns
+`.bla/metrics.jsonl`: `phase_started` at the end of Step 0, once the proportionality check returns
 Medium or above; `spec_completed` at each spec close, after the marker invariant passes — `/build` is the
 only owner of that event; `gate_approved` or `gate_rework` at the post-implementation review, according to
 its verdict; one `review_blocking_finding` per finding admitted at canonical severity BLOCKING in
@@ -237,7 +237,7 @@ deployment.
 
 After ALL tasks in a spec's `tasks.md` are marked `[x]` (or `[!]` with a documented blocker) and BEFORE declaring the spec "done" or moving to the next spec / `/deploy`:
 
-**Verify the marker invariant first.** Re-read `tasks.md` and confirm no task is left in `[ ]` or `[-]`. If any are, the previous wave was not properly closed — go back, finish the missing tasks, and only then proceed to review. When `tools/bla-check` and a Python 3 runtime are both present, run `python3 tools/bla-check tasks specs/<slice-name>` and treat any `FALHA` line as this check failing: the tool re-reads the same markers you just read, and unlike you it cannot skim. When there is no Python runtime, or the tool is not present in this project, state in one line that the marker guarantee for this spec has **dropped to LLM verification** — and **continue**. Never block on a missing runtime: `skills/implementation-memory/SKILL.md` promises the mechanism is harness-agnostic by design, and a hard runtime dependency would break that promise for every adopter.
+**Verify the marker invariant first.** Re-read `tasks.md` and confirm no task is left in `[ ]` or `[-]`. If any are, the previous wave was not properly closed — go back, finish the missing tasks, and only then proceed to review. When `tools/bla-check` and a Python 3 runtime are both present, run `python3 tools/bla-check tasks .bla/specs/<slice-name>` and treat any `FALHA` line as this check failing: the tool re-reads the same markers you just read, and unlike you it cannot skim. When there is no Python runtime, or the tool is not present in this project, state in one line that the marker guarantee for this spec has **dropped to LLM verification** — and **continue**. Never block on a missing runtime: `skills/implementation-memory/SKILL.md` promises the mechanism is harness-agnostic by design, and a hard runtime dependency would break that promise for every adopter.
 
 **Then run an implementation review.** This is NOT optional — it is a quality gate equivalent to green-build gates. Load `agents/implementation-verifier.md` and verify the implementation through the implementation verifier lens.
 
@@ -250,7 +250,7 @@ After ALL tasks in a spec's `tasks.md` are marked `[x]` (or `[!]` with a documen
 
 Do **not** pass your justifications for any of it: no "we did X because Y", no walkthrough of your reasoning, no defence of a shortcut. A reviewer handed the author's reasoning reviews the reasoning and approves it, which is how a self-check disguises itself as a review.
 
-For **Trivial** and **Small** changes, continue with persona activation in this context — the ladder scopes the cost, and there is no diff big enough to justify a dispatch. Either way this is the **same review mechanism** with the same verdicts, the same finding format and the same single report at `specs/<slice-name>/implementation-review.md`; the only variable is whether the reviewer is isolated from the author. There is no second review and no second report.
+For **Trivial** and **Small** changes, continue with persona activation in this context — the ladder scopes the cost, and there is no diff big enough to justify a dispatch. Either way this is the **same review mechanism** with the same verdicts, the same finding format and the same single report at `.bla/specs/<slice-name>/implementation-review.md`; the only variable is whether the reviewer is isolated from the author. There is no second review and no second report.
 
 ### What to Check
 
@@ -263,7 +263,7 @@ For **Trivial** and **Small** changes, continue with persona activation in this 
 
 ### Review Output Format
 
-Produce the following structured review and save it to `specs/<slice-name>/implementation-review.md`:
+Produce the following structured review and save it to `.bla/specs/<slice-name>/implementation-review.md`:
 
 ```markdown
 ## Implementation Review — [Spec Name]
@@ -330,11 +330,11 @@ Order the findings by impact. The rule is literal: **priority is impact, never c
 1. **Generate the review** by dispatching `agents/implementation-verifier.md`, which compares every requirement + acceptance criterion in `requirements.md` against the actual implementation. The orchestrator does not write this report about its own output.
 2. **Check PBT properties** from `design.md` — run them if a test runner is available, otherwise manually verify the implementation satisfies them. **Record which route you took for each property**: a property checked by reading the code is reported as `NOT EXECUTED` or `VERIFIED BY INSPECTION`, never as a pass. A report verified by reading must not be indistinguishable from one backed by 1,000 green cases, and the count of properties not executed belongs in the review.
 3. **Check for scope creep** — scan implementation for functionality not traced to any requirement. Flag it.
-4. **Write the structured output** to `specs/<slice-name>/implementation-review.md`.
+4. **Write the structured output** to `.bla/specs/<slice-name>/implementation-review.md`.
 5. **Implementation memory — verdict-dependent behavior**:
    - **If PASSED WITH FIXES NEEDED** (semi-automatic trigger): After fix tasks are done, generate a self-reflection ("What went wrong? Why? What would have prevented it?"), extract up to 2 candidate learnings from the reflection, and present them to the user for Accept / Reject / Edit. Do not wait for the user to ask. This is the primary memory population path.
    - **If PASSED** (manual trigger): Ask the user to test the delivered behavior, bring back failures or feedback, and debug with the agent until accepted. Report `Implementation memory: waiting for user validation and Quality Memory Review request.` When the user later asks for Quality Memory Review, generate self-reflection, extract candidates, apply admission/rejection checks, and update memory only if warranted.
-   - **Periodic nudge**: Read the `Builds without update` counter from `docs/implementation-memory.md`. If ≥3, include in end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
+   - **Periodic nudge**: Read the `Builds without update` counter from `.bla/implementation-memory.md`. If ≥3, include in end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
    - **Show diff on update**: When memory is updated, show the rule IDs added/merged/removed directly in the response.
 6. **If PASSED WITH FIXES NEEDED**:
    - Append the "Fix Tasks" section to `tasks.md` under a new phase header: `## Phase N+1: Review Fixes`
@@ -342,7 +342,7 @@ Order the findings by impact. The rule is literal: **priority is impact, never c
    - Execute the fix tasks following normal task execution rules (TDD, operational code, incremental implementation). The orchestrator owns these; the verifier that reported them does not touch the code.
    - After all fix tasks are `[x]`, re-run verification ONLY on the items that were flagged — not a full re-review — as a **fresh dispatch** of `agents/implementation-verifier.md`, given the previous `implementation-review.md` so each finding keeps its ID and moves to `FIXED`. The agent that applied a fix never certifies its own fix.
    - Then trigger the semi-automatic memory extraction (step 5 above).
-7. **If PASSED**: Mark spec as DONE. Update `tasks.md` status. **Proceed to the next spec immediately — do NOT ask the user for permission.** Only stop if this is the last spec in `specs/`.
+7. **If PASSED**: Mark spec as DONE. Update `tasks.md` status. **Proceed to the next spec immediately — do NOT ask the user for permission.** Only stop if this is the last spec in `.bla/specs/`.
 8. **If FAILED**: Present `implementation-review.md` to the user with a clear explanation of what failed and why auto-fix is insufficient.
 
 ### What "FAILED" Means (vs. "PASSED WITH FIXES NEEDED")
@@ -359,10 +359,10 @@ Order the findings by impact. The rule is literal: **priority is impact, never c
 
 ## End of Build — when to actually stop
 
-`/build` is **complete** only when every spec in `specs/` is in a terminal state:
+`/build` is **complete** only when every spec in `.bla/specs/` is in a terminal state:
 
 - Every task in every `tasks.md` is `[x]` (done) or `[!]` (blocked, with documented reason).
-- Every spec has a `specs/<slice-name>/implementation-review.md` with verdict PASSED or PASSED WITH FIXES NEEDED.
+- Every spec has a `.bla/specs/<slice-name>/implementation-review.md` with verdict PASSED or PASSED WITH FIXES NEEDED.
 - No spec is left unstarted.
 
 Only at that point do you produce the **end-of-build summary** to the user. **The header is conditional on the blocked-task count** — do not print a green checkmark over a run that left work blocked:

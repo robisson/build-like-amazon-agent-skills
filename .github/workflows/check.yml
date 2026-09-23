@@ -91,16 +91,16 @@ jobs:
           # Shape fenced block. The loose `^### IM-` counts the placeholder as a rule, so the cap is
           # checked against the tight pattern and the cap itself is read from the document that
           # declares it instead of being hardcoded here.
-          im_real=$(grep -c '^### IM-[0-9]' docs/implementation-memory.md | tr -d ' ' || true)
-          im_all=$(grep -c '^### IM-' docs/implementation-memory.md | tr -d ' ' || true)
+          im_real=$(grep -c '^### IM-[0-9]' .bla/implementation-memory.md | tr -d ' ' || true)
+          im_all=$(grep -c '^### IM-' .bla/implementation-memory.md | tr -d ' ' || true)
           im_cap=$(grep -oE 'Maximum ([0-9]+) active rules' skills/implementation-memory/SKILL.md \
                    | grep -oE '[0-9]+' | head -1 || true)
           [ -n "$im_cap" ] \
             || { echo "FALHA [memory-cap-undeclared] skills/implementation-memory/SKILL.md no longer declares 'Maximum N active rules'"; f=1; im_cap=12; }
           [ "$im_real" -le "$im_cap" ] \
-            || { echo "FALHA [memory-cap-exceeded] docs/implementation-memory.md has $im_real active rules, cap is $im_cap"; f=1; }
+            || { echo "FALHA [memory-cap-exceeded] .bla/implementation-memory.md has $im_real active rules, cap is $im_cap"; f=1; }
           [ "$im_all" = "$((im_real + 1))" ] \
-            || { echo "FALHA [memory-shape-placeholder] docs/implementation-memory.md has $im_all '### IM-' headings for $im_real rules; the Rule Shape placeholder must be present exactly once and must not be numbered"; f=1; }
+            || { echo "FALHA [memory-shape-placeholder] .bla/implementation-memory.md has $im_all '### IM-' headings for $im_real rules; the Rule Shape placeholder must be present exactly once and must not be numbered"; f=1; }
 
           # docs/artifact-catalog.md is the index authors are sent to for the shape of every artifact,
           # so its Template column is checked in BOTH directions. A cited template that does not exist
@@ -142,12 +142,12 @@ jobs:
             || { echo "FALHA [metrics-event-set] the owner table of docs/flow-metrics.md and METRIC_EVENTS in tools/bla-check are not the same closed set: $(diff /tmp/es-owner /tmp/es-code | tr '\n' ' ')"; f=1; }
 
           # docs/flow-metrics.md forbids this repository from carrying a series of its own: a
-          # docs/bla-metrics.jsonl committed here would be data nobody measured, and fabricated data in the
+          # .bla/metrics.jsonl committed here would be data nobody measured, and fabricated data in the
           # repository that defines the measurement discredits the measurement. .gitignore cannot express
           # this — the path must stay writable for anyone dogfooding the metrics locally, it must only never
           # be committed — so the guard belongs here.
-          if [ -e docs/bla-metrics.jsonl ]; then
-            echo "FALHA [no-fabricated-series] docs/bla-metrics.jsonl exists; this repository ships no flow-metric series of its own, only the fixtures under tools/tests/fixtures/metrics-*/"
+          if [ -e .bla/metrics.jsonl ]; then
+            echo "FALHA [no-fabricated-series] .bla/metrics.jsonl exists; this repository ships no flow-metric series of its own, only the fixtures under tools/tests/fixtures/metrics-*/"
             f=1
           fi
 
@@ -260,6 +260,11 @@ jobs:
         # that catches those. It is born green only because docs/cursor-setup.md, cited but never
         # written, was corrected in the same commit that added this step.
         #
+        # The `\.bla/[a-z0-9-]+\.md` arm is what keeps .bla/implementation-memory.md verified. It used to
+        # be matched by the docs/ arm; without its own arm the citations of it would stop being checked
+        # silently, which is the worst failure mode a truth predicate has. The docs/ arm stays — this
+        # library's own seven documents still need it.
+        #
         # Planning state is pruned for the same reason the other two document checks prune it: .agents/
         # and .worktrees/ hold drafts, placeholders (skills/x/SKILL.md, agents/x.md) and paths a plan
         # has not written yet, so a citation there is not a promise the repository made. Without these
@@ -268,13 +273,71 @@ jobs:
         # teaches them to ignore a real predicate. The two surfaces that already prune the same pair
         # are tools/bla-check (SKIP_DIRS = .git .agents .worktrees node_modules) and
         # .markdownlint-cli2.jsonc (ignores .agents/** and .worktrees/**).
+        #
+        # CHANGELOG.md is excluded for the same reason artifact-location excludes it: a changelog names
+        # a path as it was at the time of the entry, not as it is now. The 0.4.0 migration table cites
+        # the pre-0.4.0 implementation-memory location precisely because it no longer exists, and a
+        # citation of a deliberately-removed path is history, not a broken promise.
         run: |
           f=0
 
-          for ref in $(grep -rhoE '(agents/[a-z0-9-]+\.md|skills/[a-z0-9-]+/SKILL\.md|patterns/[a-z0-9-]+/PATTERN\.md|docs/[a-z0-9-]+\.md|\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md)' \
-                        --include='*.md' --exclude-dir=.agents --exclude-dir=.worktrees . | sort -u); do
+          for ref in $(grep -rhoE '(agents/[a-z0-9-]+\.md|skills/[a-z0-9-]+/SKILL\.md|patterns/[a-z0-9-]+/PATTERN\.md|docs/[a-z0-9-]+\.md|\.bla/[a-z0-9-]+\.md|\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md)' \
+                        --include='*.md' --exclude=CHANGELOG.md --exclude-dir=.agents --exclude-dir=.worktrees . | sort -u); do
             [ -e "$ref" ] || { echo "FALHA [xref-missing] $ref is cited in a markdown file but does not exist on disk"; f=1; }
           done
+
+          [ "$f" -eq 0 ] || exit 1
+
+      - name: artifact-location
+        # Flow artifacts live under .bla/ and nowhere else. `docs/` is the library's OWN documentation
+        # (seven files: artifact-catalog, flow-metrics, getting-started, philosophy, references,
+        # skill-anatomy, build-like-amazon.png) and a root-level `specs` directory is the pre-0.4.0
+        # location. A re-declaration of either is the drift this predicate exists to catch: before 0.4.0
+        # `docs/` did double duty, and the first reader to notice would be an adopter whose artifacts
+        # landed in two places.
+        #
+        # Written as a DENYLIST of the artifact prefixes, never as an allowlist of the library files.
+        # An allowlist needs an edit for every document added — and a forgotten edit is a false positive
+        # on a legitimate file — while it lets a new artifact directory in by simply adding itself to the
+        # list. No library file matches a prefix below, so none can false-positive.
+        #
+        # CHANGELOG.md is excluded on purpose: the 0.4.0 migration note names every old path, and that is
+        # the one file where an old path is the correct content.
+        #
+        # This file is NOT excluded, because it is exactly where paths get re-pointed and a violation here
+        # must be caught. Both patterns are therefore spelled so they cannot match their own source: the
+        # parenthesised alternations below, and the one-character bracket class on the old metric
+        # filename, change nothing about what is matched on disk, but they put a `(` or a `[` where the
+        # searched text would need a letter. Written plainly the step was measured RED on its own two
+        # pattern lines. The bracket class is what a parenthesis cannot do: it also defeats the
+        # fixed-string release sweep that asserts the pre-0.4.0 metric filename survives nowhere at all.
+        #
+        # The second arm normalises before testing: rather than a lookbehind (forbidden — no `grep -P`) it
+        # deletes every legitimate token from the line with `sed` and asks whether a bare one survives.
+        # `.bla/specs/` is the artifact path and `.kiro/specs/` is Kiro's own native feature; what remains
+        # after the deletions is a genuine root-relative citation. `|| true` on both greps so the step is
+        # safe under `set -e` and `pipefail`, and `-I` skips docs/build-like-amazon.png.
+        run: |
+          f=0
+
+          docs_hits=$(grep -rnI -E \
+            'docs/(working-backwards|design|coe|reviews|operations|deployment)/|docs/(implementation-memory|bla-metric[s])' \
+            --exclude-dir=.git --exclude-dir=.agents --exclude-dir=.worktrees \
+            --exclude-dir=node_modules --exclude=CHANGELOG.md . || true)
+          if [ -n "$docs_hits" ]; then
+            echo "$docs_hits" | awk -F: '{ printf "FALHA [artifact-outside-dot-bla] %s:%s a flow artifact is declared under docs/; flow artifacts live under .bla/ (docs/ is the library'"'"'s own documentation)\n", $1, $2 }'
+            f=1
+          fi
+
+          specs_hits=$(grep -rnI -E '(specs)/' \
+            --exclude-dir=.git --exclude-dir=.agents --exclude-dir=.worktrees \
+            --exclude-dir=node_modules --exclude=CHANGELOG.md . \
+            | sed 's|\.bla/specs/||g; s|\.kiro/specs/||g' \
+            | grep -E '(specs)/' || true)
+          if [ -n "$specs_hits" ]; then
+            echo "$specs_hits" | awk -F: '{ printf "FALHA [artifact-outside-dot-bla] %s:%s a root-relative spec directory is cited; the spec trio lives under .bla/specs/\n", $1, $2 }'
+            f=1
+          fi
 
           [ "$f" -eq 0 ] || exit 1
 

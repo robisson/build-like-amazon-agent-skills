@@ -196,7 +196,7 @@ A review written to a file outlives the conversation that produced it, so each f
 | `NOT-REPRODUCIBLE` | The condition could not be reproduced on re-examination. Record what was tried, so the next reviewer does not start from zero. | The re-review |
 | `SUPERSEDED` | The code or artifact changed enough that the finding no longer describes it. Name the finding or the change that replaces it. | The re-review |
 
-**A later review updates the report; it does not recreate it.** Every report path in this library is fixed — `specs/<slice-name>/implementation-review.md`, `docs/reviews/<feature-name>/code-review.md`, and the equivalents each reviewer declares in its IO contract — so writing a fresh report over one destroys the history that makes it useful: which findings were accepted, by whom, and what was already ruled not reproducible. On re-review, keep every existing ID, move states forward, append new findings with the next free IDs, and stamp the round. A finding never disappears; it changes state.
+**A later review updates the report; it does not recreate it.** Every report path in this library is fixed — `.bla/specs/<slice-name>/implementation-review.md`, `.bla/reviews/<feature-name>/code-review.md`, and the equivalents each reviewer declares in its IO contract — so writing a fresh report over one destroys the history that makes it useful: which findings were accepted, by whom, and what was already ruled not reproducible. On re-review, keep every existing ID, move states forward, append new findings with the next free IDs, and stamp the round. A finding never disappears; it changes state.
 
 **Scope.** This lifecycle, and the IDs it depends on, apply only when the report is persisted to disk — Medium and Large on the ceremony ladder. An inline review of a Trivial change has no file, no IDs and no lifecycle: it has a conversation and a fix.
 
@@ -253,7 +253,7 @@ After review findings are resolved, check whether any finding represents a **rec
 2. Generate a self-reflection: "What recurring implementation mistake does this review finding reveal? What rule would prevent it in future builds?"
 3. Extract up to 2 candidate learnings.
 4. Present candidates to the user for Accept / Reject / Edit.
-5. Apply admission checks and rejection rules before writing to `docs/implementation-memory.md`.
+5. Apply admission checks and rejection rules before writing to `.bla/implementation-memory.md`.
 
 If no recurring pattern is identified, skip this step silently. This keeps the memory focused on durable, cross-cutting lessons rather than one-off feedback.
 

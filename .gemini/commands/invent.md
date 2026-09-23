@@ -30,6 +30,6 @@ You are activating the **wb-invent** skill. This is Phase 3 of Working Backwards
 
 ## Output
 
-Save to `docs/working-backwards/<feature-name>/solution-sketch.md`.
+Save to `.bla/working-backwards/<feature-name>/solution-sketch.md`.
 
 Ask: "Would you like to proceed to /refine (PR/FAQ writing)?"

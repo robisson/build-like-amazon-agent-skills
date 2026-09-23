@@ -184,7 +184,7 @@ The `Result` column admits five values: `PASS`, `FAIL`, `NOT EXECUTED` (the prop
 ### Verdict: PASS | FAIL | PASS WITH WARNINGS
 
 Verdict: NOT APPROVED (local: FAIL)
-Report: specs/<slice-name>/implementation-review.md
+Report: .bla/specs/<slice-name>/implementation-review.md
 Findings: BLOCKING 2 · IMPORTANT 1 · MINOR 3 · QUESTION 0
 ```
 
@@ -228,8 +228,8 @@ For a refuted property the anchor is the property's source (`design.md §6.6`) t
 
 ## IO Contract
 
-- **Reads:** `specs/<slice-name>/design.md` §6 (Properties table), `specs/<slice-name>/requirements.md` (for properties implied by EARS criteria), `specs/<slice-name>/tasks.md` (to know which acceptance criteria are owned by a `[!]` task), and the implementation with its test suite.
-- **Writes (exactly one file):** `specs/<slice-name>/implementation-review.md` — the same path `.claude/commands/build.md` names for the Post-Implementation Review. The Verification Report above *is* that file; there is no second report.
+- **Reads:** `.bla/specs/<slice-name>/design.md` §6 (Properties table), `.bla/specs/<slice-name>/requirements.md` (for properties implied by EARS criteria), `.bla/specs/<slice-name>/tasks.md` (to know which acceptance criteria are owned by a `[!]` task), and the implementation with its test suite.
+- **Writes (exactly one file):** `.bla/specs/<slice-name>/implementation-review.md` — the same path `.claude/commands/build.md` names for the Post-Implementation Review. The Verification Report above *is* that file; there is no second report.
 - **Must not touch:** the implementation under verification, its tests, and `tasks.md`. A refuted property is reported with its shrunk counterexample, not fixed — `/build` appends the fix tasks as `## Phase N+1: Review Fixes`. A missing property test is reported as its specification (generator, assertion, shrinking, iteration count) plus a fix task, and the producer writes the code. **Running the existing test suite is not touching it**: execution is read-only, it is how counterexamples are obtained, and it stays permitted. A verifier that repairs the code it is verifying, or that authors the test it then reports on, has no independent evidence left to report.
 - **Returns (first line):** the `Verdict:` line of the terminal verdict block above.
 

@@ -9,7 +9,7 @@ You are activating the **design** skill chain: `dependency-management` → `feat
 ## What to do
 
 1. Read skills at `skills/dependency-management/`, `skills/feature-flag-lifecycle/`, `skills/operational-excellence/`, `skills/design-document/`, `skills/api-contract-first/`, `skills/threat-modeling/`, `skills/design-review/`, and `skills/spec-driven-implementation/`.
-2. Start from the Working Backwards artifacts in `docs/working-backwards/` (if available).
+2. Start from the Working Backwards artifacts in `.bla/working-backwards/` (if available).
 3. Guide the user through the design activities in sequence, with MANDATORY approval gates.
 
 ## Step 0: State Detection + Proportionality Check
@@ -17,8 +17,8 @@ You are activating the **design** skill chain: `dependency-management` → `feat
 Before starting the full design flow, detect the project state and classify the change requested. The user should not have to think about which path is right — the agent decides, and asks only when there is genuine ambiguity.
 
 1. **Read repo state**:
-   - Does `docs/working-backwards/` exist with approved PR/FAQ or 5CQ?
-   - Does `docs/design/` already contain a Design Doc for the same feature?
+   - Does `.bla/working-backwards/` exist with approved PR/FAQ or 5CQ?
+   - Does `.bla/design/` already contain a Design Doc for the same feature?
    - Is the project a brownfield (significant code, IaC, CI present) without BLA artifacts, or a greenfield?
 
 2. **Classify the requested change** using the ladder in `skills/using-amazon-skills/SKILL.md`: Trivial / Small / Medium / Large / New product.
@@ -71,7 +71,7 @@ Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING
 
 ### Step 0e: Implementation Memory Selection
 - Read skill: `skills/implementation-memory/SKILL.md`
-- If `docs/implementation-memory.md` exists, read it and select active rules using multi-signal matching: Tags overlap with the feature's domain or technology areas, File patterns match files the design will touch, OR `Applies when` prose is judged relevant to this feature, component, dependency, or risk profile.
+- If `.bla/implementation-memory.md` exists, read it and select active rules using multi-signal matching: Tags overlap with the feature's domain or technology areas, File patterns match files the design will touch, OR `Applies when` prose is judged relevant to this feature, component, dependency, or risk profile.
 - A rule is selected only when its `Phase` matches the current phase — `design` here — and any one of those signals matches; a `Phase: build` or `Phase: operate` rule is never selected during `/design`, however strongly its other signals match.
 - Convert selected rules into design constraints for Step 1: they shape the design document and the alternatives, never the requirements. Increment `Hit count` for each selected rule.
 - Unmatched rules are ignored and MUST NOT become requirements. If the file does not exist, continue without memory constraints.
@@ -89,7 +89,7 @@ Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING
 
 ### Step 2: API Contract (MANDATORY)
 - Read skill: skills/api-contract-first/SKILL.md
-- Record the result in `docs/design/<feature-name>/api-contracts.md`, following `skills/api-contract-first/templates/api-contracts-template.md` — it is the shape of `api-contracts.md`, the contract index and decision record that sits beside the artefacts: one row per surface with protocol, standard, artefact path and reason, plus the clients, the versioning stance and what is frozen since when. It does not replace any artefact below.
+- Record the result in `.bla/design/<feature-name>/api-contracts.md`, following `skills/api-contract-first/templates/api-contracts-template.md` — it is the shape of `api-contracts.md`, the contract index and decision record that sits beside the artefacts: one row per surface with protocol, standard, artefact path and reason, plus the clients, the versioning stance and what is frozen since when. It does not replace any artefact below.
 - Every design has an API. If you cannot identify the API, the design is not finished — go back to Step 1. The API is the only customer-facing contract; everything else (UI, CLI, SDK, MCP, AI agent, partner integration, batch job) is a **client** of the API.
 - Identify the protocol(s) and pick the **native contract standard for each protocol** — OpenAPI is not the universal answer. Use the table in `skills/api-contract-first/SKILL.md` ("Pick the right contract standard for the protocol") to choose. Quick reference:
   - **REST / HTTP** → OpenAPI 3.x (or Smithy if AWS-style with SDK gen)
@@ -135,7 +135,7 @@ Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING
 ### Step 5b: Spec Coherence Review (automatic gate)
 - After all 3 spec artifacts (requirements.md, design.md, tasks.md) are approved for a slice, a **Spec Coherence Review** runs automatically before the spec is released to `/build`.
 - This review checks for drift between the spec and the approved Design Document (contradictions, missing traceability, scope creep, dependency feasibility, operational-excellence consistency, one-way door consistency).
-- Output is saved to `specs/<slice-name>/coherence-review.md` with a structured "Action Items for Build Agent" section that the build agent treats as binding constraints.
+- Output is saved to `.bla/specs/<slice-name>/coherence-review.md` with a structured "Action Items for Build Agent" section that the build agent treats as binding constraints.
 - If the review verdict is **NEEDS REVISION**, go back and fix the spec artifacts before releasing to `/build`.
 - See `skills/spec-driven-implementation/SKILL.md` → Step 7 for full details and output format.
 
@@ -166,7 +166,7 @@ The `/design` command is responsible for creating ALL specs. The `/build` comman
 
 ## Output
 
-Save to `docs/design/<feature-name>/`:
+Save to `.bla/design/<feature-name>/`:
 - `design-doc.md`
 - `api-contracts.md`
 - API contract artifact(s) — **one per protocol**, using the canonical standard:
@@ -180,14 +180,14 @@ Save to `docs/design/<feature-name>/`:
 - `threat-model.md`
 - `review-checklist.md`
 
-Save specs to `specs/<slice-name>/`:
+Save specs to `.bla/specs/<slice-name>/`:
 - `requirements.md`
 - `design.md`
 - `tasks.md`
 
 **Flow metrics.** `/design` owns five of the six events for the `design` phase — `phase_started`,
 `phase_completed`, `gate_approved`, `gate_rework` and `review_blocking_finding` — and appends each as one
-JSON line to `docs/bla-metrics.jsonl`: `phase_started` at the end of Step 0, once the proportionality
+JSON line to `.bla/metrics.jsonl`: `phase_started` at the end of Step 0, once the proportionality
 check returns Medium or above; `phase_completed` once the artifacts above are saved; `gate_approved` or
 `gate_rework` at the Step 4 and Step 5b gates, according to the verdict; and one `review_blocking_finding`
 per finding admitted at canonical severity BLOCKING in the threat model or the review checklist, carrying

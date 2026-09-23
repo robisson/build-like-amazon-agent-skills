@@ -84,6 +84,14 @@ If your harness below keeps the clone in-tree as `.build-like-amazon/`, skip the
 
 **Without it nothing breaks, and that is the point:** every command that calls the checker says so and continues when it is absent, falling back to the agent's own reading. You lose the guarantee, not the workflow. `tools/tests/` is the checker's own self-test and stays here — it is for whoever maintains this library.
 
+### Where the flow writes: `.bla/` in your project
+
+Every artifact the flow produces lands under `.bla/` in *your* project: `.bla/working-backwards/`, `.bla/design/`, `.bla/specs/`, `.bla/reviews/`, `.bla/deployment/`, `.bla/operations/`, `.bla/coe/`, plus `.bla/implementation-memory.md` and `.bla/metrics.jsonl`. This library's own documentation stays in `docs/` and is never copied into your project.
+
+**Commit `.bla/` — do not ignore it.** It is not a cache. The PR/FAQ, the design doc and the threat model exist for a human to read and approve at a gate, and a reviewer cannot approve what is not in the tree.
+
+`.bla` is a dotfolder, so it is **hidden by default**: plain `ls` will not show it, nor will Finder, nor most editor file trees. Use `ls -la` in a terminal, `⌘⇧.` in Finder, or the `files.exclude` setting in VS Code / Cursor.
+
 <details>
 <summary><strong>Kiro IDE & CLI</strong></summary>
 

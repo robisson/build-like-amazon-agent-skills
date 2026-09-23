@@ -7,7 +7,7 @@ You are activating the **wb-define** skill. This is Phase 2 of Working Backwards
 ## What to do
 
 1. Read the skill file at `skills/wb-define/` for full context.
-2. Review the customer profile from the Listen phase (if available in `docs/working-backwards/`).
+2. Review the customer profile from the Listen phase (if available in `.bla/working-backwards/`).
 3. Help the user articulate the problem by asking:
    - What is the single biggest pain point for this customer?
    - How do they work around it today? What does that cost them?
@@ -29,6 +29,6 @@ You are activating the **wb-define** skill. This is Phase 2 of Working Backwards
 
 ## Output
 
-Save to `docs/working-backwards/<feature-name>/problem-statement.md`.
+Save to `.bla/working-backwards/<feature-name>/problem-statement.md`.
 
 Ask: "Would you like to proceed to /invent (solution design)?"

@@ -30,6 +30,6 @@ You are activating the **wb-test-and-iterate** skill. This is Phase 5 of Working
 
 ## Output
 
-Save to `docs/working-backwards/<feature-name>/success-metrics.md`.
+Save to `.bla/working-backwards/<feature-name>/success-metrics.md`.
 
 Ask: "Working Backwards is complete. Ready to /design the technical solution?"

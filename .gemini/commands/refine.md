@@ -34,6 +34,6 @@ You are activating the **wb-refine** skill. This is Phase 4 of Working Backwards
 
 ## Output
 
-Save to `docs/working-backwards/<feature-name>/prfaq.md`.
+Save to `.bla/working-backwards/<feature-name>/prfaq.md`.
 
 Ask: "Would you like to proceed to /test-idea (validation plan)?"

@@ -47,19 +47,19 @@ After corrective actions are defined, check whether any action item is an **impl
 2. Generate a self-reflection: "What implementation practice would have prevented or mitigated this incident? What general rule should apply to future builds?"
 3. Extract up to 2 candidate learnings from implementation-level action items.
 4. Present candidates to the user for Accept / Reject / Edit (same format as `/build` semi-automatic trigger).
-5. Apply admission checks and rejection rules before writing to `docs/implementation-memory.md`.
+5. Apply admission checks and rejection rules before writing to `.bla/implementation-memory.md`.
 
 If no implementation-level action item exists (all actions are org/process/infra), skip this step silently.
 
 ## Output
 
-Save to `docs/coe/<incident-name>/`:
+Save to `.bla/coe/<incident-name>/`:
 - `coe-report.md`
 - `action-items.md`
 - `mechanisms.md`
 
 **Flow metrics.** `/learn` owns two of the six events for the `learn` phase — `phase_started` and
-`phase_completed` — and appends each as one JSON line to `docs/bla-metrics.jsonl`: `phase_started` once the
+`phase_completed` — and appends each as one JSON line to `.bla/metrics.jsonl`: `phase_started` once the
 change is classified as Medium or above, `phase_completed` once the artifacts above are saved. The COE
 review of Step 1 is a review, not a gate over a BLA artefact, and `/learn` persists no BLOCKING findings,
 so `gate_approved`, `gate_rework` and `review_blocking_finding` are not its to emit — no command emits an

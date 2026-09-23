@@ -15,7 +15,7 @@ Implementation memory is a compact, fixed-size set of rules that improves future
 
 This is procedural memory, not history. It stores rules for how to implement better next time. It does not store product context, design history, changelog entries, ADRs, raw retrospectives, PR transcripts, or conversation logs.
 
-This mechanism is harness-agnostic by design. It uses a plain markdown file in the repo (`docs/implementation-memory.md`) intentionally. It is not tied to any agent's native memory system. Any AI agent that can read markdown and follow instructions can consume and update it.
+This mechanism is harness-agnostic by design. It uses a plain markdown file in the repo (`.bla/implementation-memory.md`) intentionally. It is not tied to any agent's native memory system. Any AI agent that can read markdown and follow instructions can consume and update it.
 
 This is an internal flow mechanism. Users do not invoke it as a slash command or choose it as a standalone workflow. Existing build commands and build-oriented assistant rules call it automatically at the defined points in the `/build` flow.
 
@@ -54,7 +54,7 @@ Do not use this skill to replace requirements, design documents, ADRs, release n
 The project-level memory artifact is:
 
 ```text
-docs/implementation-memory.md
+.bla/implementation-memory.md
 ```
 
 If the file does not exist before a build, continue without memory guardrails. After the build, create it only when at least one candidate learning passes the admission bar. A repository may also keep an empty canonical file with the required structure so future builds have a stable location.
@@ -100,8 +100,8 @@ Use stable IDs. When removing a rule, do not renumber unrelated rules unless the
 Before implementation starts:
 
 0. Determine the current phase from the command in flight: `/wb` → `wb`, `/design` → `design`, `/spec` → `spec`, `/build` → `build`, `/deploy` → `deploy`, `/operate` → `operate`. This section runs at the start of every phase, not only `/build`. Three phases have a selection point wired into their command today: `design` (`.claude/commands/design.md` → Step 0e), `spec` (`.claude/commands/spec.md` → *Read the existing context*) and `build` (`.claude/commands/build.md` → step 2c). `wb`, `deploy` and `operate` are **reserved**: a rule stored under one of them is admitted normally, counts against the 12-rule cap, and will not fire until a selection point exists in that command — so accept such a rule only when it is worth a slot it cannot yet use.
-1. Read the current `specs/<slice-name>/requirements.md`, `design.md`, `tasks.md`, and `coherence-review.md` if present.
-2. Read `docs/implementation-memory.md` if it exists.
+1. Read the current `.bla/specs/<slice-name>/requirements.md`, `design.md`, `tasks.md`, and `coherence-review.md` if present.
+2. Read `.bla/implementation-memory.md` if it exists.
 3. Select active rules using this multi-signal matching. A rule is selected when its `Phase` matches the current phase determined in step 0 AND any one of the following signals matches:
    - **Tags match**: rule tags overlap with the current spec's domain/technology areas.
    - **File patterns match**: the spec's tasks touch files matching the rule's glob patterns.
@@ -242,8 +242,8 @@ Rules may reference other rules using the `Builds on: [[IM-YYY]]` field. This in
 For projects with distinct domains (e.g., monorepos), the memory may be split:
 
 ```text
-docs/implementation-memory.md              # global (max 12 rules)
-docs/implementation-memory-<domain>.md     # domain-scoped (max 6 rules each)
+.bla/implementation-memory.md              # global (max 12 rules)
+.bla/implementation-memory-<domain>.md     # domain-scoped (max 6 rules each)
 ```
 
 Pre-build selection loads the global file plus the domain file matching the current spec's primary domain. Domain files follow the same format and rules but with a reduced cap of 6 rules.

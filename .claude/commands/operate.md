@@ -34,14 +34,14 @@ Verify the service is ready to operate:
 
 ## Output
 
-Save to `docs/operations/<service-name>/`:
+Save to `.bla/operations/<service-name>/`:
 - `runbook.md`
 - `alarm-definitions.md`
 - `orr-checklist.md`
 - `escalation-matrix.md`
 
 **Flow metrics.** `/operate` owns two of the six events for the `operate` phase — `phase_started` and
-`phase_completed` — and appends each as one JSON line to `docs/bla-metrics.jsonl`: `phase_started` once the
+`phase_completed` — and appends each as one JSON line to `.bla/metrics.jsonl`: `phase_started` once the
 change is classified as Medium or above, `phase_completed` once the artifacts above are saved. The
 operational readiness review of Step 2 fills `orr-checklist.md`, but the gate events over an ORR verdict
 belong to `/review`, which persists that report as a gate — no command emits an event another one owns

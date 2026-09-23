@@ -137,7 +137,7 @@ If you find yourself ordering a UI spec before its API spec, stop — you have i
 
 **⛔ MANDATORY HUMAN REVIEW GATES: Each artifact (requirements → design → tasks) has a mandatory pause for user review. Do NOT generate the next artifact until the previous one is explicitly approved by the user.**
 
-For each slice, create three files in `specs/<slice-name>/`:
+For each slice, create three files in `.bla/specs/<slice-name>/`:
 
 #### 3.1 requirements.md
 
@@ -218,8 +218,8 @@ Once a spec is approved:
 
 Parallel execution within a wave is safe only when **both** of these invariants hold:
 
-1. **No intra-wave logical dependency.** No task in the wave consumes an output produced by another task in the same wave. This one the `task-planner` does guarantee — it is exactly what the dependency graph models — and `python3 tools/bla-check tasks specs/<slice-name>` re-reads the emitted graph and reports `FALHA [wave-dep-intra]` where the guarantee slipped, because `/build` dispatches only tasks whose dependencies are all `[x]` and a task depending on a wave-mate is therefore never dispatched in that wave.
-2. **No intersection of files written within the wave.** No two tasks in the wave write the same file. This one the graph models too: `skills/spec-driven-implementation/templates/tasks-template.md` carries `depends_on`, `wave`, `size`, `type`, `door` and `writes` per task, and `writes` is the declared set of paths that task changes. The invariant is therefore checkable by comparing the declared sets: for every pair of tasks in one wave, the intersection of their `writes` must be **empty**, where a path ending in `/` is a directory and collides with everything beneath it. `python3 tools/bla-check tasks specs/<slice-name>` performs that comparison and reports `FALHA [wave-writes-intersection]`. A task that changes no file in the repository declares no `writes`, and there is then nothing to intersect on its behalf.
+1. **No intra-wave logical dependency.** No task in the wave consumes an output produced by another task in the same wave. This one the `task-planner` does guarantee — it is exactly what the dependency graph models — and `python3 tools/bla-check tasks .bla/specs/<slice-name>` re-reads the emitted graph and reports `FALHA [wave-dep-intra]` where the guarantee slipped, because `/build` dispatches only tasks whose dependencies are all `[x]` and a task depending on a wave-mate is therefore never dispatched in that wave.
+2. **No intersection of files written within the wave.** No two tasks in the wave write the same file. This one the graph models too: `skills/spec-driven-implementation/templates/tasks-template.md` carries `depends_on`, `wave`, `size`, `type`, `door` and `writes` per task, and `writes` is the declared set of paths that task changes. The invariant is therefore checkable by comparing the declared sets: for every pair of tasks in one wave, the intersection of their `writes` must be **empty**, where a path ending in `/` is a directory and collides with everything beneath it. `python3 tools/bla-check tasks .bla/specs/<slice-name>` performs that comparison and reports `FALHA [wave-writes-intersection]`. A task that changes no file in the repository declares no `writes`, and there is then nothing to intersect on its behalf.
 
 Because a declared set can be wrong where a read cannot — a task may write a file it never declared — the check is necessary and not sufficient, and the serialisation rule is unchanged. When two tasks in the same wave must write the same file — a barrel of exports, a router registration, a schema migration — the intersection is mandatory and parallel execution would produce a lost write or a conflict. Serialise them: keep one task in the wave and move the colliding task to the next wave. `/build` closes the gap at the other end, by comparing the union of the wave's declared `writes` against the paths `git` says actually changed.
 
@@ -274,7 +274,7 @@ After all 3 spec artifacts are approved (requirements.md, design.md, tasks.md) a
 - [ ] One-way door in Task 2.3 (schema migration) — confirm index strategy matches Design Doc §4.3 before executing
 ```
 
-The **"Action Items for Build Agent"** section is the KEY deliverable — it becomes an addendum that the build agent reads alongside tasks.md. Save the review output to `specs/<slice-name>/coherence-review.md`.
+The **"Action Items for Build Agent"** section is the KEY deliverable — it becomes an addendum that the build agent reads alongside tasks.md. Save the review output to `.bla/specs/<slice-name>/coherence-review.md`.
 
 **🚦 GATE:**
 - If verdict is **APPROVED**: Proceed to `/build`. The build agent reads `coherence-review.md` alongside `tasks.md`.
@@ -282,7 +282,7 @@ The **"Action Items for Build Agent"** section is the KEY deliverable — it bec
 - If verdict is **NEEDS REVISION**: Go back and fix the spec artifacts. Do NOT proceed to `/build` until re-reviewed.
 
 **How the build agent uses this**:
-When `/build` starts on a spec, it checks for `specs/<slice-name>/coherence-review.md`. If present, the "Action Items for Build Agent" section is treated as binding constraints — equivalent to additional requirements that override or clarify what's in the spec. If an action item conflicts with tasks.md, the action item wins.
+When `/build` starts on a spec, it checks for `.bla/specs/<slice-name>/coherence-review.md`. If present, the "Action Items for Build Agent" section is treated as binding constraints — equivalent to additional requirements that override or clarify what's in the spec. If an action item conflicts with tasks.md, the action item wins.
 
 ## The Spec Format
 
@@ -545,7 +545,7 @@ Watch for these signals that the spec process is being short-circuited:
 - 🚩 **Logic embedded in a client spec to work around a missing API capability** — Evolve the API instead. Client-side workarounds leak implementation details and trap the API in its current shape.
 - 🚩 **Feature has a UI/CLI/agent in the design but no API spec exists** — Every customer-facing surface is an API. If you cannot identify the API, the design is incomplete; go back to `/design`.
 - 🚩 **`/build` stopped at the end of a spec to ask "proceed to the next?"** — That is not a valid stop reason. PASSED verdict means continue automatically. The user opts into pausing only by saying so explicitly.
-- 🚩 **`/build` declared "done" while `specs/` still has unstarted specs** — `/build` is complete only when every spec is in a terminal state, not when one spec finishes.
+- 🚩 **`/build` declared "done" while `.bla/specs/` still has unstarted specs** — `/build` is complete only when every spec is in a terminal state, not when one spec finishes.
 - 🚩 **Agent generated all three spec files (requirements, design, tasks) without pausing for user review between them** — Each artifact has a mandatory human approval gate. Generating all three in one pass means the user had no opportunity to course-correct.
 - 🚩 **Spec output missing EARS notation in acceptance criteria** — Requirements without SHALL/WHEN/IF are informal wishes, not testable specifications. Rewrite using the EARS template.
 - 🚩 **tasks.md without dependency graph or wave assignments** — Without the JSON dependency graph and wave grouping, parallelization is guesswork and ordering is arbitrary.
@@ -591,4 +591,4 @@ Before marking the spec process complete for a slice:
 
 8. **API First.** Every customer-facing surface is an API. UI, CLI, SDK, MCP server, AI agent, partner integration, batch job — all clients of an API. The API spec is created and frozen before any client spec. A client never bypasses its API; if a client needs new behavior, the API evolves. This is the direct application of Amazon's 2002 API Mandate to the spec layer.
 
-9. **`/build` runs to completion, not to the end of one spec.** Approval gates happened during `/design`. Once `/build` is invoked, the agent executes every spec in `specs/` end-to-end, without pausing between waves, specs, or post-implementation reviews (when verdict is PASSED). Stopping at the end of one spec to ask "should I proceed?" is not a checkpoint — it is a process failure. The default is **autonomous to feature completion**; the user opts into a paused mode only by saying so explicitly in the prompt.
+9. **`/build` runs to completion, not to the end of one spec.** Approval gates happened during `/design`. Once `/build` is invoked, the agent executes every spec in `.bla/specs/` end-to-end, without pausing between waves, specs, or post-implementation reviews (when verdict is PASSED). Stopping at the end of one spec to ask "should I proceed?" is not a checkpoint — it is a process failure. The default is **autonomous to feature completion**; the user opts into a paused mode only by saying so explicitly in the prompt.

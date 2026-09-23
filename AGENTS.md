@@ -160,7 +160,7 @@ Full ladder in `skills/using-amazon-skills/SKILL.md` → "Match the Ceremony to 
 
 ### 8. /build Is Fully Autonomous by Default — Run to Feature Completion
 
-Approval gates happen during `/design` (when specs are created). Once `/build` starts, the agent runs **all specs end-to-end without asking for permission between them**. "Done" means every spec in `specs/` is in a terminal state, not "I finished one spec, should I continue?"
+Approval gates happen during `/design` (when specs are created). Once `/build` starts, the agent runs **all specs end-to-end without asking for permission between them**. "Done" means every spec in `.bla/specs/` is in a terminal state, not "I finished one spec, should I continue?"
 
 The agent stops only for one of these four reasons:
 1. **Hard blocker** — sub-agent reports `[!]` and resolution requires human input
@@ -183,7 +183,7 @@ For the full state-transition protocol and resume rules, see `.claude/commands/b
 
 ### 10. Implementation Memory During /build
 
-After the current spec/tasks and `coherence-review.md` action items are known, read `skills/implementation-memory/SKILL.md` and `docs/implementation-memory.md` if present. Select active rules using multi-signal matching (Tags, File patterns, or `Applies when` prose). A rule is selected only when its `Phase` matches the current phase and any one of those signals matches; a rule whose `Phase` belongs to another phase is never selected, however well its tags or patterns fit. Increment `Hit count` for each selected rule. Unmatched rules are ignored and never become requirements. This is an internal mechanism, not a separate user-facing command.
+After the current spec/tasks and `coherence-review.md` action items are known, read `skills/implementation-memory/SKILL.md` and `.bla/implementation-memory.md` if present. Select active rules using multi-signal matching (Tags, File patterns, or `Applies when` prose). A rule is selected only when its `Phase` matches the current phase and any one of those signals matches; a rule whose `Phase` belongs to another phase is never selected, however well its tags or patterns fit. Increment `Hit count` for each selected rule. Unmatched rules are ignored and never become requirements. This is an internal mechanism, not a separate user-facing command.
 
 **Semi-automatic trigger (primary population path):** When implementation review verdict is PASSED WITH FIXES NEEDED and fix tasks are done, generate a self-reflection, extract up to 2 candidate learnings, and present to user for Accept / Reject / Edit. Do not wait for the user to ask.
 

@@ -86,6 +86,6 @@ For an operational review the declared criteria are `skills/operational-readines
 ## IO Contract
 
 - **Reads:** the deployment plan, design document, or launch plan in scope; `skills/operational-readiness-review/SKILL.md` and `skills/operational-readiness-review/templates/orr-checklist.md`.
-- **Writes (exactly one file):** `docs/reviews/<feature-name>/orr-checklist.md` — the filled checklist, including the *Conditional Items* table with a mitigation, owner and target date for every ⚠️ CONDITIONAL item.
+- **Writes (exactly one file):** `.bla/reviews/<feature-name>/orr-checklist.md` — the filled checklist, including the *Conditional Items* table with a mitigation, owner and target date for every ⚠️ CONDITIONAL item.
 - **Must not touch:** the deployment plan, the pipeline configuration, and the infrastructure-as-code under review. "We'll add monitoring later" is a finding you raise, not a gap you close on the team's behalf.
 - **Returns (first line):** `ADVISORY — ops bar raiser: <n> ❌ FAIL · <n> ⚠️ CONDITIONAL · <n> ✅ PASS`. You are an advisor: the launch verdict is the one recorded under *Reviewer Decision* in the checklist. Item results map to the canonical severities in `AGENTS.md` → *One Severity Scale and One Verdict Scale*.

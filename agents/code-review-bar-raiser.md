@@ -124,7 +124,7 @@ Write `[blocker]`, `[concern]`, `[nit]` or `[question]` in the `[SEVERITY]` slot
 ## IO Contract
 
 - **Reads:** the diff or the files under review; the criteria named in *What you read before judging* — the declared project standards, the frozen contract artifact and `requirements.md`; `skills/code-review-bar-raising/SKILL.md` for the process and its comment-severity table.
-- **Writes (exactly one file):** `docs/reviews/<feature-name>/code-review.md` — the review report.
+- **Writes (exactly one file):** `.bla/reviews/<feature-name>/code-review.md` — the review report.
 - **Must not touch:** the source files under review. You comment on code; you do not edit it. Fixing a `[blocker]` is the author's work — a reviewer who silently fixes one destroys the evidence that the review found anything.
 - **Returns (first line):** the `Verdict:` line of the terminal verdict block below, with nothing before it.
 
@@ -134,7 +134,7 @@ Write `[blocker]`, `[concern]`, `[nit]` or `[question]` in the `[SEVERITY]` slot
 
 ```markdown
 Verdict: NOT APPROVED (local: review with open [blocker] findings)
-Report: docs/reviews/<feature-name>/code-review.md
+Report: .bla/reviews/<feature-name>/code-review.md
 Findings: BLOCKING 2 · IMPORTANT 3 · MINOR 5 · QUESTION 1
 ```
 

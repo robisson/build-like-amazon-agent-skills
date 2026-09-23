@@ -124,6 +124,6 @@ The file ends with the terminal verdict block from `agents/security-guardian.md`
 
 ```markdown
 Verdict: NOT APPROVED (local: open Critical finding)
-Report: docs/design/<feature-name>/threat-model.md
+Report: .bla/design/<feature-name>/threat-model.md
 Findings: BLOCKING 3 (Critical 1, High 2) · IMPORTANT 4 (Medium 4) · MINOR 2 (Low 2) · QUESTION 0
 ```

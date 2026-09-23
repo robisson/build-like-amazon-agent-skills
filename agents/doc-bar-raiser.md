@@ -171,8 +171,8 @@ For a document the anchor is the section plus the sentence you are quoting (`prf
 
 ## IO Contract
 
-- **Reads:** `docs/working-backwards/<service-name>/prfaq.md` and its sibling narrative documents; in `/onboard` Path B these carry the `INFERRED` banner.
-- **Writes (exactly one file):** `docs/working-backwards/<service-name>/bar-raiser-questions.md` — the artifact already named in *What "done" looks like in this mode*.
+- **Reads:** `.bla/working-backwards/<service-name>/prfaq.md` and its sibling narrative documents; in `/onboard` Path B these carry the `INFERRED` banner.
+- **Writes (exactly one file):** `.bla/working-backwards/<service-name>/bar-raiser-questions.md` — the artifact already named in *What "done" looks like in this mode*.
 - **Must not touch:** the PR/FAQ and the narrative documents under review. In the inferred mode this is not a style preference but the point of the mode: polishing text whose claims are unverified makes an unvalidated document look validated.
 - **Returns (first line):** the `Verdict:` line of the terminal verdict block below.
 
@@ -182,7 +182,7 @@ For a document the anchor is the section plus the sentence you are quoting (`prf
 
 ```markdown
 Verdict: INCOMPLETE (local: inferred PR/FAQ — neither approved nor rejected)
-Report: docs/working-backwards/<service-name>/bar-raiser-questions.md
+Report: .bla/working-backwards/<service-name>/bar-raiser-questions.md
 Findings: BLOCKING 0 · IMPORTANT 0 · MINOR 0 · QUESTION 18
 ```
 

@@ -87,7 +87,7 @@ Before any implementation:
 
 The implementation serves the contract. Never let implementation convenience dictate API shape.
 
-Record the set of contracts in `docs/design/<feature-name>/api-contracts.md` — `<service-name>` when `/onboard` Path A produces it off existing code — following `skills/api-contract-first/templates/api-contracts-template.md`; that file is the *shape* of the index, never its destination. `api-contracts.md` is an **index and decision record**, never a substitute for the artefacts above: one row per surface with its protocol, the standard chosen, the artefact path and the reason, plus the clients, the versioning stance per surface and what is frozen since when. It is the file `/design` Step 2 and `/onboard` Path A produce alongside the protocol-native artefacts.
+Record the set of contracts in `.bla/design/<feature-name>/api-contracts.md` — `<service-name>` when `/onboard` Path A produces it off existing code — following `skills/api-contract-first/templates/api-contracts-template.md`; that file is the *shape* of the index, never its destination. `api-contracts.md` is an **index and decision record**, never a substitute for the artefacts above: one row per surface with its protocol, the standard chosen, the artefact path and the reason, plus the clients, the versioning stance per surface and what is frozen since when. It is the file `/design` Step 2 and `/onboard` Path A produce alongside the protocol-native artefacts.
 
 ### 2. Backward Compatibility Rules
 
