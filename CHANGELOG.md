@@ -33,10 +33,10 @@ a plausible shape, which is worse than no date.
      definition). Both rules are enabled in .markdownlint-cli2.jsonc. Do not "fix" these headings back into
      brackets: the brackets buy nothing here, because no heading links anywhere. -->
 
-## 0.2.0 — 2026-09-22
+## 0.3.0 — 2026-09-23
 
 A minor bump: user-visible behaviour changed across three waves of work and nothing was removed. No command,
-phase, gate, severity label or verdict label was renamed, so an adopter on 0.1.0 can copy 0.2.0 over their
+phase, gate, severity label or verdict label was renamed, so an adopter on 0.1.0 can copy 0.3.0 over their
 tree without re-learning anything.
 
 What changed for a user of the library:
@@ -82,6 +82,18 @@ Explicitly not in this release, and not planned by it: an installer, a binary, a
 manifest, per-file hashes, or any manifest or lockfile. There is still no `package.json`, no
 `pyproject.toml`, no `requirements.txt` and no lockfile anywhere in this repository, and a CI predicate keeps
 it that way.
+
+## 0.2.0 — 2026-05-29
+
+Tagged as `v0.2.0` at the time and never written up, so this entry is reconstructed from history rather than
+from a record kept at the moment — the date is the commit date of the tagged merge, not a chosen one. Added
+the implementation quality memory flow with semi-automatic triggers, multi-source capture and structured
+matching; made agent persona loading explicit at each call site; added the Agentic AI and SaaS Architecture
+patterns plus `patterns/INDEX.md` for lightweight pattern selection; added the mandatory PR/FAQ self-check to
+`skills/wb-refine/`; and added path-resolution guidance to every command file.
+
+Read this entry as a boundary marker: the changelog and the `VERSION` marker described at the top of this
+file did not exist yet at `v0.2.0`, which is why the release carries no description of its own.
 
 ## 0.1.0 — 2026-05-18
 
