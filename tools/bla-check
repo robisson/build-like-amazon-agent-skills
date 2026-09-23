@@ -10,6 +10,7 @@ Output contract, mandatory and stable:
     AVISO [rule-name] path:line message     a warning; never changes the exit code
 
 `--json` prints one JSON array of {severity, rule, path, line, message} and nothing else.
+Its only in-repository consumer is `tools/tests/run.py`, which asserts the shape.
 """
 
 import argparse
@@ -169,8 +170,16 @@ def writes_collide(left, right):
     return False
 
 
-def cmd_tasks(spec_dir):
-    """Check `<spec-dir>/tasks.md`: markers, blocked reasons, and the task graph."""
+def cmd_tasks(spec_dir, wave=None):
+    """Check `<spec-dir>/tasks.md`: markers, blocked reasons, and the task graph.
+
+    `wave` narrows every task-scoped rule to the tasks the graph places in that
+    wave, which is what makes the check runnable at a wave close: unscoped, a
+    still-undispatched task in a later wave is a legitimate `[ ]` and would be
+    reported as a violation at the close of every wave but the last. The whole-file
+    rules that are wave-independent — the graph/document set equality — stay on,
+    because they are green in any well-formed spec whatever wave is running.
+    """
     findings = []
     path = os.path.join(spec_dir, "tasks.md")
     if not os.path.isfile(path):
@@ -181,6 +190,7 @@ def cmd_tasks(spec_dir):
 
     lines = read_lines(path)
     body = list(strip_fences(lines))
+    graph, graph_line = task_graph(lines)
 
     # Task state as the document declares it, by two channels.
     checkbox_state = {}   # task id -> (marker, lineno); a checkbox wins over a section
@@ -188,6 +198,8 @@ def cmd_tasks(spec_dir):
     section_line = {}     # task id -> lineno of the heading
     open_section = None
     open_level = 0
+    # (owning task id or None, finding) — held back until the wave scope is known.
+    marker_findings = []
 
     for lineno, text in body:
         heading = TASK_HEADING_RE.match(text)
@@ -206,19 +218,20 @@ def cmd_tasks(spec_dir):
         if not checkbox:
             continue
         marker, remainder = checkbox.group(1), checkbox.group(2)
+        named = TASK_NAMED_RE.match(remainder)
+        owner = named.group(1) if named else open_section
 
         # (a) task-marker-open — an unfinished marker survived into the report.
         if marker in (" ", "-"):
-            findings.append(finding(
+            marker_findings.append((owner, finding(
                 FALHA, "task-marker-open", path, lineno,
-                "marker is still [%s]: %s" % (marker, remainder.strip() or "(no text)")))
+                "marker is still [%s]: %s" % (marker, remainder.strip() or "(no text)"))))
         # (b) task-blocked-no-reason — a blocked marker with nothing a reader can act on.
         elif marker == "!" and not has_reason(remainder):
-            findings.append(finding(
+            marker_findings.append((owner, finding(
                 FALHA, "task-blocked-no-reason", path, lineno,
-                "[!] carries no reason: %s" % (remainder.strip() or "(no text)")))
+                "[!] carries no reason: %s" % (remainder.strip() or "(no text)"))))
 
-        named = TASK_NAMED_RE.match(remainder)
         if named:
             checkbox_state[named.group(1)] = (marker, lineno)
         elif open_section is not None:
@@ -243,6 +256,40 @@ def cmd_tasks(spec_dir):
             return checkbox_state[task_id][1]
         return section_line.get(task_id, default)
 
+    # The wave scope, read off the `wave` field the graph already carries. A `--wave`
+    # asked of a document with no graph cannot be honoured: fall back to the whole
+    # file and say so on the task-graph-absent line, rather than checking nothing.
+    scope = None if graph is None else wave
+    wave_of = {}
+    for task_id, node in (graph or {}).items():
+        if isinstance(node, dict) and "wave" in node:
+            wave_of[str(task_id)] = str(node["wave"])
+    members = None
+    if scope is not None:
+        members = set(t for t, w in wave_of.items() if w == str(scope))
+        if not members:
+            findings.append(finding(
+                AVISO, "wave-scope-empty", path, graph_line,
+                "no task in the dependency graph declares wave %s — nothing "
+                "was checked under that scope" % scope))
+
+    def in_scope(task_id):
+        """True when a task-scoped rule applies to `task_id` under the wave scope.
+
+        Unscoped, everything applies. Scoped, a checkbox that belongs to no task in
+        the wave is out of scope — including one that belongs to no task at all,
+        such as the template's Completion Checklist. That is the point of the
+        scope, and it is why the unscoped run is the one that must be green at the
+        spec close.
+        """
+        if members is None:
+            return True
+        return task_id is not None and task_id in members
+
+    for owner, item in marker_findings:
+        if in_scope(owner):
+            findings.append(item)
+
     # (h) task-evidence-missing — a task reported done with no evidence on disk.
     #     Scoped to specs that opted in: the rule looks only when <spec-dir>/.reports/
     #     exists, so a spec that never asked for per-task evidence is never failed
@@ -250,6 +297,8 @@ def cmd_tasks(spec_dir):
     reports_dir = os.path.join(spec_dir, ".reports")
     if os.path.isdir(reports_dir):
         for task_id in sorted(set(checkbox_state) | set(section_markers)):
+            if not in_scope(task_id):
+                continue
             if state_of(task_id) != "done":
                 continue
             evidence = os.path.join(reports_dir, "%s.md" % task_id)
@@ -267,11 +316,11 @@ def cmd_tasks(spec_dir):
                     "task %s: %s does not open with `%s` (first line is %r)"
                     % (task_id, evidence, marker_line, first)))
 
-    graph, graph_line = task_graph(lines)
     if graph is None:
-        findings.append(finding(
-            AVISO, "task-graph-absent", path, None,
-            "no ```json fence with a \"tasks\" object — graph rules skipped"))
+        message = "no ```json fence with a \"tasks\" object — graph rules skipped"
+        if wave is not None:
+            message += "; --wave %s could not be applied, so the whole file was checked" % wave
+        findings.append(finding(AVISO, "task-graph-absent", path, None, message))
         return findings
 
     def line_of(task_id):
@@ -291,8 +340,12 @@ def cmd_tasks(spec_dir):
             FALHA, "task-graph-orphan", path, line_of(task_id),
             "task %s is in the document but has no entry in the dependency graph" % task_id))
 
-    # (e) task-dep-blocked — a done task standing on a blocked one.
+    # (e) task-dep-blocked — a done task standing on a blocked one. The dependent's
+    #     own wave decides whether the pair is in scope: a task closing in this wave
+    #     must not stand on a blocked dependency from any earlier one.
     for task_id in sorted(json_ids & doc_ids):
+        if not in_scope(task_id):
+            continue
         if state_of(task_id) is None:
             findings.append(finding(
                 AVISO, "task-state-unknown", path, line_of(task_id),
@@ -323,20 +376,22 @@ def cmd_tasks(spec_dir):
     someone_declares = [
         t for t in json_ids if declared_writes(graph.get(t) or {}) is not None]
 
-    for wave in sorted(waves):
-        members = sorted(waves[wave])
-        for index, first in enumerate(members):
+    for wave_key in sorted(waves):
+        if scope is not None and wave_key != str(scope):
+            continue
+        wave_members = sorted(waves[wave_key])
+        for index, first in enumerate(wave_members):
             first_writes = declared_writes(graph.get(first) or {})
             if first_writes is None:
                 # A wave with one task has no pair to intersect, so a missing
                 # declaration there cannot make any verdict weaker.
-                if someone_declares and len(members) > 1:
+                if someone_declares and len(wave_members) > 1:
                     findings.append(finding(
                         AVISO, "wave-writes-undeclared", path, graph_line,
                         "wave %s: task %s declares no writes[] — the intersection "
-                        "check for this wave is incomplete" % (wave, first)))
+                        "check for this wave is incomplete" % (wave_key, first)))
                 continue
-            for second in members[index + 1:]:
+            for second in wave_members[index + 1:]:
                 second_writes = declared_writes(graph.get(second) or {})
                 if second_writes is None:
                     continue
@@ -355,7 +410,7 @@ def cmd_tasks(spec_dir):
                         findings.append(finding(
                             FALHA, "wave-writes-intersection", path, graph_line,
                             "wave %s: task %s and task %s both write %s%s"
-                            % (wave, first, second, shared, detail)))
+                            % (wave_key, first, second, shared, detail)))
     return findings
 
 
@@ -433,7 +488,14 @@ def main(argv=None):
         epilog=(
             "notes:\n"
             "  --json must come before the subcommand, and prints one JSON array of\n"
-            "  {severity, rule, path, line, message} and nothing else.\n"
+            "  {severity, rule, path, line, message} and nothing else. Its only\n"
+            "  consumer inside this repository is tools/tests/run.py, which asserts\n"
+            "  the shape so the contract stays verified for outside consumers.\n"
+            "  `tasks --wave <n>` is the wave-close invocation: every task-scoped rule\n"
+            "  narrows to the tasks the graph places in wave <n>, because a task in a\n"
+            "  later wave is legitimately still `[ ]` at that point. A checkbox that\n"
+            "  belongs to no task in the wave is out of scope under --wave. Omit the\n"
+            "  flag at the spec close, where the whole file must be green.\n"
             "  `tasks` compares the `writes` sets of the tasks in one wave: the pairwise\n"
             "  intersection must be empty, and a path ending in `/` is a directory that\n"
             "  collides with everything beneath it. A spec where no task declares\n"
@@ -458,6 +520,10 @@ def main(argv=None):
         help=("check <spec-dir>/tasks.md: open markers, blocked reasons, task graph, "
               "per-wave write collisions, completion evidence"))
     p_tasks.add_argument("spec_dir", metavar="<spec-dir>")
+    p_tasks.add_argument(
+        "--wave", metavar="<n>", default=None,
+        help=("narrow every task-scoped rule to the tasks the graph places in wave "
+              "<n>; omit it at the spec close, where the whole file must be green"))
 
     p_links = sub.add_parser(
         "links", help="check that relative markdown links under <dir> resolve")
@@ -474,7 +540,7 @@ def main(argv=None):
 
     args = parser.parse_args(argv)
     if args.command == "tasks":
-        return report(cmd_tasks(args.spec_dir), args.json)
+        return report(cmd_tasks(args.spec_dir, args.wave), args.json)
     if args.command == "links":
         return report(cmd_links(args.root), args.json)
     if args.command in ("artifacts", "review"):
