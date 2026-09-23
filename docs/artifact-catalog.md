@@ -137,4 +137,5 @@ block in `agents/doc-bar-raiser.md`, which in Path B is always INCOMPLETE by con
 | Artifact catalog | `docs/artifact-catalog.md` | Obrigatório — this file | — | maintained by hand, in the same commit as any change to a command's `## Output` | every command and every agent, as the index of what to produce and where |
 
 A `—` in `Template` means the shape comes from the skill's prose: `docs/implementation-memory.md` is
-shaped by `skills/implementation-memory/SKILL.md` → *Rule Shape*, which also caps it at 12 active rules.
+shaped by `skills/implementation-memory/SKILL.md` → *Active Rule Format*, whose *Memory Limits* section
+also caps it at 12 active rules.
