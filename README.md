@@ -72,12 +72,24 @@ From Medium ceremony upward these commands also append flow events to a JSONL se
 
 > **Which command directory do I edit?** `.claude/commands/` is the one you edit. `.gemini/commands/` and `.kiro/commands/` hold the same 14 command files as hand-synced **mirrors** of it, differing only by a banner and a path-resolution note; the `parity` step of [`.github/workflows/check.yml`](.github/workflows/check.yml) fails the build if a mirror drifts. Each harness below copies from its own directory because a copied file cannot resolve a pointer into a sibling one — so change `.claude/commands/<name>.md` first, then copy the change into both mirrors.
 
+### One step for every harness: take the checker with you
+
+`tools/bla-check` is the only executable in this library and it runs **in your project**, not here: `tasks` refuses to call a spec done while a marker is still open or a `[!]` task has no reason, `links` catches a relative link that does not resolve, `metrics` validates a flow-event series. It is a single standard-library Python 3 file with no dependencies, so one copy is the whole install:
+
+```bash
+mkdir -p tools && cp build-like-amazon/tools/bla-check tools/bla-check
+```
+
+If your harness below keeps the clone in-tree as `.build-like-amazon/`, skip the copy — the path is already `.build-like-amazon/tools/bla-check`.
+
+**Without it nothing breaks, and that is the point:** every command that calls the checker says so and continues when it is absent, falling back to the agent's own reading. You lose the guarantee, not the workflow. `tools/tests/` is the checker's own self-test and stays here — it is for whoever maintains this library.
+
 <details>
 <summary><strong>Kiro IDE & CLI</strong></summary>
 
 Kiro uses two mechanisms in this repository: **skills** (workflow guidance) and **commands** (slash commands). To get the full workflow running:
 
-**With Kiro IDE, you dont need to execute /spec command, because kiro alreadt an excepcional native support to spec driven developmentm but the other commands area still very useful**
+**With Kiro IDE you can skip `/spec`** — Kiro has excellent native support for spec-driven development. The other commands are still worth having.
 
 ```bash
 git clone https://github.com/robisson/build-like-amazon.git

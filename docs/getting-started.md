@@ -23,6 +23,12 @@ cp -r build-like-amazon/.claude/commands/ your-project/.claude/commands/
 ln -s "$(pwd)/build-like-amazon/skills" your-project/skills
 ln -s "$(pwd)/build-like-amazon/agents" your-project/agents
 ln -s "$(pwd)/build-like-amazon/patterns" your-project/patterns
+
+# The checker, which runs in YOUR project — one stdlib Python 3 file,
+# no dependencies. Without it the commands fall back to the agent's own
+# reading and say so; you lose the guarantee, not the workflow.
+mkdir -p your-project/tools
+cp build-like-amazon/tools/bla-check your-project/tools/bla-check
 ```
 
 That's it. Open your project, start Claude Code, and use the slash commands directly.
