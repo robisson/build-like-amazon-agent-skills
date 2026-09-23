@@ -156,7 +156,7 @@ For **brownfield projects** (existing code without BLA artifacts), the agent pro
 
 Greenfield invocations (`/wb` and friends) are isolated by trigger and never invoke `/onboard`.
 
-Full ladder in `skills/using-amazon-skills/SKILL.md` → "Match the Ceremony to the Change". Brownfield discovery process in `skills/brownfield-discovery/SKILL.md`.
+Full ladder in `skills/using-amazon-skills/SKILL.md` → "Match the Ceremony to the Change". Brownfield discovery process in `skills/brownfield-discovery/SKILL.md`. That ladder carries four knob columns beside each level — **Mandatory bar raisers**, **Deterministic verification that runs**, **Completion evidence required** and **Iteration budget** — so what a level costs is readable in its row instead of inferred from prose, and it is read monotonically: a case may lower ceremony within its level, never raise it above what the level declares.
 
 ### 8. /build Is Fully Autonomous by Default — Run to Feature Completion
 
