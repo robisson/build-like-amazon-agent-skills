@@ -200,6 +200,7 @@ Checkpoints define what "done" means for each phase. They can be:
    - [ ] `python3 tools/tests/run.py` passes (`0 failed`)
    - [ ] `python3 tools/bla-check links .` is clean (no `FALHA` line)
    - [ ] `npx -y markdownlint-cli2@0.18.1 "**/*.md"` reports `Summary: 0 error(s)`
+   - [ ] If I edited `.claude/commands/<name>.md`, I copied the same change into `.gemini/commands/<name>.md` and `.kiro/commands/<name>.md`
    - [ ] `CHANGELOG.md` updated **only if** this change affects users
    - [ ] Counts stated in README match what is on disk
    - [ ] No cross-reference points at a non-existent path, heading or field
@@ -212,10 +213,21 @@ Checkpoints define what "done" means for each phase. They can be:
 
 The three commands in that checklist are not honour-system: `.github/workflows/check.yml` re-runs them on
 every pull request, together with the README counts, the skill and agent frontmatter shape, the severity
-and verdict label integrity, every repository path cited in prose, and a secret scan. Each failure prints
-one `FALHA [rule-name]` line naming the rule that broke. Run them locally first — the server tells you the
-same thing, only slower. What CI cannot check for you is the rest of the list: a cited *heading* or
-frontmatter *field* that no longer exists is invisible to it, which is why that item stays on you.
+and verdict label integrity, every repository path cited in prose, the harness command parity, the
+agreement between `VERSION`, `.claude-plugin/plugin.json` and `CHANGELOG.md`, and a secret scan. Each
+failure prints one `FALHA [rule-name]` line naming the rule that broke. Run them locally first — the server
+tells you the same thing, only slower. What CI cannot check for you is the rest of the list: a cited
+*heading* or frontmatter *field* that no longer exists is invisible to it, which is why that item stays on
+you.
+
+**`.claude/commands/` is canonical; `.gemini/commands/` and `.kiro/commands/` are mirrors of it.** Their own
+banner says so, and the `parity` step now enforces it: a mirror may differ from its canonical file by exactly
+two things — the `<!-- MIRROR: … -->` banner (mirrors only) and the `> **Path resolution**:` blockquote
+(`.claude/` only, because it describes the Claude plugin root) — and nothing else. Edit the canonical file,
+then copy the change into both mirrors in the same commit. If you forget, `parity` fails with
+`FALHA [parity-body]` naming the file that drifted and printing the `diff`, so the failure tells you exactly
+what to copy. There is no generator: the mirrors are hand-synced on purpose, because this library is
+distributed by copying one harness directory and a pointer would not resolve at the bases that produces.
 
 **The changelog is the one checklist item that is usually a no-op.** A normal pull request does not write
 `CHANGELOG.md`; only a change that affects users does — a new or removed command, a changed gate, a renamed

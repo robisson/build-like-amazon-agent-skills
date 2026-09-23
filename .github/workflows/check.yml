@@ -44,7 +44,10 @@ jobs:
 
       - name: doc-truth
         # The README states counts about the repository. A count that drifts from disk is a lie the
-        # reader has no way to detect, so every count is derived from disk and compared.
+        # reader has no way to detect, so every count is derived from disk and compared. The step then
+        # widens to the same defect in other shapes: the memory-rule cap against the document that
+        # declares it, the artifact catalog's Template column in both directions, the closed flow-event
+        # set against its second copy in tools/bla-check, and the absence of a fabricated metric series.
         run: |
           f=0
 
@@ -102,6 +105,40 @@ jobs:
             grep -q "$(basename "$t")" docs/artifact-catalog.md \
               || { echo "FALHA [catalog-template-missing] $t exists on disk but docs/artifact-catalog.md never names it"; f=1; }
           done
+
+          # The closed set of flow events is written THREE times: as the row set of the "| Event | Means |"
+          # table in docs/flow-metrics.md, as the row set of its "| Event | Sole owner | Emitted when |"
+          # owner table, and as the METRIC_EVENTS tuple in tools/bla-check. The document states the rule
+          # that a seventh event moves all of them together "in one commit, or not at all" — and until this
+          # predicate existed, nothing checked it. A set that drifts is worse than one place being wrong:
+          # the document promises an owner for an event the validator rejects, or the validator accepts an
+          # event no owner is declared for, and the first reader to notice is the one whose series is void.
+          tbl() { awk -v h="$1" '$0==h{f=1;next} f&&!/^\|/{exit} f&&/^\| `/{
+                    gsub(/^\| `/,""); sub(/`.*/,""); print }' docs/flow-metrics.md | sort -u; }
+          tbl '| Event | Means |' > /tmp/es-means
+          tbl '| Event | Sole owner | Emitted when |' > /tmp/es-owner
+          awk '/^METRIC_EVENTS = \(/{f=1;next} f&&/^\)/{exit} f{gsub(/[ ",]/,""); if($0!="") print}' \
+            tools/bla-check | sort -u > /tmp/es-code
+          # A vacuous pass is the failure mode this guard exists to prevent: if a heading were reworded the
+          # awk above would return nothing, and three empty sets compare equal.
+          for s in /tmp/es-means /tmp/es-owner /tmp/es-code; do
+            [ "$(wc -l < "$s" | tr -d ' ')" -ge 1 ] \
+              || { echo "FALHA [metrics-event-set-unparsed] $s came back empty; a heading or the METRIC_EVENTS tuple was reworded and this predicate can no longer read the set it compares"; f=1; }
+          done
+          cmp -s /tmp/es-means /tmp/es-owner \
+            || { echo "FALHA [metrics-event-set] in docs/flow-metrics.md the 'Event | Means' table and the owner table are not the same closed set: $(diff /tmp/es-means /tmp/es-owner | tr '\n' ' ')"; f=1; }
+          cmp -s /tmp/es-owner /tmp/es-code \
+            || { echo "FALHA [metrics-event-set] the owner table of docs/flow-metrics.md and METRIC_EVENTS in tools/bla-check are not the same closed set: $(diff /tmp/es-owner /tmp/es-code | tr '\n' ' ')"; f=1; }
+
+          # docs/flow-metrics.md forbids this repository from carrying a series of its own: a
+          # docs/bla-metrics.jsonl committed here would be data nobody measured, and fabricated data in the
+          # repository that defines the measurement discredits the measurement. .gitignore cannot express
+          # this — the path must stay writable for anyone dogfooding the metrics locally, it must only never
+          # be committed — so the guard belongs here.
+          if [ -e docs/bla-metrics.jsonl ]; then
+            echo "FALHA [no-fabricated-series] docs/bla-metrics.jsonl exists; this repository ships no flow-metric series of its own, only the fixtures under tools/tests/fixtures/metrics-*/"
+            f=1
+          fi
 
           [ "$f" -eq 0 ] || exit 1
 
