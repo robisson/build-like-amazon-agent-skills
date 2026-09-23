@@ -140,6 +140,18 @@ jobs:
             f=1
           fi
 
+          # CHANGELOG.md asserts, in the paragraph that closes the 0.2.0 entry, that this repository carries
+          # no manifest and no lockfile "and a CI predicate keeps it that way". This is that predicate. The
+          # library is plain Markdown plus a dependency-free `tools/bla-check`; the first manifest would turn
+          # copying a directory into installing a package, which every install path in README.md contradicts.
+          manifests=$(find . -maxdepth 2 \( -name package.json -o -name pyproject.toml \
+            -o -name requirements.txt -o -name '*.lock' -o -name package-lock.json -o -name yarn.lock \) \
+            -not -path './.worktrees/*' | sort | tr '\n' ' ')
+          if [ -n "$manifests" ]; then
+            echo "FALHA [no-manifest] CHANGELOG.md promises this repository carries no manifest and no lockfile, and these exist: $manifests"
+            f=1
+          fi
+
           [ "$f" -eq 0 ] || exit 1
 
       - name: frontmatter
