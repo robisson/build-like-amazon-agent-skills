@@ -49,6 +49,7 @@ Before creating a spec, detect the project state and classify the requested chan
    - Identify any operational-excellence decisions already captured in the Design Document
    - Read `skills/spec-driven-implementation/SKILL.md` for the full process
    - Read the templates in `skills/spec-driven-implementation/templates/`
+   - Read `skills/implementation-memory/SKILL.md` and, if `docs/implementation-memory.md` exists, read it and select active rules whose `Phase` matches `spec` AND for which any one signal matches (Tags overlap the slice's domain, File patterns match files this slice will touch, or `Applies when` prose is judged relevant). Convert the selected rules into constraints on how this spec is written, increment their `Hit count`, and ignore unmatched rules — they MUST NOT become requirements. If the file does not exist, continue without memory constraints.
 
 2. **Create the spec following the templates EXACTLY:**
 

@@ -199,11 +199,20 @@ jobs:
         # path named in a sentence, a table cell or a code span escapes it entirely — this is the check
         # that catches those. It is born green only because docs/cursor-setup.md, cited but never
         # written, was corrected in the same commit that added this step.
+        #
+        # Planning state is pruned for the same reason the other two document checks prune it: .agents/
+        # and .worktrees/ hold drafts, placeholders (skills/x/SKILL.md, agents/x.md) and paths a plan
+        # has not written yet, so a citation there is not a promise the repository made. Without these
+        # two flags the step is green in CI — neither directory is checked out there — and red for the
+        # first maintainer who pastes it into a local shell as the header of this file invites, which
+        # teaches them to ignore a real predicate. The two surfaces that already prune the same pair
+        # are tools/bla-check (SKIP_DIRS = .git .agents .worktrees node_modules) and
+        # .markdownlint-cli2.jsonc (ignores .agents/** and .worktrees/**).
         run: |
           f=0
 
           for ref in $(grep -rhoE '(agents/[a-z0-9-]+\.md|skills/[a-z0-9-]+/SKILL\.md|patterns/[a-z0-9-]+/PATTERN\.md|docs/[a-z0-9-]+\.md|\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md)' \
-                        --include='*.md' . | sort -u); do
+                        --include='*.md' --exclude-dir=.agents --exclude-dir=.worktrees . | sort -u); do
             [ -e "$ref" ] || { echo "FALHA [xref-missing] $ref is cited in a markdown file but does not exist on disk"; f=1; }
           done
 

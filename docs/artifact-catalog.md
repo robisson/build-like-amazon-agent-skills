@@ -132,7 +132,7 @@ block in `agents/doc-bar-raiser.md`, which in Path B is always INCOMPLETE by con
 
 | Artifact | Canonical path | Mandatory/Optional | Template | Produced by (command) | Consumed by |
 |---|---|---|---|---|---|
-| Implementation memory | `docs/implementation-memory.md` | Optional until the first rule is accepted; then it is read before every build | — | `/build`, and fed by `/review` and `/learn` | `/build` pre-build selection, `/design`, `/spec` |
+| Implementation memory | `docs/implementation-memory.md` | Optional until the first rule is accepted; then it is read before every build | — | `/build`, and fed by `/review` and `/learn` | `/build` step 2c, `/design` Step 0e, `/spec` *Read the existing context* — the three phases that have a selection point |
 | Accepted-risk rows | no file of its own: a row in the review artifact of the phase where the risk was accepted | Mandatory whenever a finding is accepted instead of fixed | `skills/operational-readiness-review/templates/orr-checklist.md`, whose *Conditional Items* table defines the four columns | whoever accepts the risk, in that phase | the next review of that artifact, the owner named in the row |
 | Artifact catalog | `docs/artifact-catalog.md` | Mandatory — this file | — | maintained by hand, in the same commit as any change to a command's `## Output` | every command and every agent, as the index of what to produce and where |
 
