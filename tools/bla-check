@@ -14,6 +14,7 @@ Its only in-repository consumer is `tools/tests/run.py`, which asserts the shape
 """
 
 import argparse
+import datetime
 import json
 import os
 import re
@@ -24,6 +25,18 @@ AVISO = "AVISO"
 
 # Directories `links` never walks into.
 SKIP_DIRS = (".git", ".agents", ".worktrees", "node_modules")
+
+# The closed set of flow-metric events, as `docs/flow-metrics.md` declares it. A seventh
+# event is a change to that document, to this tuple and to the fixtures, in one commit.
+METRIC_EVENTS = (
+    "phase_started",
+    "phase_completed",
+    "spec_completed",
+    "gate_approved",
+    "gate_rework",
+    "review_blocking_finding",
+)
+METRIC_REQUIRED_FIELDS = ("event", "ts", "phase")
 
 FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
 CHECKBOX_RE = re.compile(r"^\s*[-*+]\s+\[([ xX!\-])\]\s*(.*)$")
@@ -482,6 +495,183 @@ def cmd_links(root):
     return findings
 
 
+def parse_ts(text):
+    """Parse one ISO-8601 UTC timestamp, or return None.
+
+    Only UTC is accepted, spelled with the `Z` suffix or with an explicit `+00:00`
+    offset. A local or zone-less timestamp is refused rather than assumed: lines in
+    different zones cannot be ordered, and guessing the zone would invent exactly
+    what rule 2 of docs/flow-metrics.md forbids.
+    """
+    if not isinstance(text, str):
+        return None
+    candidate = text.strip()
+    if candidate.endswith("+00:00"):
+        candidate = candidate[:-6] + "Z"
+    for shape in ("%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S.%fZ"):
+        try:
+            return datetime.datetime.strptime(candidate, shape)
+        except ValueError:
+            continue
+    return None
+
+
+def format_duration(seconds):
+    """`3660` -> `1h 1m 0s`. Never a fuzzy word: the number is the measurement."""
+    sign = "-" if seconds < 0 else ""
+    seconds = abs(int(seconds))
+    hours, rest = divmod(seconds, 3600)
+    minutes, secs = divmod(rest, 60)
+    return "%s%dh %dm %ds" % (sign, hours, minutes, secs)
+
+
+def cmd_metrics(path):
+    """Aggregate the append-only flow-metric series at <path>.
+
+    Returns (findings, summary_lines). The two aggregations are the only two the
+    series supports without inventing a calibration: cycle time per (phase, spec)
+    and rework per phase. `docs/flow-metrics.md` is the specification — the closed
+    set of six events, the field set, the owner table and the three rules.
+
+    Validation comes first and a series with any FALHA is NOT aggregated: an
+    aggregate over a series already known to be wrong is worse than no aggregate.
+    A file that does not exist is an AVISO and exit 0, because measurement is
+    opt-in and its absence is never a failure.
+    """
+    findings = []
+    summary = []
+    if not os.path.isfile(path):
+        findings.append(finding(
+            AVISO, "metrics-file-absent", path, None,
+            "no flow-metric series here — measurement is opt-in, so its absence "
+            "is not a failure; see docs/flow-metrics.md"))
+        return findings, summary
+
+    starts = {}        # (phase, spec) -> (datetime, lineno, level, source)
+    completions = {}   # (phase, spec) -> datetime of the LAST phase_completed
+    pairs = []         # (phase, spec) in first-seen order
+    rework = {}        # phase -> count of gate_rework
+    phases = []        # phase in first-seen order
+    previous = None    # (datetime, lineno) of the previous valid line
+
+    def named(spec):
+        """`null` is a legitimate value — a phase-level event — so it is spelled."""
+        return spec if spec else "(none)"
+
+    for lineno, raw in enumerate(read_lines(path), start=1):
+        text = raw.strip()
+        if not text:
+            continue
+        try:
+            record = json.loads(text)
+        except ValueError as error:
+            findings.append(finding(
+                FALHA, "metrics-malformed", path, lineno,
+                "not valid JSON: %s" % error))
+            continue
+        if not isinstance(record, dict):
+            findings.append(finding(
+                FALHA, "metrics-malformed", path, lineno,
+                "not a JSON object but a %s — one object per line"
+                % type(record).__name__))
+            continue
+        absent = [
+            name for name in METRIC_REQUIRED_FIELDS
+            if not isinstance(record.get(name), str) or not record[name].strip()]
+        if absent:
+            findings.append(finding(
+                FALHA, "metrics-malformed", path, lineno,
+                "missing or empty required field(s): %s" % ", ".join(absent)))
+            continue
+
+        event = record["event"]
+        if event not in METRIC_EVENTS:
+            findings.append(finding(
+                FALHA, "metrics-unknown-event", path, lineno,
+                "event %r is outside the closed set of six (%s) — a seventh event "
+                "is a change to docs/flow-metrics.md, not a new line"
+                % (event, ", ".join(METRIC_EVENTS))))
+            continue
+
+        stamp = parse_ts(record["ts"])
+        if stamp is None:
+            findings.append(finding(
+                FALHA, "metrics-malformed", path, lineno,
+                "ts %r is not ISO-8601 UTC (expected YYYY-MM-DDTHH:MM:SSZ)"
+                % record["ts"]))
+            continue
+        if previous is not None and stamp < previous[0]:
+            findings.append(finding(
+                FALHA, "metrics-out-of-order", path, lineno,
+                "ts %s is earlier than line %d's %s — the series is append-only "
+                "and each ts is recorded when the event happens, so a decreasing "
+                "ts means it was reconstructed, not measured"
+                % (record["ts"], previous[1], previous[0].isoformat() + "Z")))
+        previous = (stamp, lineno)
+
+        phase = record["phase"]
+        if phase not in phases:
+            phases.append(phase)
+        spec = record.get("spec")
+        if spec is not None and not isinstance(spec, str):
+            spec = str(spec)
+        key = (phase, spec)
+
+        if event == "phase_started":
+            if key in starts:
+                findings.append(finding(
+                    FALHA, "metrics-duplicate-phase-start", path, lineno,
+                    "a second phase_started for (phase %s, spec %s); the first, at "
+                    "line %d, is the one preserved — on rework no second start is "
+                    "written" % (phase, named(spec), starts[key][1])))
+            else:
+                starts[key] = (stamp, lineno, record.get("level"), record.get("source"))
+                if key not in pairs:
+                    pairs.append(key)
+        elif event == "phase_completed":
+            completions[key] = stamp
+            if key not in pairs:
+                pairs.append(key)
+        elif event == "gate_rework":
+            rework[phase] = rework.get(phase, 0) + 1
+
+    broken = len([f for f in findings if f["severity"] == FALHA])
+    if broken:
+        summary.append(
+            "aggregation skipped: %d validation failure(s) — an aggregate over a "
+            "series known to be wrong is worse than no aggregate" % broken)
+        return findings, summary
+
+    summary.append(
+        "cycle time per (phase, spec) - last phase_completed minus first phase_started")
+    if not pairs:
+        summary.append("  (no phase_started and no phase_completed in this series)")
+    for phase, spec in pairs:
+        label = "  %-8s spec=%-18s" % (phase, named(spec))
+        start = starts.get((phase, spec))
+        end = completions.get((phase, spec))
+        if start is None or end is None:
+            lacks = "no phase_started" if start is None else "no phase_completed"
+            findings.append(finding(
+                AVISO, "metrics-unpaired", path, start[1] if start else None,
+                "(phase %s, spec %s) has %s — cycle time is n/a, and `now` is "
+                "never substituted for the missing end" % (phase, named(spec), lacks)))
+            summary.append("%s n/a (%s)" % (label, lacks))
+            continue
+        seconds = int((end - start[0]).total_seconds())
+        summary.append("%s %ds (%s) level=%s source=%s" % (
+            label, seconds, format_duration(seconds),
+            start[2] or "(unstated)", start[3] or "(unstated)"))
+
+    summary.append("")
+    summary.append("rework per phase - count of gate_rework")
+    if not phases:
+        summary.append("  (no event in this series)")
+    for phase in phases:
+        summary.append("  %-8s %d" % (phase, rework.get(phase, 0)))
+    return findings, summary
+
+
 def report(findings, as_json):
     """Print the findings and return the process exit code."""
     if as_json:
@@ -529,7 +719,19 @@ def main(argv=None):
             "  `links` resolves a target only against the directory of the file that\n"
             "  contains it, with no second base. It skips .git, .agents, .worktrees,\n"
             "  node_modules, and a tests/fixtures directory (deliberately malformed\n"
-            "  inputs), unless you point it straight at one.\n"))
+            "  inputs), unless you point it straight at one.\n"
+            "  `metrics` reads the append-only flow-metric series specified by\n"
+            "  docs/flow-metrics.md and computes two things: cycle time per (phase, spec),\n"
+            "  which is the last phase_completed minus the first phase_started, and rework\n"
+            "  per phase, which is the count of gate_rework. It refuses to infer anything\n"
+            "  else. `now` is never substituted for a missing phase_completed — an\n"
+            "  incomplete pair prints n/a and raises AVISO [metrics-unpaired]. A series\n"
+            "  with any FALHA is not aggregated at all, because an aggregate over a series\n"
+            "  known to be wrong is worse than no aggregate. An absent file is AVISO\n"
+            "  [metrics-file-absent] with exit 0: measurement is opt-in. The gate, verdict,\n"
+            "  finding_id and artefact fields are carried on the line for audit but are\n"
+            "  never aggregated — there is no calibration for how many findings is too\n"
+            "  many, and inventing one would fabricate the measurement.\n"))
     parser.add_argument(
         "--json", action="store_true",
         help="print findings as one JSON array instead of FALHA/AVISO lines")
@@ -549,6 +751,12 @@ def main(argv=None):
         "links", help="check that relative markdown links under <dir> resolve")
     p_links.add_argument("root", metavar="<dir>", nargs="?", default=".")
 
+    p_metrics = sub.add_parser(
+        "metrics",
+        help=("aggregate the flow-metric series at <path-to-jsonl>: cycle time per "
+              "(phase, spec) and rework per phase"))
+    p_metrics.add_argument("path", metavar="<path-to-jsonl>")
+
     sub.add_parser(
         "artifacts",
         help=("not implemented — needs a template-residue detector and the repository "
@@ -563,6 +771,13 @@ def main(argv=None):
         return report(cmd_tasks(args.spec_dir, args.wave), args.json)
     if args.command == "links":
         return report(cmd_links(args.root), args.json)
+    if args.command == "metrics":
+        findings, summary = cmd_metrics(args.path)
+        code = report(findings, args.json)
+        if not args.json:
+            for line in summary:
+                print(line)
+        return code
     if args.command in ("artifacts", "review"):
         sys.stderr.write(
             "bla-check: `%s` is registered but does nothing yet; see --help for why\n"

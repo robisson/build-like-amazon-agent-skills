@@ -355,7 +355,7 @@ _Writes: config/feature-flags.json, src/api/flag-gate.ts_
     "slice": "[Slice Name]",
     "total_tasks": 15,
     "total_phases": 5,
-    "critical_path_tasks": ["1.1", "1.2", "2.1", "2.3", "3.1", "4.1", "5.1", "5.2", "5.3"],
+    "critical_path_tasks": ["1.1", "1.2", "2.1", "2.3", "4.1", "4.2", "5.1", "5.2", "5.3"],
     "critical_path_estimate_days": "[N]",
     "parallelism_factor": 1.67
   },
@@ -387,7 +387,7 @@ _Writes: config/feature-flags.json, src/api/flag-gate.ts_
     "8": ["5.2"],
     "9": ["5.3"]
   },
-  "critical_path": ["1.1", "1.2", "2.1", "2.3", "3.1", "4.1", "5.1", "5.2", "5.3"],
+  "critical_path": ["1.1", "1.2", "2.1", "2.3", "4.1", "4.2", "5.1", "5.2", "5.3"],
   "one_way_doors": ["1.2"]
 }
 ```

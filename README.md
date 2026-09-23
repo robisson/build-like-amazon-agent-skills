@@ -8,7 +8,9 @@
 [![Skills](https://img.shields.io/badge/skills-28-blue.svg)](#all-28-skills)
 [![Agents](https://img.shields.io/badge/bar_raiser_agents-10-orange.svg)](#10-agent-personas)
 
-[Getting Started](docs/getting-started.md) · [Quick Start](#quick-start) · [All Skills](#all-28-skills) · [Agent Personas](#10-agent-personas) · [Philosophy](#philosophy) · [Contributing](CONTRIBUTING.md)
+[Getting Started](docs/getting-started.md) · [Quick Start](#quick-start) · [All Skills](#all-28-skills) · [Agent Personas](#10-agent-personas) · [Philosophy](#philosophy) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [VERSION](VERSION)
+
+**Version marker.** Every install path below copies directories — there is no package to query. [`VERSION`](VERSION) is a single `x.y.z` line at the repository root so a copy-based adopter can tell which release they copied, and [`CHANGELOG.md`](CHANGELOG.md) says what changed since, for user-visible changes only.
 
 </div>
 
@@ -62,9 +64,13 @@ Each command below produces named artifacts at fixed paths. What every one of th
 | `/operate` | Operational readiness and runbook generation | Operate |
 | `/learn` | Correction of Errors — blameless post-incident analysis | Learn |
 
+From Medium ceremony upward these commands also append flow events to a JSONL series — six events, one owner each — described in [`docs/flow-metrics.md`](docs/flow-metrics.md) and validated by `python3 tools/bla-check metrics`. It is a reference document, not a skill, so it is not counted below. Measurement never blocks a phase: if the series cannot be written the command records nothing and continues.
+
 ## Quick Start
 
 > 👉 **New here? Read [`docs/getting-started.md`](docs/getting-started.md) first** — it walks you through install + 4 hands-on scenarios (new product, existing project onboarding, small change, production incident) in ~10 minutes. The setup snippets below are also there, with full context.
+
+> **Which command directory do I edit?** `.claude/commands/` is the one you edit. `.gemini/commands/` and `.kiro/commands/` hold the same 14 command files as hand-synced **mirrors** of it, differing only by a banner and a path-resolution note; the `parity` step of [`.github/workflows/check.yml`](.github/workflows/check.yml) fails the build if a mirror drifts. Each harness below copies from its own directory because a copied file cannot resolve a pointer into a sibling one — so change `.claude/commands/<name>.md` first, then copy the change into both mirrors.
 
 <details>
 <summary><strong>Kiro IDE & CLI</strong></summary>
@@ -393,7 +399,7 @@ All the skills in this project are grounded in publicly available resources. Key
 - **[Amazon Leadership Principles](https://www.aboutamazon.com/about-us/leadership-principles)** — Customer Obsession, Bias for Action, Ownership, Insist on Highest Standards
 - **[Working Backwards (book)](https://www.workingbackwards.com/)** — By Colin Bryar & Bill Carr, the definitive guide to Amazon's product development process
 
-See [`docs/references.md`](docs/references.md) for the full list of 49 references with URLs and descriptions.
+See [`docs/references.md`](docs/references.md) for the full list of 48 references with URLs and descriptions.
 
 ## License
 

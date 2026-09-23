@@ -39,3 +39,14 @@ Create `docs/working-backwards/<feature-name>/` with:
 - `solution-sketch.md`
 - `prfaq.md`
 - `success-metrics.md`
+
+**Flow metrics.** `/wb` owns four of the six events for the `wb` phase — `phase_started`,
+`phase_completed`, `gate_approved` and `gate_rework` — and appends each as one JSON line to
+`docs/bla-metrics.jsonl`: `phase_started` once the change is classified as Medium or above,
+`phase_completed` once the artifacts above are saved, and one `gate_approved` or `gate_rework` per stage
+gate depending on whether the user approved the stage or sent it back. It emits `spec_completed` and
+`review_blocking_finding` never — those belong to other commands, and no command emits an event another
+one owns (owner table in `docs/flow-metrics.md`). **Emit only at Medium and above**; at Trivial and Small
+emit nothing. If the line cannot be written — no writable tree, no `docs/` directory, the adopter
+declined — state in one line that the flow measurement for this phase was not recorded, and **continue**:
+measurement never blocks a stage or a gate.

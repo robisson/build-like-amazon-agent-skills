@@ -2,32 +2,32 @@
 
 # Listen — Who Is the Customer?
 
-Activate the **wb-listen** skill from `skills/wb-listen/`. Phase 1 of Working Backwards.
+You are activating the **wb-listen** skill. This is Phase 1 of Working Backwards: deeply understanding the customer before proposing any solution.
 
-## Instructions
+## What to do
 
-Help the user deeply understand their customer before proposing any solution.
-
-1. Ask the user to describe their customer. Probe with:
+1. Read the skill file at `skills/wb-listen/` for full context.
+2. Ask the user to describe their customer. Probe with:
    - Who specifically are they? (role, context, environment)
    - What are they trying to accomplish today?
    - What tools/processes do they currently use?
-   - What frustrates them most?
-2. Synthesize a **Customer Profile**:
+   - What frustrates them most about the current experience?
+3. Synthesize a **Customer Profile** document with:
    - Customer archetype (1-2 sentence persona)
-   - Current workflow (step-by-step)
+   - Current workflow (step-by-step how they do it today)
    - Pain points (ranked by severity and frequency)
    - Unmet needs (what they wish existed)
-   - Representative quotes or anecdotes
+   - Quotes or anecdotes (real or representative)
 
-## Principles
+## Key Principles
 
 - Listen before solutioning — do NOT propose fixes yet.
-- Be specific: "backend engineers deploying 3x/day" not "developers."
+- Specificity matters: "developers" is too broad; "backend engineers deploying to production 3x/day" is useful.
 - Distinguish what customers SAY vs what they DO.
-- One customer segment at a time.
+- One customer segment at a time — if there are multiple, create separate profiles.
 
 ## Output
 
 Save to `docs/working-backwards/<feature-name>/customer-profile.md`.
-Suggest next step: "Run /listen to continue to problem definition."
+
+Ask: "Would you like to proceed to /define (problem statement)?"

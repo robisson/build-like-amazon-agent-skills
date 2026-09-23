@@ -9,6 +9,20 @@ and numbers nothing: the names here are the names those files already use. When 
 changes, this file changes in the same commit — `AGENTS.md` → *Keep the Documentation Truthful in the Same
 Commit* applies to it like to any other cross-reference.
 
+**Four rows come from somewhere other than an `## Output` list, and are named here so that a reader who
+greps for them and finds nothing does not read the gap as a stale catalog.** Measured over all 14 commands:
+39 distinct artefact filenames are cited across the `## Output` sections and 38 of them are in this
+catalog — the 39th is `model.yml`, a dbt illustration inside the store-native parenthetical of `/design`
+Step 2, not a path this flow writes. In the other direction, four rows are not in any `## Output` list.
+`specs/<slice-name>/.reports/<task-id>.md` comes from `.claude/commands/build.md` Step 3, which fixes its
+first line because that line is what the wave close matches on. `docs/implementation-memory.md` comes from
+the memory step of `/build`, `/review` and `/learn`, not from what they save at the end. The two Optional
+Working Backwards rows come from the skills the commands activate and from their templates: the 5CQ screen
+from `skills/working-backwards/SKILL.md` → *The 5 Customer Questions (5CQ)*, and the Dear Customer Letter
+from the format table in `skills/wb-refine/SKILL.md` — no command's `## Output` names either, and they are
+catalogued because a template on disk that this file never names is an orphan, which is the defect this
+catalog was written to end.
+
 Two reading rules:
 
 - **`Canonical path`** uses `<feature-name>`, `<service-name>`, `<slice-name>` and `<incident-name>`
@@ -132,10 +146,21 @@ block in `agents/doc-bar-raiser.md`, which in Path B is always INCOMPLETE by con
 
 | Artifact | Canonical path | Mandatory/Optional | Template | Produced by (command) | Consumed by |
 |---|---|---|---|---|---|
-| Implementation memory | `docs/implementation-memory.md` | Optional until the first rule is accepted; then it is read before every build | — | `/build`, and fed by `/review` and `/learn` | `/build` pre-build selection, `/design`, `/spec` |
+| Implementation memory | `docs/implementation-memory.md` | Optional until the first rule is accepted; then it is read before every build | — | `/build`, and fed by `/review` and `/learn` | `/build` step 2c, `/design` Step 0e, `/spec` *Read the existing context* — the three phases that have a selection point |
 | Accepted-risk rows | no file of its own: a row in the review artifact of the phase where the risk was accepted | Mandatory whenever a finding is accepted instead of fixed | `skills/operational-readiness-review/templates/orr-checklist.md`, whose *Conditional Items* table defines the four columns | whoever accepts the risk, in that phase | the next review of that artifact, the owner named in the row |
 | Artifact catalog | `docs/artifact-catalog.md` | Mandatory — this file | — | maintained by hand, in the same commit as any change to a command's `## Output` | every command and every agent, as the index of what to produce and where |
+| Flow-metric series | `docs/bla-metrics.jsonl` | Optional — measurement is opt-in, and emitted only at Medium and above | — | `/wb`, `/design`, `/spec`, `/build`, `/review`, `/deploy`, `/operate`, `/learn`, each owning its own events per `docs/flow-metrics.md` | `tools/bla-check metrics` |
 
 A `—` in `Template` means the shape comes from the skill's prose: `docs/implementation-memory.md` is
 shaped by `skills/implementation-memory/SKILL.md` → *Active Rule Format*, whose *Memory Limits* section
-also caps it at 12 active rules.
+also caps it at 12 active rules. The `—` on `docs/bla-metrics.jsonl` means something else, and it is the
+only row where it does: that artifact has no prose shape at all, because it is not prose.
+
+`docs/bla-metrics.jsonl` is the one entry in this catalog that is **data, not a document**: append-only
+JSONL, one JSON object per line, six closed event types. It is in this catalog for the same reason as
+everything else — each of the eight owning commands declares the emission in its own `## Output` section,
+which is where this catalog is derived from, so the provenance note at the top stays true.
+`docs/flow-metrics.md` holds the event set, the field set, the owner table and the three rules; it is a
+reference document *about* the series, not the series. **This repository carries no
+`docs/bla-metrics.jsonl`** — one committed here would be a series nobody measured. The only JSONL on disk
+is the fixtures under `tools/tests/fixtures/metrics-*/`.

@@ -39,6 +39,8 @@ Before starting the full design flow, detect the project state and classify the 
 
 ## Execution Order (MANDATORY — do NOT skip or reorder)
 
+Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING that is still open removes the option to approve and advance: the only remaining options are fix it, accept it with the risk recorded in the accepted-risk table, or pause. A review report without a parseable verdict block counts as BLOCKING. This applies to the threat model of Step 3 and the design review of Step 4 in particular: an open `Critical` or `High` finding from `agents/security-guardian.md`, or an open BLOCKING finding from `agents/design-bar-raiser.md`, holds the gate until it is fixed, accepted with the risk recorded, or the design is paused. The mapping from each surface's own label to the canonical level is in `AGENTS.md` → *One Severity Scale and One Verdict Scale*.
+
 ### Step 0a: Dependency Context Assessment
 - Read skill: skills/dependency-management/SKILL.md
 - Before writing the design document, identify whether the system crosses any network, database, cache, queue, third-party API, service, or configuration boundary.
@@ -67,6 +69,14 @@ Before starting the full design flow, detect the project state and classify the 
 - Patterns that don't fit do not appear in the design. Do not dismiss them in writing — they simply aren't relevant to this workload.
 - This step does not produce a standalone artifact or approval gate. Its output is the set of candidate alternatives carried into Step 1.
 
+### Step 0e: Implementation Memory Selection
+- Read skill: `skills/implementation-memory/SKILL.md`
+- If `docs/implementation-memory.md` exists, read it and select active rules using multi-signal matching: Tags overlap with the feature's domain or technology areas, File patterns match files the design will touch, OR `Applies when` prose is judged relevant to this feature, component, dependency, or risk profile.
+- A rule is selected only when its `Phase` matches the current phase — `design` here — and any one of those signals matches; a `Phase: build` or `Phase: operate` rule is never selected during `/design`, however strongly its other signals match.
+- Convert selected rules into design constraints for Step 1: they shape the design document and the alternatives, never the requirements. Increment `Hit count` for each selected rule.
+- Unmatched rules are ignored and MUST NOT become requirements. If the file does not exist, continue without memory constraints.
+- This step does not produce a standalone artifact or approval gate. Its output is incorporated into the design document.
+
 ### Step 1: Design Document
 - Read skill: skills/design-document/SKILL.md
 - Produce: A complete system design document
@@ -79,6 +89,7 @@ Before starting the full design flow, detect the project state and classify the 
 
 ### Step 2: API Contract (MANDATORY)
 - Read skill: skills/api-contract-first/SKILL.md
+- Record the result in `docs/design/<feature-name>/api-contracts.md`, following `skills/api-contract-first/templates/api-contracts-template.md` — it is the shape of `api-contracts.md`, the contract index and decision record that sits beside the artefacts: one row per surface with protocol, standard, artefact path and reason, plus the clients, the versioning stance and what is frozen since when. It does not replace any artefact below.
 - Every design has an API. If you cannot identify the API, the design is not finished — go back to Step 1. The API is the only customer-facing contract; everything else (UI, CLI, SDK, MCP, AI agent, partner integration, batch job) is a **client** of the API.
 - Identify the protocol(s) and pick the **native contract standard for each protocol** — OpenAPI is not the universal answer. Use the table in `skills/api-contract-first/SKILL.md` ("Pick the right contract standard for the protocol") to choose. Quick reference:
   - **REST / HTTP** → OpenAPI 3.x (or Smithy if AWS-style with SDK gen)
@@ -96,6 +107,8 @@ Before starting the full design flow, detect the project state and classify the 
 
 ### Step 3: Threat Modeling (if security-sensitive)
 - Read skill: skills/threat-modeling/SKILL.md
+- Follow `skills/threat-modeling/templates/threat-model-template.md` — it is the shape of `threat-model.md`, including the terminal verdict block `agents/security-guardian.md` ends the file with.
+- Load `agents/security-guardian.md` and review the design through the security guardian lens.
 - Produce: Threat model with mitigations
 - 🚦 GATE: Present the threat model. Ask: "Any security concerns I missed?"
 - ⛔ DO NOT proceed to Step 4 until the user approves.
@@ -103,8 +116,10 @@ Before starting the full design flow, detect the project state and classify the 
 
 ### Step 4: Design Review Checklist
 - Read skill: skills/design-review/SKILL.md
-- Run the design review checklist against your own design
-- Present findings and self-assessment
+- Load `agents/design-bar-raiser.md` and review the design through the design bar raiser lens. **Self-assessment is not a design review.** For a **Medium** or **Large** design, dispatch it as a sub-agent with author-isolated context: it receives the design artifacts, the API contract(s) and `requirements.md`, and **not** your rationale for any of them — a reviewer handed the author's reasoning reviews the reasoning instead of the design. For **Trivial** and **Small**, activate the persona in this context; the ceremony ladder scopes it (`AGENTS.md` → *Match the Ceremony to the Change*). It is the same review either way, with the reviewer isolated from the author where that pays for itself.
+- Run the design review checklist as the dispatched reviewer, against the artifacts rather than against the intent behind them
+- Present the reviewer's findings and checklist result, attributed to the reviewer — not a self-assessment of your own design
+- If the review is contested — two defensible options and no agreement — load `agents/principal-engineer.md` and break the tie through the principal engineer lens.
 - 🚦 GATE: Ask: "Ready to proceed to implementation planning?"
 - ⛔ DO NOT proceed to Step 5 until the user approves.
 
@@ -124,6 +139,27 @@ Before starting the full design flow, detect the project state and classify the 
 - If the review verdict is **NEEDS REVISION**, go back and fix the spec artifacts before releasing to `/build`.
 - See `skills/spec-driven-implementation/SKILL.md` → Step 7 for full details and output format.
 
+## Finding format
+
+Every finding in a persisted report is written in this one shape:
+
+`[SEVERITY] file:line — <concrete condition> → <observable wrong result> → <required fix>`
+
+- The admission rule is **no anchor, no entry**: a finding with no `file:line` anchor — `file:section` for a document — does not enter the report. If you cannot point at the line, you have a suspicion to go investigate, not a finding to report.
+- **ID** — `F-01`, `F-02`, … assigned in the order found and stable for the life of the report. A re-review reuses the ID and never renumbers, because the ID is how the fix, the re-review and any accepted-risk row all refer to the same thing.
+- **Impact** — what breaks in production, in one line. This is the golden rule's answer, written down.
+- **Confidence** — `high`, `medium` or `low`: how sure you are that the condition actually holds.
+- **Minimal fix** — the smallest change that removes the condition, not the redesign you would prefer.
+- **Status** — one of `OPEN`, `FIXED`, `ACCEPTED-WITH-RISK`, `NOT-REPRODUCIBLE`, `SUPERSEDED`, defined in `skills/code-review-bar-raising/SKILL.md` → *Finding lifecycle in a persisted report*.
+
+`[SEVERITY]` is a slot, not a literal: write the label this surface already uses and let the canonical level appear in the report's `Findings:` counts line (`AGENTS.md` → *One Severity Scale and One Verdict Scale*).
+
+Order the findings by impact. The rule is literal: **priority is impact, never confidence.** A `low`-confidence finding about silent data loss outranks a `high`-confidence finding about a name. Confidence tells the author how hard to look before acting; it never demotes a finding and is never a reason to leave one out.
+
+**IDs and the lifecycle apply only to a report persisted to disk** — the Medium and Large ceremony levels, where a file exists for a later review to update. An inline review of a Trivial change carries no IDs and no lifecycle: there is no file, so there is nothing to renumber and nothing to supersede. The anchor rule and the golden rule still apply; they cost nothing.
+
+The threat model of Step 3 and the review checklist of Step 4 are persisted reports, so both carry IDs and the lifecycle. For a design finding the anchor is the design document's section (`design-doc.md §4`) or the contract artifact and the path inside it (`openapi.yaml` → `/orders` `post`) — that is this surface's `file:line`.
+
 ## Important: Boundary with /build
 
 The `/design` command is responsible for creating ALL specs. The `/build` command does NOT create specs — it reads existing specs and executes their tasks. If `/build` is invoked and no specs exist, it must stop and tell the user to run `/design` first.
@@ -132,6 +168,7 @@ The `/design` command is responsible for creating ALL specs. The `/build` comman
 
 Save to `docs/design/<feature-name>/`:
 - `design-doc.md`
+- `api-contracts.md`
 - API contract artifact(s) — **one per protocol**, using the canonical standard:
   - REST → `openapi.yaml`
   - GraphQL → `schema.graphql`
@@ -147,3 +184,15 @@ Save specs to `specs/<slice-name>/`:
 - `requirements.md`
 - `design.md`
 - `tasks.md`
+
+**Flow metrics.** `/design` owns five of the six events for the `design` phase — `phase_started`,
+`phase_completed`, `gate_approved`, `gate_rework` and `review_blocking_finding` — and appends each as one
+JSON line to `docs/bla-metrics.jsonl`: `phase_started` at the end of Step 0, once the proportionality
+check returns Medium or above; `phase_completed` once the artifacts above are saved; `gate_approved` or
+`gate_rework` at the Step 4 and Step 5b gates, according to the verdict; and one `review_blocking_finding`
+per finding admitted at canonical severity BLOCKING in the threat model or the review checklist, carrying
+its `F-NN` ID. It never emits `spec_completed`, which `/build` owns — no command emits an event another one
+owns (owner table in `docs/flow-metrics.md`). **Emit only at Medium and above**; at Trivial and Small emit
+nothing. If the line cannot be written — no writable tree, no `docs/` directory, the adopter declined —
+state in one line that the flow measurement for this phase was not recorded, and **continue**: measurement
+never blocks a gate.

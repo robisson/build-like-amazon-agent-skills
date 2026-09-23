@@ -2,33 +2,33 @@
 
 # Define — What Is the Problem?
 
-Activate the **wb-define** skill from `skills/wb-define/`. Phase 2 of Working Backwards.
+You are activating the **wb-define** skill. This is Phase 2 of Working Backwards: crisply defining the problem before jumping to solutions.
 
-## Instructions
+## What to do
 
-Help the user articulate the problem crisply, without jumping to solutions.
-
-1. Review the customer profile from `docs/working-backwards/` if available.
-2. Ask:
+1. Read the skill file at `skills/wb-define/` for full context.
+2. Review the customer profile from the Listen phase (if available in `docs/working-backwards/`).
+3. Help the user articulate the problem by asking:
    - What is the single biggest pain point for this customer?
-   - How do they work around it today? What does that cost?
-   - What happens if we do nothing?
-   - How would the customer describe this problem in their words?
-3. Write a **Problem Statement**:
-   - One-sentence summary
+   - How do they work around it today? What does that cost them?
+   - What happens if we do nothing — does it get worse?
+   - How would the customer describe this problem in their own words?
+4. Write a **Problem Statement** with:
+   - One-sentence problem summary
    - Who is affected and how many
-   - Current impact (quantified: time, money, errors)
-   - Root cause analysis (5 Whys)
+   - Current impact (time lost, money wasted, errors caused)
+   - Root cause analysis (5 Whys if helpful)
    - Constraints and boundaries (what's out of scope)
 
-## Principles
+## Key Principles
 
 - A well-defined problem is half-solved.
-- No "solution pollution" — zero implementation details here.
-- Quantify: "saves 2 hours/week" beats "saves time."
-- Must be falsifiable — you can prove it exists with data.
+- Resist "solution pollution" — no implementation details here.
+- Quantify where possible: "saves 2 hours/week" beats "saves time."
+- The problem must be falsifiable — you can prove it exists with data.
 
 ## Output
 
 Save to `docs/working-backwards/<feature-name>/problem-statement.md`.
-Suggest next step: "Run /invent to design the solution."
+
+Ask: "Would you like to proceed to /invent (solution design)?"

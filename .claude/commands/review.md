@@ -40,6 +40,20 @@ Before production deployment, verify:
 - Dependencies are understood and failure modes documented
 - On-call team knows about the change
 
+## Principles
+
+- Review code like you'll be paged for it at 3 AM.
+- Be kind, be specific, be constructive.
+- The bar raiser's job: would I hire this code?
+
+This section **coexists** with `## Finding format` and replaces nothing in it: reviewer posture and finding
+shape are different things — the three lines above say how to hold the review, the section below says what
+a finding must look like once you have one. The heading is deliberately `## Principles`, not
+`## Key Principles`: this is content promoted out of the Gemini mirror by the user's resolution 4, under
+the name the user chose, and `review.md` is the one file in `commands/` where `## Principles` is canonical
+(the nine other commands that carry a principles section head it `## Key Principles`). Do not "normalise"
+it.
+
 ## Finding format
 
 Every finding in a persisted report is written in this one shape:
@@ -78,3 +92,14 @@ If no recurring pattern is identified, skip this step silently.
 Save review findings to `docs/reviews/<feature-name>/`:
 - `code-review.md` (findings and recommendations)
 - `orr-checklist.md` (operational readiness status)
+
+**Flow metrics.** `/review` owns three of the six events and appends each as one JSON line to
+`docs/bla-metrics.jsonl`, with `phase` set to `review`: `gate_approved` or `gate_rework` per gate — Step 1
+and Step 2 are each a gate — according to the verdict, and one `review_blocking_finding` per finding
+admitted at canonical severity BLOCKING (🚫 **Must fix** is this command's spelling of it), carrying its
+`F-NN` ID and the path of the report that persists it. It owns **no** `phase_started` or `phase_completed`:
+`/review` is a gate over someone else's phase, not a phase of its own, and that phase is already emitting
+its own pair. No command emits an event another one owns (owner table in `docs/flow-metrics.md`). **Emit
+only at Medium and above**; at Trivial and Small emit nothing. If the line cannot be written — no writable
+tree, no `docs/` directory, the adopter declined — state in one line that the flow measurement for this
+review was not recorded, and **continue**: measurement never blocks a gate.

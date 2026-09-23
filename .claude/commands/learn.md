@@ -57,3 +57,14 @@ Save to `docs/coe/<incident-name>/`:
 - `coe-report.md`
 - `action-items.md`
 - `mechanisms.md`
+
+**Flow metrics.** `/learn` owns two of the six events for the `learn` phase — `phase_started` and
+`phase_completed` — and appends each as one JSON line to `docs/bla-metrics.jsonl`: `phase_started` once the
+change is classified as Medium or above, `phase_completed` once the artifacts above are saved. The COE
+review of Step 1 is a review, not a gate over a BLA artefact, and `/learn` persists no BLOCKING findings,
+so `gate_approved`, `gate_rework` and `review_blocking_finding` are not its to emit — no command emits an
+event another one owns (owner table in `docs/flow-metrics.md`). A COE about a flow-metric series is still
+bound by rule 2 of `docs/flow-metrics.md`: reconstruct a timeline in the COE, never in the series. **Emit
+only at Medium and above**; at Trivial and Small emit nothing. If the line cannot be written — no writable
+tree, no `docs/` directory, the adopter declined — state in one line that the flow measurement for this
+phase was not recorded, and **continue**: measurement never blocks a COE or a mechanism.

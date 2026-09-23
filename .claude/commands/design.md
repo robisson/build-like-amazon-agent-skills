@@ -69,6 +69,14 @@ Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING
 - Patterns that don't fit do not appear in the design. Do not dismiss them in writing — they simply aren't relevant to this workload.
 - This step does not produce a standalone artifact or approval gate. Its output is the set of candidate alternatives carried into Step 1.
 
+### Step 0e: Implementation Memory Selection
+- Read skill: `skills/implementation-memory/SKILL.md`
+- If `docs/implementation-memory.md` exists, read it and select active rules using multi-signal matching: Tags overlap with the feature's domain or technology areas, File patterns match files the design will touch, OR `Applies when` prose is judged relevant to this feature, component, dependency, or risk profile.
+- A rule is selected only when its `Phase` matches the current phase — `design` here — and any one of those signals matches; a `Phase: build` or `Phase: operate` rule is never selected during `/design`, however strongly its other signals match.
+- Convert selected rules into design constraints for Step 1: they shape the design document and the alternatives, never the requirements. Increment `Hit count` for each selected rule.
+- Unmatched rules are ignored and MUST NOT become requirements. If the file does not exist, continue without memory constraints.
+- This step does not produce a standalone artifact or approval gate. Its output is incorporated into the design document.
+
 ### Step 1: Design Document
 - Read skill: skills/design-document/SKILL.md
 - Produce: A complete system design document
@@ -160,6 +168,7 @@ The `/design` command is responsible for creating ALL specs. The `/build` comman
 
 Save to `docs/design/<feature-name>/`:
 - `design-doc.md`
+- `api-contracts.md`
 - API contract artifact(s) — **one per protocol**, using the canonical standard:
   - REST → `openapi.yaml`
   - GraphQL → `schema.graphql`
@@ -175,3 +184,15 @@ Save specs to `specs/<slice-name>/`:
 - `requirements.md`
 - `design.md`
 - `tasks.md`
+
+**Flow metrics.** `/design` owns five of the six events for the `design` phase — `phase_started`,
+`phase_completed`, `gate_approved`, `gate_rework` and `review_blocking_finding` — and appends each as one
+JSON line to `docs/bla-metrics.jsonl`: `phase_started` at the end of Step 0, once the proportionality
+check returns Medium or above; `phase_completed` once the artifacts above are saved; `gate_approved` or
+`gate_rework` at the Step 4 and Step 5b gates, according to the verdict; and one `review_blocking_finding`
+per finding admitted at canonical severity BLOCKING in the threat model or the review checklist, carrying
+its `F-NN` ID. It never emits `spec_completed`, which `/build` owns — no command emits an event another one
+owns (owner table in `docs/flow-metrics.md`). **Emit only at Medium and above**; at Trivial and Small emit
+nothing. If the line cannot be written — no writable tree, no `docs/` directory, the adopter declined —
+state in one line that the flow measurement for this phase was not recorded, and **continue**: measurement
+never blocks a gate.

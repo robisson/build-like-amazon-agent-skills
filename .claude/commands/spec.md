@@ -49,6 +49,7 @@ Before creating a spec, detect the project state and classify the requested chan
    - Identify any operational-excellence decisions already captured in the Design Document
    - Read `skills/spec-driven-implementation/SKILL.md` for the full process
    - Read the templates in `skills/spec-driven-implementation/templates/`
+   - Read `skills/implementation-memory/SKILL.md` and, if `docs/implementation-memory.md` exists, read it and select active rules whose `Phase` matches `spec` AND for which any one signal matches (Tags overlap the slice's domain, File patterns match files this slice will touch, or `Applies when` prose is judged relevant). Convert the selected rules into constraints on how this spec is written, increment their `Hit count`, and ignore unmatched rules — they MUST NOT become requirements. If the file does not exist, continue without memory constraints.
 
 2. **Create the spec following the templates EXACTLY:**
 
@@ -101,6 +102,17 @@ specs/<slice-name>/
 ```
 
 Ready for execution with `/build`.
+
+**Flow metrics.** `/spec` owns four of the six events for the `spec` phase — `phase_started`,
+`phase_completed`, `gate_approved` and `gate_rework` — and appends each as one JSON line to
+`docs/bla-metrics.jsonl`, with `spec` set to the slice name: `phase_started` at the end of Step 0, once the
+proportionality check returns Medium or above; `phase_completed` once the spec directory above is saved;
+and `gate_approved` or `gate_rework` at the coherence review of step 3, according to its verdict
+(APPROVED → `gate_approved`, NEEDS REVISION → `gate_rework`). `spec_completed` belongs to `/build`, not
+here, and no command emits an event another one owns (owner table in `docs/flow-metrics.md`). **Emit only
+at Medium and above**; at Trivial and Small emit nothing. If the line cannot be written — no writable
+tree, no `docs/` directory, the adopter declined — state in one line that the flow measurement for this
+phase was not recorded, and **continue**: measurement never blocks a gate.
 
 ## Template Enforcement
 

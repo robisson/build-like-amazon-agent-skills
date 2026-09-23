@@ -234,6 +234,8 @@ Adjust the ceremony, terminology, thresholds. But don't remove the hard parts (g
 - **Philosophy** — read [`docs/philosophy.md`](philosophy.md) for *why* the practices exist
 - **Skill anatomy** — read [`docs/skill-anatomy.md`](skill-anatomy.md) if you want to write your own skill
 - **All skills** — full catalog in the [README](../README.md#all-28-skills)
+- **Which release you copied** — [`VERSION`](../VERSION) holds one `x.y.z` line, and [`CHANGELOG.md`](../CHANGELOG.md) records the user-visible changes between releases. The install above copies directories, so this marker is the only way to tell what you have.
+- **Flow metrics** — [`docs/flow-metrics.md`](flow-metrics.md) if you want the phase cycle time and rework the commands can record for you from Medium ceremony upward. It is a reference document, not a skill.
 - **Bar raiser personas** — [`agents/`](../agents/) directory
 - **Architectural patterns** — [`patterns/`](../patterns/) directory
 - **Operating contract for agents** — [`AGENTS.md`](../AGENTS.md) (read this if you're a contributor or building a new integration)

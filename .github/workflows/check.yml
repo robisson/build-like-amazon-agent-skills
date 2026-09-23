@@ -44,7 +44,10 @@ jobs:
 
       - name: doc-truth
         # The README states counts about the repository. A count that drifts from disk is a lie the
-        # reader has no way to detect, so every count is derived from disk and compared.
+        # reader has no way to detect, so every count is derived from disk and compared. The step then
+        # widens to the same defect in other shapes: the memory-rule cap against the document that
+        # declares it, the artifact catalog's Template column in both directions, the closed flow-event
+        # set against its second copy in tools/bla-check, and the absence of a fabricated metric series.
         run: |
           f=0
 
@@ -66,6 +69,17 @@ jobs:
           dirs=$(find skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
           [ "$dirs" = "$real" ] \
             || { echo "FALHA [skill-dir-exact-set] skills/ has $dirs directories but $real SKILL.md files"; f=1; }
+
+          # The third count README states about disk. docs/references.md numbers its rows 1..N in the
+          # first column of every section table, so N is derivable; the "## How These Map to Skills"
+          # table cites #IDs and holds no numbered row, which is why the pattern anchors on `| <n> |`.
+          # README said 49 while disk held 48 until this arm was added — the same defect class as
+          # badge-count, in the one count that had no reader.
+          refs=$(grep -oE '^\| *[0-9]+ *\|' docs/references.md | grep -oE '[0-9]+' | sort -n | tail -1)
+          [ -n "$refs" ] \
+            || { echo "FALHA [reference-count-unparsed] docs/references.md no longer numbers its rows; this predicate can no longer read the count it compares"; f=1; refs=0; }
+          grep -q "list of $refs references" README.md \
+            || { echo "FALHA [reference-count] README.md does not say 'list of $refs references', which is what docs/references.md numbers"; f=1; }
 
           # A section heading glued to the paragraph above it is not a style nit: CommonMark does not
           # open an ATX heading there in every renderer, so the section silently stops being a section.
@@ -102,6 +116,52 @@ jobs:
             grep -q "$(basename "$t")" docs/artifact-catalog.md \
               || { echo "FALHA [catalog-template-missing] $t exists on disk but docs/artifact-catalog.md never names it"; f=1; }
           done
+
+          # The closed set of flow events is written THREE times: as the row set of the "| Event | Means |"
+          # table in docs/flow-metrics.md, as the row set of its "| Event | Sole owner | Emitted when |"
+          # owner table, and as the METRIC_EVENTS tuple in tools/bla-check. The document states the rule
+          # that a seventh event moves all of them together "in one commit, or not at all" — and until this
+          # predicate existed, nothing checked it. A set that drifts is worse than one place being wrong:
+          # the document promises an owner for an event the validator rejects, or the validator accepts an
+          # event no owner is declared for, and the first reader to notice is the one whose series is void.
+          tbl() { awk -v h="$1" '$0==h{f=1;next} f&&!/^\|/{exit} f&&/^\| `/{
+                    gsub(/^\| `/,""); sub(/`.*/,""); print }' docs/flow-metrics.md | sort -u; }
+          tbl '| Event | Means |' > /tmp/es-means
+          tbl '| Event | Sole owner | Emitted when |' > /tmp/es-owner
+          awk '/^METRIC_EVENTS = \(/{f=1;next} f&&/^\)/{exit} f{gsub(/[ ",]/,""); if($0!="") print}' \
+            tools/bla-check | sort -u > /tmp/es-code
+          # A vacuous pass is the failure mode this guard exists to prevent: if a heading were reworded the
+          # awk above would return nothing, and three empty sets compare equal.
+          for s in /tmp/es-means /tmp/es-owner /tmp/es-code; do
+            [ "$(wc -l < "$s" | tr -d ' ')" -ge 1 ] \
+              || { echo "FALHA [metrics-event-set-unparsed] $s came back empty; a heading or the METRIC_EVENTS tuple was reworded and this predicate can no longer read the set it compares"; f=1; }
+          done
+          cmp -s /tmp/es-means /tmp/es-owner \
+            || { echo "FALHA [metrics-event-set] in docs/flow-metrics.md the 'Event | Means' table and the owner table are not the same closed set: $(diff /tmp/es-means /tmp/es-owner | tr '\n' ' ')"; f=1; }
+          cmp -s /tmp/es-owner /tmp/es-code \
+            || { echo "FALHA [metrics-event-set] the owner table of docs/flow-metrics.md and METRIC_EVENTS in tools/bla-check are not the same closed set: $(diff /tmp/es-owner /tmp/es-code | tr '\n' ' ')"; f=1; }
+
+          # docs/flow-metrics.md forbids this repository from carrying a series of its own: a
+          # docs/bla-metrics.jsonl committed here would be data nobody measured, and fabricated data in the
+          # repository that defines the measurement discredits the measurement. .gitignore cannot express
+          # this — the path must stay writable for anyone dogfooding the metrics locally, it must only never
+          # be committed — so the guard belongs here.
+          if [ -e docs/bla-metrics.jsonl ]; then
+            echo "FALHA [no-fabricated-series] docs/bla-metrics.jsonl exists; this repository ships no flow-metric series of its own, only the fixtures under tools/tests/fixtures/metrics-*/"
+            f=1
+          fi
+
+          # CHANGELOG.md asserts, in the paragraph that closes the 0.2.0 entry, that this repository carries
+          # no manifest and no lockfile "and a CI predicate keeps it that way". This is that predicate. The
+          # library is plain Markdown plus a dependency-free `tools/bla-check`; the first manifest would turn
+          # copying a directory into installing a package, which every install path in README.md contradicts.
+          manifests=$(find . -maxdepth 2 \( -name package.json -o -name pyproject.toml \
+            -o -name requirements.txt -o -name '*.lock' -o -name package-lock.json -o -name yarn.lock \) \
+            -not -path './.worktrees/*' | sort | tr '\n' ' ')
+          if [ -n "$manifests" ]; then
+            echo "FALHA [no-manifest] CHANGELOG.md promises this repository carries no manifest and no lockfile, and these exist: $manifests"
+            f=1
+          fi
 
           [ "$f" -eq 0 ] || exit 1
 
@@ -199,11 +259,20 @@ jobs:
         # path named in a sentence, a table cell or a code span escapes it entirely — this is the check
         # that catches those. It is born green only because docs/cursor-setup.md, cited but never
         # written, was corrected in the same commit that added this step.
+        #
+        # Planning state is pruned for the same reason the other two document checks prune it: .agents/
+        # and .worktrees/ hold drafts, placeholders (skills/x/SKILL.md, agents/x.md) and paths a plan
+        # has not written yet, so a citation there is not a promise the repository made. Without these
+        # two flags the step is green in CI — neither directory is checked out there — and red for the
+        # first maintainer who pastes it into a local shell as the header of this file invites, which
+        # teaches them to ignore a real predicate. The two surfaces that already prune the same pair
+        # are tools/bla-check (SKIP_DIRS = .git .agents .worktrees node_modules) and
+        # .markdownlint-cli2.jsonc (ignores .agents/** and .worktrees/**).
         run: |
           f=0
 
           for ref in $(grep -rhoE '(agents/[a-z0-9-]+\.md|skills/[a-z0-9-]+/SKILL\.md|patterns/[a-z0-9-]+/PATTERN\.md|docs/[a-z0-9-]+\.md|\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md)' \
-                        --include='*.md' . | sort -u); do
+                        --include='*.md' --exclude-dir=.agents --exclude-dir=.worktrees . | sort -u); do
             [ -e "$ref" ] || { echo "FALHA [xref-missing] $ref is cited in a markdown file but does not exist on disk"; f=1; }
           done
 
@@ -241,6 +310,140 @@ jobs:
             echo "FALHA [markdownlint] markdownlint-cli2 reported errors (see the lines above)"
             exit 1
           fi
+
+      - name: version-agreement
+        # This library is distributed by copying, so the version an adopter can actually read is `VERSION`
+        # at the root — `.claude-plugin/plugin.json` is invisible to anyone who copied one harness
+        # directory. Two version strings in two files is a drift machine: this step is what makes the
+        # duplication safe, by failing the moment they stop agreeing, or the moment CHANGELOG.md stops
+        # naming the current one.
+        #
+        # What this step deliberately does NOT check: that CHANGELOG.md gained an entry in this pull
+        # request. A normal pull request does not write the changelog — only a change that affects users
+        # does (the rule is stated at the top of CHANGELOG.md and in CONTRIBUTING.md). A predicate
+        # demanding an entry per PR would be born red on typo fixes and would be trained away.
+        #
+        # Version headings in CHANGELOG.md carry no square brackets on purpose: `## [0.2.0]` is a
+        # CommonMark shortcut reference link and trips MD052/MD053, both enabled. This step matches the
+        # bracket-free form, so re-adding brackets fails here as well as in markdownlint.
+        run: |
+          f=0
+          v=''
+
+          if [ ! -f VERSION ]; then
+            echo "FALHA [version-marker-absent] VERSION does not exist at the repository root"
+            f=1
+          else
+            n=$(grep -c . VERSION | tr -d ' ' || true)
+            v=$(head -1 VERSION | tr -d ' \t\r')
+            { [ "$n" = 1 ] && echo "$v" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; } \
+              || { echo "FALHA [version-marker-absent] VERSION must be a single x.y.z line; found $n non-empty line(s), first is '$v'"; f=1; }
+          fi
+
+          p=$(grep -m1 '"version"' .claude-plugin/plugin.json \
+              | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || true)
+          [ -n "$v" ] && [ "$v" = "$p" ] \
+            || { echo "FALHA [version-disagreement] VERSION says '$v' but .claude-plugin/plugin.json says '$p'"; f=1; }
+
+          if [ ! -f CHANGELOG.md ]; then
+            echo "FALHA [changelog-head-mismatch] CHANGELOG.md does not exist at the repository root"
+            f=1
+          else
+            h=$(grep -m1 '^## [0-9]' CHANGELOG.md || true)
+            case "$h" in
+              "## $v"*) : ;;
+              *) echo "FALHA [changelog-head-mismatch] the newest version heading in CHANGELOG.md is '$h', which does not name VERSION ($v)"; f=1 ;;
+            esac
+          fi
+
+          [ "$f" -eq 0 ] || exit 1
+
+      - name: parity
+        # THE MAINTENANCE CONTRACT FOR THE HARNESS COMMAND DIRECTORIES.
+        #
+        # `.claude/commands/` is CANONICAL: it is the file you edit. `.gemini/commands/` and
+        # `.kiro/commands/` are MIRRORS — their own first line says so — and a mirror may differ from
+        # its canonical source by exactly two declared mechanics and nothing else:
+        #   T1  the `<!-- MIRROR: … -->` banner plus the single blank line after it (mirrors only);
+        #   T2  the `> **Path resolution**: …` blockquote plus the single blank line after it
+        #       (`.claude/` only — it describes the Claude plugin root, a concept the other two
+        #       harnesses do not have).
+        # A mirror may never contain: an edit of any kind, an absolute path, or a command name that
+        # `.claude/commands/` does not hold (a missing command and an extra one are the same defect).
+        # To change a command, edit the Claude version and re-apply the two mechanics to both mirrors.
+        #
+        # WHY THE MIRRORS WERE NOT REPLACED BY THIN SHELLS POINTING AT ONE CANONICAL BODY — measured,
+        # so a future maintainer does not redo the analysis. The three documented copy-based installs
+        # were simulated with the README's own `cp -r` commands, and the canonical pointer target was
+        # then resolved against four candidate bases: it resolves at 0 of 4 under 3 of the 4 documented
+        # install paths, because each of those copies ONE harness directory (and Kiro renames it to
+        # `.kiro/prompts/`), so the canonical body is simply not on disk. Under those installs a thin
+        # shell is not a degraded command but a null instruction, so a shell would have to carry the
+        # rule kernel to stay functional — which restores the whole duplication the restructure exists
+        # to remove. Revisit the day this library stops distributing by copying one harness directory.
+        #
+        # OUTSIDE THIS PREDICATE'S UNIT, deliberately. The unit is the 14 commands.
+        # `.cursor/rules/amazon-skills.md` is a thin router in the *rules* channel, where a router works
+        # (the whole repository is present), and it carries no command body. `.kiro/skills/*.md` are
+        # thin routers by their own declaration: measured at 52 and 60 lines, they cite ZERO `commands/`
+        # paths and every `skills/` directory they name exists, so they are not a drift surface for the
+        # commands and adding them here would assert nothing.
+        run: |
+          f=0
+
+          # The mirror set is discovered from disk, never from a fixed list, so a fourth harness added
+          # tomorrow is covered automatically and a forgotten one cannot leave the set in silence.
+          MIRRORS=$(find . -maxdepth 2 -mindepth 2 -type d -name commands \
+                    ! -path './.claude/*' ! -path './.agents/*' ! -path './.worktrees/*' \
+                    | sed 's|^\./||' | sort)
+
+          # Removes T1 and T2 and nothing else. Newline-agnostic by construction, because awk always
+          # terminates its last output line — which is why the missing final newline in 13 of the 14
+          # `.claude/commands/` files needs no whitespace churn (MD047 is not enabled).
+          norm() { awk '
+            /^<!-- MIRROR: This file mirrors \.claude\/commands\/[a-z0-9-]+\.md\. Do not edit directly/ { drop=1; next }
+            /^> \*\*Path resolution\*\*:/ { drop=1; next }
+            drop==1 { drop=0; if ($0 == "") next }
+            { print }' "$1"; }
+
+          canon=$(mktemp)
+          ls .claude/commands | sort > "$canon"
+
+          for m in $MIRRORS; do
+            mine=$(mktemp)
+            ls "$m" | sort > "$mine"
+            if ! cmp -s "$canon" "$mine"; then
+              echo "FALHA [parity-name-set] $m holds a different command set than .claude/commands/"
+              diff "$canon" "$mine" | head -20
+              f=1
+            fi
+            rm -f "$mine"
+
+            for n in $(cat "$canon"); do
+              [ -f "$m/$n" ] || continue
+              head -1 "$m/$n" | grep -qF "mirrors .claude/commands/$n." \
+                || { echo "FALHA [parity-banner] $m/$n does not open with the mirror banner naming .claude/commands/$n"; f=1; }
+
+              a=$(mktemp); b=$(mktemp)
+              norm ".claude/commands/$n" > "$a"
+              norm "$m/$n" > "$b"
+              if ! cmp -s "$a" "$b"; then
+                echo "FALHA [parity-body] $m/$n diverges from .claude/commands/$n beyond the banner and the path-resolution note"
+                diff "$a" "$b" | head -20
+                f=1
+              fi
+              rm -f "$a" "$b"
+            done
+          done
+          rm -f "$canon"
+
+          # A command file is copied into someone else's project, so a path from this machine in one of
+          # them is an instruction that cannot execute anywhere else.
+          hits=$(grep -rln '/Users/\|/home/\|/root/' .claude/commands $MIRRORS | wc -l | tr -d ' ' || true)
+          [ "$hits" = 0 ] \
+            || { echo "FALHA [parity-abs-path] an absolute path appears in $hits command file(s): $(grep -rln '/Users/\|/home/\|/root/' .claude/commands $MIRRORS | tr '\n' ' ')"; f=1; }
+
+          [ "$f" -eq 0 ] || exit 1
 
       - name: gitleaks
         # No baseline, on purpose: see the comment in .gitleaks.toml. A baseline committed before the
