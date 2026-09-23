@@ -7,8 +7,10 @@
 //
 // Every enabled rule catches a defect a reader would hit, never a style preference. Line length,
 // heading punctuation, list indentation and the rest of the cosmetic families stay off: this
-// repository is prose-dense documentation and a cosmetic rule over 107 files is noise, which is the
-// J1 failure mode (a check born red is a check the team learns to ignore).
+// repository is prose-dense documentation, and a cosmetic rule applied across every markdown file in
+// it is noise, which is the J1 failure mode (a check born red is a check the team learns to ignore).
+// No file count is stated here on purpose: it drifts with every document added, and markdownlint
+// prints the real one (`Linting: N file(s)`) on every run.
 {
   "config": {
     // Everything off; the rules below are the whole enforced set.
