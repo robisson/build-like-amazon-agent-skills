@@ -34,7 +34,7 @@ Load `agents/security-guardian.md` when reviewing the threat model. Use it to ch
 
 ## Template
 
-Write the threat model into `skills/threat-modeling/templates/threat-model-template.md`. The template records the decisions this skill produces — classification, boundaries, STRIDE per crossing, IAM, encryption, blast radius, accepted risks — and deliberately does not restate the tables below, which are the authority. It uses this skill's own `Critical`/`High`/`Medium`/`Low` severities, mapped to the canonical levels in `AGENTS.md` → *One Severity Scale and One Verdict Scale*, and adds no new label.
+Write the threat model into `docs/design/<feature-name>/threat-model.md`, following `skills/threat-modeling/templates/threat-model-template.md` — that file is the *shape* of the threat model, never its destination. The template records the decisions this skill produces — classification, boundaries, STRIDE per crossing, IAM, encryption, blast radius, accepted risks — and deliberately does not restate the tables below, which are the authority. It uses this skill's own `Critical`/`High`/`Medium`/`Low` severities, mapped to the canonical levels in `AGENTS.md` → *One Severity Scale and One Verdict Scale*, and adds no new label.
 
 ## Amazon Context
 
