@@ -245,7 +245,17 @@ jobs:
       - name: gitleaks
         # No baseline, on purpose: see the comment in .gitleaks.toml. A baseline committed before the
         # first scan converts an unknown into an approved exception.
+        #
+        # This step has never executed — the workflow itself has not yet run on GitHub Actions — so
+        # the two settings below are the ones that keep the first run meaningful. Comments are disabled
+        # because the action posts PR comments by default, which needs `pull-requests: write`; the job
+        # holds `contents: read` only, and widening the token to buy a comment would trade a real
+        # permission for a cosmetic one. A secret still fails the step through the exit code and the
+        # log, which is the signal that matters. GITLEAKS_LICENSE is required only for
+        # organisation-owned repositories; if the first run fails asking for one, that is the reason,
+        # and it is a licence question, not a finding about a secret.
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
+          GITLEAKS_ENABLE_COMMENTS: "false"
