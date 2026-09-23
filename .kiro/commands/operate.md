@@ -39,3 +39,13 @@ Save to `docs/operations/<service-name>/`:
 - `alarm-definitions.md`
 - `orr-checklist.md`
 - `escalation-matrix.md`
+
+**Flow metrics.** `/operate` owns two of the six events for the `operate` phase — `phase_started` and
+`phase_completed` — and appends each as one JSON line to `docs/bla-metrics.jsonl`: `phase_started` once the
+change is classified as Medium or above, `phase_completed` once the artifacts above are saved. The
+operational readiness review of Step 2 fills `orr-checklist.md`, but the gate events over an ORR verdict
+belong to `/review`, which persists that report as a gate — no command emits an event another one owns
+(owner table in `docs/flow-metrics.md`). **Emit only at Medium and above**; at Trivial and Small emit
+nothing. If the line cannot be written — no writable tree, no `docs/` directory, the adopter declined —
+state in one line that the flow measurement for this phase was not recorded, and **continue**: measurement
+never blocks an alarm, a runbook or an escalation.

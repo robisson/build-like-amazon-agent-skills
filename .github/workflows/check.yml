@@ -298,6 +298,93 @@ jobs:
 
           [ "$f" -eq 0 ] || exit 1
 
+      - name: parity
+        # THE MAINTENANCE CONTRACT FOR THE HARNESS COMMAND DIRECTORIES.
+        #
+        # `.claude/commands/` is CANONICAL: it is the file you edit. `.gemini/commands/` and
+        # `.kiro/commands/` are MIRRORS — their own first line says so — and a mirror may differ from
+        # its canonical source by exactly two declared mechanics and nothing else:
+        #   T1  the `<!-- MIRROR: … -->` banner plus the single blank line after it (mirrors only);
+        #   T2  the `> **Path resolution**: …` blockquote plus the single blank line after it
+        #       (`.claude/` only — it describes the Claude plugin root, a concept the other two
+        #       harnesses do not have).
+        # A mirror may never contain: an edit of any kind, an absolute path, or a command name that
+        # `.claude/commands/` does not hold (a missing command and an extra one are the same defect).
+        # To change a command, edit the Claude version and re-apply the two mechanics to both mirrors.
+        #
+        # WHY THE MIRRORS WERE NOT REPLACED BY THIN SHELLS POINTING AT ONE CANONICAL BODY — measured,
+        # so a future maintainer does not redo the analysis. The three documented copy-based installs
+        # were simulated with the README's own `cp -r` commands, and the canonical pointer target was
+        # then resolved against four candidate bases: it resolves at 0 of 4 under 3 of the 4 documented
+        # install paths, because each of those copies ONE harness directory (and Kiro renames it to
+        # `.kiro/prompts/`), so the canonical body is simply not on disk. Under those installs a thin
+        # shell is not a degraded command but a null instruction, so a shell would have to carry the
+        # rule kernel to stay functional — which restores the whole duplication the restructure exists
+        # to remove. Revisit the day this library stops distributing by copying one harness directory.
+        #
+        # OUTSIDE THIS PREDICATE'S UNIT, deliberately. The unit is the 14 commands.
+        # `.cursor/rules/amazon-skills.md` is a thin router in the *rules* channel, where a router works
+        # (the whole repository is present), and it carries no command body. `.kiro/skills/*.md` are
+        # thin routers by their own declaration: measured at 52 and 60 lines, they cite ZERO `commands/`
+        # paths and every `skills/` directory they name exists, so they are not a drift surface for the
+        # commands and adding them here would assert nothing.
+        run: |
+          f=0
+
+          # The mirror set is discovered from disk, never from a fixed list, so a fourth harness added
+          # tomorrow is covered automatically and a forgotten one cannot leave the set in silence.
+          MIRRORS=$(find . -maxdepth 2 -mindepth 2 -type d -name commands \
+                    ! -path './.claude/*' ! -path './.agents/*' ! -path './.worktrees/*' \
+                    | sed 's|^\./||' | sort)
+
+          # Removes T1 and T2 and nothing else. Newline-agnostic by construction, because awk always
+          # terminates its last output line — which is why the missing final newline in 13 of the 14
+          # `.claude/commands/` files needs no whitespace churn (MD047 is not enabled).
+          norm() { awk '
+            /^<!-- MIRROR: This file mirrors \.claude\/commands\/[a-z0-9-]+\.md\. Do not edit directly/ { drop=1; next }
+            /^> \*\*Path resolution\*\*:/ { drop=1; next }
+            drop==1 { drop=0; if ($0 == "") next }
+            { print }' "$1"; }
+
+          canon=$(mktemp)
+          ls .claude/commands | sort > "$canon"
+
+          for m in $MIRRORS; do
+            mine=$(mktemp)
+            ls "$m" | sort > "$mine"
+            if ! cmp -s "$canon" "$mine"; then
+              echo "FALHA [parity-name-set] $m holds a different command set than .claude/commands/"
+              diff "$canon" "$mine" | head -20
+              f=1
+            fi
+            rm -f "$mine"
+
+            for n in $(cat "$canon"); do
+              [ -f "$m/$n" ] || continue
+              head -1 "$m/$n" | grep -qF "mirrors .claude/commands/$n." \
+                || { echo "FALHA [parity-banner] $m/$n does not open with the mirror banner naming .claude/commands/$n"; f=1; }
+
+              a=$(mktemp); b=$(mktemp)
+              norm ".claude/commands/$n" > "$a"
+              norm "$m/$n" > "$b"
+              if ! cmp -s "$a" "$b"; then
+                echo "FALHA [parity-body] $m/$n diverges from .claude/commands/$n beyond the banner and the path-resolution note"
+                diff "$a" "$b" | head -20
+                f=1
+              fi
+              rm -f "$a" "$b"
+            done
+          done
+          rm -f "$canon"
+
+          # A command file is copied into someone else's project, so a path from this machine in one of
+          # them is an instruction that cannot execute anywhere else.
+          hits=$(grep -rln '/Users/\|/home/\|/root/' .claude/commands $MIRRORS | wc -l | tr -d ' ' || true)
+          [ "$hits" = 0 ] \
+            || { echo "FALHA [parity-abs-path] an absolute path appears in $hits command file(s): $(grep -rln '/Users/\|/home/\|/root/' .claude/commands $MIRRORS | tr '\n' ' ')"; f=1; }
+
+          [ "$f" -eq 0 ] || exit 1
+
       - name: gitleaks
         # No baseline, on purpose: see the comment in .gitleaks.toml. A baseline committed before the
         # first scan converts an unknown into an approved exception.

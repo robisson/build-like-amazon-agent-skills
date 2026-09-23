@@ -76,6 +76,8 @@ Read skill at `skills/brownfield-discovery/SKILL.md` and follow the Process sect
 - **Path B** — Steps 1–6 + 7 (reverse-engineer WB) + 8 (Doc Bar Raiser pass) + 9 (Path B closing gate).
 - **Path C** — Steps 1–6 + 7' (full canonical `/wb` flow with all 5 approval gates) + 8' (Gap Analysis) + 9' (Path C closing gate).
 
+In Path B, step 8 is the Doc Bar Raiser pass: load `agents/doc-bar-raiser.md` and review the inferred PR/FAQ through the doc bar raiser lens.
+
 ## Output
 
 ### Path A

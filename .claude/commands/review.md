@@ -40,6 +40,20 @@ Before production deployment, verify:
 - Dependencies are understood and failure modes documented
 - On-call team knows about the change
 
+## Principles
+
+- Review code like you'll be paged for it at 3 AM.
+- Be kind, be specific, be constructive.
+- The bar raiser's job: would I hire this code?
+
+This section **coexists** with `## Finding format` and replaces nothing in it: reviewer posture and finding
+shape are different things — the three lines above say how to hold the review, the section below says what
+a finding must look like once you have one. The heading is deliberately `## Principles`, not
+`## Key Principles`: this is content promoted out of the Gemini mirror by the user's resolution 4, under
+the name the user chose, and `review.md` is the one file in `commands/` where `## Principles` is canonical
+(the nine other commands that carry a principles section head it `## Key Principles`). Do not "normalise"
+it.
+
 ## Finding format
 
 Every finding in a persisted report is written in this one shape:
