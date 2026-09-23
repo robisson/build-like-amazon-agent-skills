@@ -1,0 +1,4 @@
+{"event": "phase_started", "ts": "2026-02-02T09:00:00Z", "phase": "spec", "spec": "checkout-api", "level": "medium", "source": "/spec"}
+{"event": "gate_rework", "ts": "2026-02-02T11:00:00Z", "phase": "spec", "spec": "checkout-api", "level": "medium", "source": "/spec", "gate": "coherence-review", "verdict": "NEEDS REVISION"}
+{"event": "phase_started", "ts": "2026-02-02T11:05:00Z", "phase": "spec", "spec": "checkout-api", "level": "medium", "source": "/spec"}
+{"event": "phase_completed", "ts": "2026-02-02T13:00:00Z", "phase": "spec", "spec": "checkout-api", "level": "medium", "source": "/spec"}

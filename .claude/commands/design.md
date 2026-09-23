@@ -184,3 +184,15 @@ Save specs to `specs/<slice-name>/`:
 - `requirements.md`
 - `design.md`
 - `tasks.md`
+
+**Flow metrics.** `/design` owns five of the six events for the `design` phase — `phase_started`,
+`phase_completed`, `gate_approved`, `gate_rework` and `review_blocking_finding` — and appends each as one
+JSON line to `docs/bla-metrics.jsonl`: `phase_started` at the end of Step 0, once the proportionality
+check returns Medium or above; `phase_completed` once the artifacts above are saved; `gate_approved` or
+`gate_rework` at the Step 4 and Step 5b gates, according to the verdict; and one `review_blocking_finding`
+per finding admitted at canonical severity BLOCKING in the threat model or the review checklist, carrying
+its `F-NN` ID. It never emits `spec_completed`, which `/build` owns — no command emits an event another one
+owns (owner table in `docs/flow-metrics.md`). **Emit only at Medium and above**; at Trivial and Small emit
+nothing. If the line cannot be written — no writable tree, no `docs/` directory, the adopter declined —
+state in one line that the flow measurement for this phase was not recorded, and **continue**: measurement
+never blocks a gate.

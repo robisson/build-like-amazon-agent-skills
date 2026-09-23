@@ -1,0 +1,4 @@
+{"event": "phase_started", "ts": "2026-02-02T09:00:00Z", "phase": "design", "spec": null, "level": "medium", "source": "/design"}
+{"event": "phase_completed", "ts": "2026-02-02T10:00:00Z", "spec": null, "level": "medium", "source": "/design"}
+["phase_completed", "2026-02-02T10:00:00Z", "design"]
+not json at all

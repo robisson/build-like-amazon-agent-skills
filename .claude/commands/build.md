@@ -218,6 +218,19 @@ For each completed spec:
 - Observability instrumentation (logs, metrics, alarms)
 - `tasks.md` is in a terminal state: every task is `[x]` (done) or `[!]` (blocked, with reason). No `[ ]` or `[-]` may remain when the spec is declared complete. If any do, the spec is not done — reconcile before moving on. This is *execution closure*, not delivery: it means nothing is left to dispatch, not that everything was delivered. What was delivered is stated by the verdict in `implementation-review.md`.
 
+**Flow metrics.** `/build` owns all six events for the `build` phase and appends each as one JSON line to
+`docs/bla-metrics.jsonl`: `phase_started` at the end of Step 0, once the proportionality check returns
+Medium or above; `spec_completed` at each spec close, after the marker invariant passes — `/build` is the
+only owner of that event; `gate_approved` or `gate_rework` at the post-implementation review, according to
+its verdict; one `review_blocking_finding` per finding admitted at canonical severity BLOCKING in
+`implementation-review.md`, carrying its `F-NN` ID; and `phase_completed` once every spec is in a terminal
+state and the outputs above are saved. No command emits an event another one owns (owner table in
+`docs/flow-metrics.md`). **Emit only at Medium and above**; at Trivial and Small — including the direct
+implementation path of Step 0 — emit nothing. If the line cannot be written — no writable tree, no `docs/`
+directory, the adopter declined — state in one line that the flow measurement for this phase was not
+recorded, and **continue**: measurement is not a gate and never blocks a build, a spec close or a
+deployment.
+
 ---
 
 ## Post-Implementation Review
