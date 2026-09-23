@@ -39,6 +39,10 @@ CASES = [
     ("writes-collision",
      ["tasks", os.path.join(FIXTURES, "writes-collision")], 1,
      ["FALHA [wave-writes-intersection]", "src/api/handler.ts"], [], None),
+    ("tasks-evidence-missing",
+     ["tasks", os.path.join(FIXTURES, "tasks-evidence-missing")], 1,
+     ["FALHA [task-evidence-missing]", "1.2.md does not exist",
+      "does not open with"], ["FALHA [tasks-file-absent]", "task 1.1"], None),
 ]
 
 

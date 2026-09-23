@@ -64,13 +64,15 @@ block, and `coherence-review.md` is defined in `skills/spec-driven-implementatio
 | Artefato | Caminho canônico | Obrigatório/Opcional | Template | Produzido por (comando) | Consumido por |
 |---|---|---|---|---|---|
 | Implementation code and tests | the project's own source tree | Obrigatório | — | `/build` | `/review`, `agents/implementation-verifier.md` |
+| Task completion evidence | `specs/<slice-name>/.reports/<task-id>.md` | Obrigatório at Medium/Large | — | `/build`, written by the task's sub-agent before it reports back | `/build` wave close, `python3 tools/bla-check tasks` |
 | Post-implementation review | `specs/<slice-name>/implementation-review.md` | Obrigatório | — | `/build`, written by `agents/implementation-verifier.md` | `/build` review-fix phase, `/review`, `docs/implementation-memory.md` |
 | Code review | `docs/reviews/<feature-name>/code-review.md` | Obrigatório | — | `/review`, written by `agents/code-review-bar-raiser.md` | the author, `/build`, `docs/implementation-memory.md` |
 | Operational readiness checklist, review-time | `docs/reviews/<feature-name>/orr-checklist.md` | Obrigatório | `skills/operational-readiness-review/templates/orr-checklist.md` | `/review`, written by `agents/ops-bar-raiser.md` | `/deploy`, `/operate` |
 
 A `—` in `Template` means the shape comes from the skill's prose: both review reports are shaped by their
 agent's `## IO Contract` and terminal verdict block, and `skills/code-review-bar-raising/SKILL.md` owns
-the finding format they share.
+the finding format they share. The per-task evidence file is shaped by `.claude/commands/build.md`, which
+fixes its first line — `**Agent:** <task-id>` — because that line is what the wave close matches on.
 
 ## Deploy
 

@@ -1,7 +1,10 @@
 # Tasks: Clean Fixture
 
 A spec in execution closure: every task is `[x]` or `[!]`, the blocked one carries
-its reason inline, and the dependency graph matches the document exactly.
+its reason inline, and the dependency graph matches the document exactly. It also
+opted in to per-task completion evidence: `.reports/` exists and carries one file per
+done task, each opening with its `**Agent:** <task-id>` marker line. The blocked task
+needs none — it was never done.
 
 ## Phase 1: Foundation
 
