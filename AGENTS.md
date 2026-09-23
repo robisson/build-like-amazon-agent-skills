@@ -349,6 +349,8 @@ Three checks before you consider the change done:
 
 A follow-up commit "fix the docs" is not acceptable: between the two commits the contract lies, and an agent reading it acts on the lie.
 
+`CHANGELOG.md` is the one deliberate exception to this rule: it is written only by a change that affects users, so an agent must not add an entry for a typo fix, an internal rename or a new predicate that changes no behaviour — when an entry *is* owed, it still lands in the same commit as the change.
+
 ---
 
 *These operating behaviors are mechanisms, not suggestions. Follow them consistently — that's how quality compounds over time.*

@@ -251,6 +251,53 @@ jobs:
             exit 1
           fi
 
+      - name: version-agreement
+        # This library is distributed by copying, so the version an adopter can actually read is `VERSION`
+        # at the root — `.claude-plugin/plugin.json` is invisible to anyone who copied one harness
+        # directory. Two version strings in two files is a drift machine: this step is what makes the
+        # duplication safe, by failing the moment they stop agreeing, or the moment CHANGELOG.md stops
+        # naming the current one.
+        #
+        # What this step deliberately does NOT check: that CHANGELOG.md gained an entry in this pull
+        # request. A normal pull request does not write the changelog — only a change that affects users
+        # does (the rule is stated at the top of CHANGELOG.md and in CONTRIBUTING.md). A predicate
+        # demanding an entry per PR would be born red on typo fixes and would be trained away.
+        #
+        # Version headings in CHANGELOG.md carry no square brackets on purpose: `## [0.2.0]` is a
+        # CommonMark shortcut reference link and trips MD052/MD053, both enabled. This step matches the
+        # bracket-free form, so re-adding brackets fails here as well as in markdownlint.
+        run: |
+          f=0
+          v=''
+
+          if [ ! -f VERSION ]; then
+            echo "FALHA [version-marker-absent] VERSION does not exist at the repository root"
+            f=1
+          else
+            n=$(grep -c . VERSION | tr -d ' ' || true)
+            v=$(head -1 VERSION | tr -d ' \t\r')
+            { [ "$n" = 1 ] && echo "$v" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; } \
+              || { echo "FALHA [version-marker-absent] VERSION must be a single x.y.z line; found $n non-empty line(s), first is '$v'"; f=1; }
+          fi
+
+          p=$(grep -m1 '"version"' .claude-plugin/plugin.json \
+              | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || true)
+          [ -n "$v" ] && [ "$v" = "$p" ] \
+            || { echo "FALHA [version-disagreement] VERSION says '$v' but .claude-plugin/plugin.json says '$p'"; f=1; }
+
+          if [ ! -f CHANGELOG.md ]; then
+            echo "FALHA [changelog-head-mismatch] CHANGELOG.md does not exist at the repository root"
+            f=1
+          else
+            h=$(grep -m1 '^## [0-9]' CHANGELOG.md || true)
+            case "$h" in
+              "## $v"*) : ;;
+              *) echo "FALHA [changelog-head-mismatch] the newest version heading in CHANGELOG.md is '$h', which does not name VERSION ($v)"; f=1 ;;
+            esac
+          fi
+
+          [ "$f" -eq 0 ] || exit 1
+
       - name: gitleaks
         # No baseline, on purpose: see the comment in .gitleaks.toml. A baseline committed before the
         # first scan converts an unknown into an approved exception.
