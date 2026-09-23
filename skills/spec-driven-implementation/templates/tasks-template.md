@@ -353,7 +353,7 @@ _Writes: config/feature-flags.json, src/api/flag-gate.ts_
 {
   "metadata": {
     "slice": "[Slice Name]",
-    "total_tasks": 13,
+    "total_tasks": 15,
     "total_phases": 5,
     "critical_path_tasks": ["1.1", "1.2", "2.1", "2.3", "3.1", "4.1", "5.1", "5.2", "5.3"],
     "critical_path_estimate_days": "[N]",
