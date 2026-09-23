@@ -22,6 +22,8 @@ Update policy:
 
 Capture sources: `/design` (a requirement that bounced at the design gate 3 or more times), `/spec` (a coherence-review finding that recurs across specs), `/build` (post-implementation review), `/review` (recurring findings), `/learn` (COE implementation-level actions).
 
+`/review` and `/learn` are capture points, not phases: a rule captured there inherits the `Phase` of the work it reviewed (a review finding about implementation is recorded as the `build` phase, a COE action about operational practice as `operate`), so the `Phase` enum in **Rule Shape** below gains no `review` or `learn` value.
+
 ## Active Rules
 
 ### IM-001: Produce Required Workflow Artifacts

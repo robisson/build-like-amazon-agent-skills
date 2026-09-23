@@ -1,0 +1,576 @@
+#!/usr/bin/env python3
+"""bla-check — deterministic checks for a Build Like Amazon repository.
+
+One file, standard library only, no manifest and no lockfile: this repository is
+documentation, and a checker that needs an install step would not be run.
+
+Output contract, mandatory and stable:
+
+    FALHA [rule-name] path:line message     a violation; any FALHA makes the exit code 1
+    AVISO [rule-name] path:line message     a warning; never changes the exit code
+
+`--json` prints one JSON array of {severity, rule, path, line, message} and nothing else.
+Its only in-repository consumer is `tools/tests/run.py`, which asserts the shape.
+"""
+
+import argparse
+import json
+import os
+import re
+import sys
+
+FALHA = "FALHA"
+AVISO = "AVISO"
+
+# Directories `links` never walks into.
+SKIP_DIRS = (".git", ".agents", ".worktrees", "node_modules")
+
+FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+CHECKBOX_RE = re.compile(r"^\s*[-*+]\s+\[([ xX!\-])\]\s*(.*)$")
+TASK_NAMED_RE = re.compile(r"^\**Task\s+([0-9]+(?:\.[0-9]+)*)")
+TASK_HEADING_RE = re.compile(r"^(#{1,6})\s+Task\s+([0-9]+(?:\.[0-9]+)*)")
+HEADING_RE = re.compile(r"^(#{1,6})\s")
+CODE_SPAN_RE = re.compile(r"`+[^`]*`+")
+LINK_RE = re.compile(r"\]\(\s*(<[^>]*>|[^()\s]+)")
+IGNORED_LINK_PREFIXES = ("http:", "https:", "mailto:")
+REASON_DELIMITERS = (":", "\u2014", " - ")
+
+
+def finding(severity, rule, path, line, message):
+    """Build one finding. `line` may be None for a document-level observation."""
+    return {
+        "severity": severity,
+        "rule": rule,
+        "path": path,
+        "line": line,
+        "message": message,
+    }
+
+
+def read_lines(path):
+    with open(path, "r", encoding="utf-8", errors="replace") as handle:
+        return handle.read().split("\n")
+
+
+def strip_fences(lines):
+    """Yield (lineno, text) for every line *outside* a fenced code block.
+
+    A fence closes only on the same fence character with a length greater than or
+    equal to the opener (CommonMark). Both delimiter lines are withheld, and an
+    unterminated fence swallows the rest of the document, exactly as CommonMark
+    closes it at end of input.
+    """
+    opener = None
+    for lineno, raw in enumerate(lines, start=1):
+        text = raw.rstrip("\r\n")
+        match = FENCE_RE.match(text)
+        if opener is None:
+            if match:
+                opener = match.group(1)
+            else:
+                yield (lineno, text)
+        elif match and match.group(1)[0] == opener[0] and len(match.group(1)) >= len(opener):
+            opener = None
+
+
+def fenced_blocks(lines):
+    """Yield (lineno_of_opener, info_string, block_lines) for each fenced block."""
+    opener = None
+    start = 0
+    info = ""
+    body = []
+    for lineno, raw in enumerate(lines, start=1):
+        text = raw.rstrip("\r\n")
+        match = FENCE_RE.match(text)
+        if opener is None:
+            if match:
+                opener = match.group(1)
+                start = lineno
+                info = text[match.end():].strip()
+                body = []
+        elif match and match.group(1)[0] == opener[0] and len(match.group(1)) >= len(opener):
+            yield (start, info, body)
+            opener = None
+        else:
+            body.append(text)
+    if opener is not None:
+        yield (start, info, body)
+
+
+def has_reason(remainder):
+    """True when the text after a `[!]` marker carries an actual reason.
+
+    The remainder must contain one of `:`, an em dash, or ` - `, followed by at
+    least four non-space characters. `- [!] Task 2.3` is a marker without a
+    reason; `- [!] Task 2.3: blocked — upstream API not deployed` is a reason.
+    """
+    for delimiter in REASON_DELIMITERS:
+        index = remainder.find(delimiter)
+        if index >= 0:
+            tail = remainder[index + len(delimiter):]
+            if len("".join(tail.split())) >= 4:
+                return True
+    return False
+
+
+def marker_state(marker):
+    if marker == "!":
+        return "blocked"
+    if marker in (" ", "-"):
+        return "open"
+    return "done"
+
+
+def is_skipped_dir(parent, name):
+    """True when `links` must not descend into <parent>/<name>.
+
+    Besides the fixed list, a directory named `fixtures` directly inside a
+    directory named `tests` is skipped: its files are deliberately malformed
+    inputs for a checker, not documentation. Pointing the subcommand straight at
+    such a directory still checks it — only descent from above is pruned.
+    """
+    if name in SKIP_DIRS:
+        return True
+    return name == "fixtures" and os.path.basename(parent) == "tests"
+
+
+def normalise_write(path):
+    """Canonical form of one declared write path: no leading `./`, forward slashes."""
+    text = str(path).strip().replace("\\", "/")
+    while text.startswith("./"):
+        text = text[2:]
+    return text
+
+
+def declared_writes(node):
+    """A task's declared write set, or None when the task declares none.
+
+    None and `[]` are different answers: None means the task said nothing, `[]`
+    means the task said it writes nothing.
+    """
+    value = node.get("writes")
+    if not isinstance(value, list):
+        return None
+    return [normalise_write(item) for item in value]
+
+
+def writes_collide(left, right):
+    """True when two declared write paths cannot be written in parallel.
+
+    Equal paths collide. A path ending in `/` is a directory and collides with
+    everything beneath it, so `src/api/generated/` collides with
+    `src/api/generated/handler.ts`.
+    """
+    if left == right:
+        return True
+    if left.endswith("/") and right.startswith(left):
+        return True
+    if right.endswith("/") and left.startswith(right):
+        return True
+    return False
+
+
+def cmd_tasks(spec_dir, wave=None):
+    """Check `<spec-dir>/tasks.md`: markers, blocked reasons, and the task graph.
+
+    `wave` narrows every task-scoped rule to the tasks the graph places in that
+    wave, which is what makes the check runnable at a wave close: unscoped, a
+    still-undispatched task in a later wave is a legitimate `[ ]` and would be
+    reported as a violation at the close of every wave but the last. The whole-file
+    rules that are wave-independent — the graph/document set equality — stay on,
+    because they are green in any well-formed spec whatever wave is running.
+    """
+    findings = []
+    path = os.path.join(spec_dir, "tasks.md")
+    if not os.path.isfile(path):
+        findings.append(finding(
+            FALHA, "tasks-file-absent", path, 1,
+            "no tasks.md to check in %s" % spec_dir))
+        return findings
+
+    lines = read_lines(path)
+    body = list(strip_fences(lines))
+    graph, graph_line = task_graph(lines)
+
+    # Task state as the document declares it, by two channels.
+    checkbox_state = {}   # task id -> (marker, lineno); a checkbox wins over a section
+    section_markers = {}  # task id -> [marker, ...] seen inside the `### Task <id>` section
+    section_line = {}     # task id -> lineno of the heading
+    open_section = None
+    open_level = 0
+    # (owning task id or None, finding) — held back until the wave scope is known.
+    marker_findings = []
+
+    for lineno, text in body:
+        heading = TASK_HEADING_RE.match(text)
+        if heading:
+            open_section = heading.group(2)
+            open_level = len(heading.group(1))
+            section_markers.setdefault(open_section, [])
+            section_line.setdefault(open_section, lineno)
+            continue
+        generic = HEADING_RE.match(text)
+        if generic and len(generic.group(1)) <= open_level:
+            open_section = None
+            open_level = 0
+
+        checkbox = CHECKBOX_RE.match(text)
+        if not checkbox:
+            continue
+        marker, remainder = checkbox.group(1), checkbox.group(2)
+        named = TASK_NAMED_RE.match(remainder)
+        owner = named.group(1) if named else open_section
+
+        # (a) task-marker-open — an unfinished marker survived into the report.
+        if marker in (" ", "-"):
+            marker_findings.append((owner, finding(
+                FALHA, "task-marker-open", path, lineno,
+                "marker is still [%s]: %s" % (marker, remainder.strip() or "(no text)"))))
+        # (b) task-blocked-no-reason — a blocked marker with nothing a reader can act on.
+        elif marker == "!" and not has_reason(remainder):
+            marker_findings.append((owner, finding(
+                FALHA, "task-blocked-no-reason", path, lineno,
+                "[!] carries no reason: %s" % (remainder.strip() or "(no text)"))))
+
+        if named:
+            checkbox_state[named.group(1)] = (marker, lineno)
+        elif open_section is not None:
+            section_markers[open_section].append(marker)
+
+    def state_of(task_id):
+        if task_id in checkbox_state:
+            return marker_state(checkbox_state[task_id][0])
+        markers = section_markers.get(task_id)
+        if markers is None:
+            return None
+        if "!" in markers:
+            return "blocked"
+        if " " in markers or "-" in markers:
+            return "open"
+        if [m for m in markers if m in ("x", "X")]:
+            return "done"
+        return None
+
+    def declared_line(task_id, default):
+        if task_id in checkbox_state:
+            return checkbox_state[task_id][1]
+        return section_line.get(task_id, default)
+
+    # The wave scope, read off the `wave` field the graph already carries. A `--wave`
+    # asked of a document with no graph cannot be honoured: fall back to the whole
+    # file and say so on the task-graph-absent line, rather than checking nothing.
+    scope = None if graph is None else wave
+    wave_of = {}
+    for task_id, node in (graph or {}).items():
+        if isinstance(node, dict) and "wave" in node:
+            wave_of[str(task_id)] = str(node["wave"])
+    members = None
+    if scope is not None:
+        members = set(t for t, w in wave_of.items() if w == str(scope))
+        if not members:
+            findings.append(finding(
+                AVISO, "wave-scope-empty", path, graph_line,
+                "no task in the dependency graph declares wave %s — nothing "
+                "was checked under that scope" % scope))
+
+    def in_scope(task_id):
+        """True when a task-scoped rule applies to `task_id` under the wave scope.
+
+        Unscoped, everything applies. Scoped, a checkbox that belongs to no task in
+        the wave is out of scope — including one that belongs to no task at all,
+        such as the template's Completion Checklist. That is the point of the
+        scope, and it is why the unscoped run is the one that must be green at the
+        spec close.
+        """
+        if members is None:
+            return True
+        return task_id is not None and task_id in members
+
+    for owner, item in marker_findings:
+        if in_scope(owner):
+            findings.append(item)
+
+    # (h) task-evidence-missing — a task reported done with no evidence on disk.
+    #     Scoped to specs that opted in: the rule looks only when <spec-dir>/.reports/
+    #     exists, so a spec that never asked for per-task evidence is never failed
+    #     for not having it, while a half-done one is caught.
+    reports_dir = os.path.join(spec_dir, ".reports")
+    if os.path.isdir(reports_dir):
+        for task_id in sorted(set(checkbox_state) | set(section_markers)):
+            if not in_scope(task_id):
+                continue
+            if state_of(task_id) != "done":
+                continue
+            evidence = os.path.join(reports_dir, "%s.md" % task_id)
+            marker_line = "**Agent:** %s" % task_id
+            if not os.path.isfile(evidence):
+                findings.append(finding(
+                    FALHA, "task-evidence-missing", path, declared_line(task_id, 1),
+                    "task %s is done but %s does not exist" % (task_id, evidence)))
+                continue
+            head = read_lines(evidence)
+            first = head[0].strip() if head else ""
+            if first != marker_line:
+                findings.append(finding(
+                    FALHA, "task-evidence-missing", path, declared_line(task_id, 1),
+                    "task %s: %s does not open with `%s` (first line is %r)"
+                    % (task_id, evidence, marker_line, first)))
+
+    if graph is None:
+        message = "no ```json fence with a \"tasks\" object — graph rules skipped"
+        if wave is not None:
+            message += "; --wave %s could not be applied, so the whole file was checked" % wave
+        findings.append(finding(AVISO, "task-graph-absent", path, None, message))
+        return findings
+
+    def line_of(task_id):
+        return declared_line(task_id, graph_line)
+
+    json_ids = set(graph.keys())
+    doc_ids = set(checkbox_state.keys()) | set(section_markers.keys())
+
+    # (d) task-graph-orphan — the two sets must be EQUAL, in both directions.
+    for task_id in sorted(json_ids - doc_ids):
+        findings.append(finding(
+            FALHA, "task-graph-orphan", path, graph_line,
+            "task %s is in the dependency graph but has no `Task %s` section or checkbox"
+            % (task_id, task_id)))
+    for task_id in sorted(doc_ids - json_ids):
+        findings.append(finding(
+            FALHA, "task-graph-orphan", path, line_of(task_id),
+            "task %s is in the document but has no entry in the dependency graph" % task_id))
+
+    # (e) task-dep-blocked — a done task standing on a blocked one. The dependent's
+    #     own wave decides whether the pair is in scope: a task closing in this wave
+    #     must not stand on a blocked dependency from any earlier one.
+    for task_id in sorted(json_ids & doc_ids):
+        if not in_scope(task_id):
+            continue
+        if state_of(task_id) is None:
+            findings.append(finding(
+                AVISO, "task-state-unknown", path, line_of(task_id),
+                "no marker found for task %s — state not derivable" % task_id))
+            continue
+        if state_of(task_id) != "done":
+            continue
+        node = graph.get(task_id) or {}
+        for dep in node.get("depends_on") or []:
+            if state_of(str(dep)) == "blocked":
+                findings.append(finding(
+                    FALHA, "task-dep-blocked", path, line_of(task_id),
+                    "task %s is done while its dependency task %s is blocked"
+                    % (task_id, dep)))
+
+    # (i) wave-dep-intra — a dependency edge inside one wave. The planner states two
+    #     conditions for a wave and only the write intersection was mechanical, which
+    #     is how a wave that cannot dispatch gets declared: `/build` dispatches only
+    #     tasks whose dependencies are all `[x]`, so a task depending on a wave-mate
+    #     is never dispatched in that wave at all.
+    for task_id in sorted(json_ids):
+        if not in_scope(task_id):
+            continue
+        own = wave_of.get(task_id)
+        if own is None:
+            continue
+        for dep in (graph.get(task_id) or {}).get("depends_on") or []:
+            if wave_of.get(str(dep)) == own:
+                findings.append(finding(
+                    FALHA, "wave-dep-intra", path, graph_line,
+                    "wave %s: task %s depends on task %s, which is in the same wave — "
+                    "it can never be dispatched there" % (own, task_id, dep)))
+
+    # (f) wave-writes-intersection — two tasks in one wave claiming the same path.
+    #     Parallel dispatch of that pair is a lost write, whatever the graph says.
+    # (g) wave-writes-undeclared — the comparison above cannot be made for a task
+    #     that declares nothing. A spec where NO task declares `writes` is skipped
+    #     in silence (an old spec must not be born red); a wave that mixes declared
+    #     and undeclared tasks gets a warning, because there the check is partial.
+    waves = {}
+    for task_id in sorted(json_ids):
+        node = graph.get(task_id) or {}
+        if "wave" not in node:
+            continue
+        waves.setdefault(str(node["wave"]), []).append(task_id)
+    someone_declares = [
+        t for t in json_ids if declared_writes(graph.get(t) or {}) is not None]
+
+    for wave_key in sorted(waves):
+        if scope is not None and wave_key != str(scope):
+            continue
+        wave_members = sorted(waves[wave_key])
+        for index, first in enumerate(wave_members):
+            first_writes = declared_writes(graph.get(first) or {})
+            if first_writes is None:
+                # A wave with one task has no pair to intersect, so a missing
+                # declaration there cannot make any verdict weaker.
+                if someone_declares and len(wave_members) > 1:
+                    findings.append(finding(
+                        AVISO, "wave-writes-undeclared", path, graph_line,
+                        "wave %s: task %s declares no writes[] — the intersection "
+                        "check for this wave is incomplete" % (wave_key, first)))
+                continue
+            for second in wave_members[index + 1:]:
+                second_writes = declared_writes(graph.get(second) or {})
+                if second_writes is None:
+                    continue
+                for left in second_writes:
+                    for right in first_writes:
+                        if not writes_collide(left, right):
+                            continue
+                        if left == right:
+                            shared, detail = left, ""
+                        elif right.endswith("/"):
+                            shared = right
+                            detail = " (task %s writes %s, inside it)" % (second, left)
+                        else:
+                            shared = left
+                            detail = " (task %s writes %s, inside it)" % (first, right)
+                        findings.append(finding(
+                            FALHA, "wave-writes-intersection", path, graph_line,
+                            "wave %s: task %s and task %s both write %s%s"
+                            % (wave_key, first, second, shared, detail)))
+    return findings
+
+
+def task_graph(lines):
+    """Return (tasks_dict, lineno) from the first ```json fence carrying "tasks"."""
+    for lineno, info, block in fenced_blocks(lines):
+        if info.split(None, 1)[:1] not in ([], ["json"]):
+            continue
+        try:
+            parsed = json.loads("\n".join(block))
+        except ValueError:
+            continue
+        if isinstance(parsed, dict) and isinstance(parsed.get("tasks"), dict):
+            return parsed["tasks"], lineno
+    return None, None
+
+
+def cmd_links(root):
+    """Check every relative markdown link target under <dir> resolves to a real path.
+
+    One resolution rule and no fallback: a link resolves only against the directory
+    of the file that contains it. A second base (the repository root) is what lets
+    broken links pass unnoticed.
+    """
+    findings = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = sorted(d for d in dirnames if not is_skipped_dir(dirpath, d))
+        for name in sorted(filenames):
+            if not name.endswith(".md"):
+                continue
+            path = os.path.join(dirpath, name)
+            for lineno, text in strip_fences(read_lines(path)):
+                text = CODE_SPAN_RE.sub(" ", text)
+                for match in LINK_RE.finditer(text):
+                    target = match.group(1)
+                    if target.startswith("<") and target.endswith(">"):
+                        target = target[1:-1]
+                    if not target or target.startswith("#"):
+                        continue
+                    lowered = target.lower()
+                    if [p for p in IGNORED_LINK_PREFIXES if lowered.startswith(p)]:
+                        continue
+                    bare = target.split("#", 1)[0]
+                    if not bare:
+                        continue
+                    resolved = os.path.normpath(os.path.join(dirpath, bare))
+                    if not os.path.exists(resolved):
+                        findings.append(finding(
+                            FALHA, "link-broken", path, lineno,
+                            "%s (resolved %s)" % (target, resolved)))
+    return findings
+
+
+def report(findings, as_json):
+    """Print the findings and return the process exit code."""
+    if as_json:
+        print(json.dumps(findings))
+    else:
+        for item in findings:
+            where = item["path"]
+            if item["line"] is not None:
+                where = "%s:%s" % (where, item["line"])
+            print("%s [%s] %s %s" % (item["severity"], item["rule"], where, item["message"]))
+    return 1 if [f for f in findings if f["severity"] == FALHA] else 0
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(
+        prog="bla-check",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=(
+            "Deterministic checks for a Build Like Amazon repository.\n"
+            "Violations print FALHA [rule] path:line message and exit 1;\n"
+            "AVISO lines are warnings and never change the exit code."),
+        epilog=(
+            "notes:\n"
+            "  --json must come before the subcommand, and prints one JSON array of\n"
+            "  {severity, rule, path, line, message} and nothing else. Its only\n"
+            "  consumer inside this repository is tools/tests/run.py, which asserts\n"
+            "  the shape so the contract stays verified for outside consumers.\n"
+            "  `tasks --wave <n>` is the wave-close invocation: every task-scoped rule\n"
+            "  narrows to the tasks the graph places in wave <n>, because a task in a\n"
+            "  later wave is legitimately still `[ ]` at that point. A checkbox that\n"
+            "  belongs to no task in the wave is out of scope under --wave. Omit the\n"
+            "  flag at the spec close, where the whole file must be green.\n"
+            "  `tasks` compares the `writes` sets of the tasks in one wave: the pairwise\n"
+            "  intersection must be empty, and a path ending in `/` is a directory that\n"
+            "  collides with everything beneath it. A dependency edge inside one wave is\n"
+            "  the other way a wave cannot dispatch, and is reported as wave-dep-intra.\n"
+            "  A spec where no task declares\n"
+            "  `writes` is skipped in silence; a wave that mixes declared and undeclared\n"
+            "  tasks gets an AVISO, because there the comparison is only partial.\n"
+            "  Completion evidence is checked only when <spec-dir>/.reports/ exists:\n"
+            "  every done task then needs .reports/<task-id>.md opening with the line\n"
+            "  `**Agent:** <task-id>`. A spec that never opted in is left alone.\n"
+            "  `links` reads markdown link syntax only: HTML attributes such as src=\n"
+            "  and href= are out of scope, as are reference-style link definitions.\n"
+            "  `links` resolves a target only against the directory of the file that\n"
+            "  contains it, with no second base. It skips .git, .agents, .worktrees,\n"
+            "  node_modules, and a tests/fixtures directory (deliberately malformed\n"
+            "  inputs), unless you point it straight at one.\n"))
+    parser.add_argument(
+        "--json", action="store_true",
+        help="print findings as one JSON array instead of FALHA/AVISO lines")
+    sub = parser.add_subparsers(dest="command", metavar="<subcommand>")
+
+    p_tasks = sub.add_parser(
+        "tasks",
+        help=("check <spec-dir>/tasks.md: open markers, blocked reasons, task graph, "
+              "per-wave write collisions, completion evidence"))
+    p_tasks.add_argument("spec_dir", metavar="<spec-dir>")
+    p_tasks.add_argument(
+        "--wave", metavar="<n>", default=None,
+        help=("narrow every task-scoped rule to the tasks the graph places in wave "
+              "<n>; omit it at the spec close, where the whole file must be green"))
+
+    p_links = sub.add_parser(
+        "links", help="check that relative markdown links under <dir> resolve")
+    p_links.add_argument("root", metavar="<dir>", nargs="?", default=".")
+
+    sub.add_parser(
+        "artifacts",
+        help=("not implemented — needs a template-residue detector and the repository "
+              "has zero filled artifacts to calibrate against"))
+    sub.add_parser(
+        "review",
+        help=("not implemented — needs a parseable verdict block in a persisted report "
+              "to calibrate against"))
+
+    args = parser.parse_args(argv)
+    if args.command == "tasks":
+        return report(cmd_tasks(args.spec_dir, args.wave), args.json)
+    if args.command == "links":
+        return report(cmd_links(args.root), args.json)
+    if args.command in ("artifacts", "review"):
+        sys.stderr.write(
+            "bla-check: `%s` is registered but does nothing yet; see --help for why\n"
+            % args.command)
+        return 2
+    parser.print_help()
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

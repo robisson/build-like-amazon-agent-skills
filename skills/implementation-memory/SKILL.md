@@ -25,13 +25,14 @@ Implementation memory can be fed from multiple workflow stages — not only `/bu
 
 | Source | When | What to extract |
 |--------|------|-----------------|
+| `/wb` (bar raiser gate) | After a PR/FAQ or 5CQ bounces on the same bar-raiser question across features | The recurring gap in customer evidence or problem framing, stated as a rule for future Working Backwards work |
 | `/design` (design gate) | After a requirement bounces at the design gate 3 or more times | The recurring reason the requirement keeps failing the gate, stated as a rule for future design work |
 | `/spec` (coherence review) | After a coherence-review finding recurs across specs | The cross-spec inconsistency pattern that coherence review keeps catching |
 | `/build` (post-implementation review) | After PASSED WITH FIXES NEEDED or user validation | Procedural lessons from fix tasks, debug cycles, review findings |
 | `/review` (code review) | After review feedback is resolved | Recurring review findings that apply beyond one PR |
 | `/learn` (COE) | After corrective actions are defined | Operational lessons that should influence future implementation |
 
-All sources use the same Quality Memory Review process, admission checks, and rejection rules. Record the capturing phase in the rule's `Phase` field so later selection scopes it correctly.
+All sources use the same Quality Memory Review process, admission checks, and rejection rules. Record in the rule's `Phase` field the phase whose work the rule constrains, so later selection scopes it correctly. For the first four sources that is the capturing phase itself — `/wb` → `wb`, `/design` → `design`, `/spec` → `spec`, `/build` → `build` — which is what makes every value the enum admits reachable: a value no source can write would be a filter hiding rules nobody can create. `/review` and `/learn` are capture points, not phases: a rule captured there inherits the `Phase` of the work it reviewed — a review finding about implementation is `Phase: build`, a COE action about operational practice is `Phase: operate` — because the `Phase` field names the phase whose work the rule governs, and there is no pre-execution selection at `/review` or `/learn` to scope. The enum is therefore unchanged: no `review` or `learn` value exists.
 
 ## Internal Flow Hooks
 
@@ -44,7 +45,7 @@ Use this mechanism in these places:
 5. **After `/learn` corrective actions**: if a COE produces an implementation-level corrective action (not an org/process action), extract a candidate and present for Accept / Reject / Edit.
 6. **After a requirement bounces at the `/design` gate 3 or more times**: extract a candidate with `Phase: design` describing why the requirement kept failing the gate, and present for Accept / Reject / Edit. Without this hook a requirement rejected three times leaves no trace.
 7. **After a coherence-review finding recurs across specs**: when `/spec` produces the same coherence finding in 2 or more specs, extract a candidate with `Phase: spec` and present for Accept / Reject / Edit.
-8. **Periodic nudge**: after 3 builds without a memory update (tracked via `Last build without update` counter at the bottom of the memory file), include in the end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
+8. **Periodic nudge**: after 3 builds without a memory update (tracked via `Builds without update` counter at the bottom of the memory file), include in the end-of-build summary: "You have had N builds without memory update. Would you like a quick Quality Memory Review?"
 
 Do not use this skill to replace requirements, design documents, ADRs, release notes, PR/FAQ, postmortems, or review artifacts.
 

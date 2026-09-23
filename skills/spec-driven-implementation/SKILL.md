@@ -218,10 +218,10 @@ Once a spec is approved:
 
 Parallel execution within a wave is safe only when **both** of these invariants hold:
 
-1. **No intra-wave logical dependency.** No task in the wave consumes an output produced by another task in the same wave. This one the `task-planner` does guarantee — it is exactly what the dependency graph models.
-2. **No intersection of files written within the wave.** No two tasks in the wave write the same file. This one the graph does **not** model: `skills/spec-driven-implementation/templates/tasks-template.md` carries `depends_on`, `wave`, `size`, `type` and `door` per task, and no file field at all. Nothing in the current artifact can prove invariant 2.
+1. **No intra-wave logical dependency.** No task in the wave consumes an output produced by another task in the same wave. This one the `task-planner` does guarantee — it is exactly what the dependency graph models — and `python3 tools/bla-check tasks specs/<slice-name>` re-reads the emitted graph and reports `FALHA [wave-dep-intra]` where the guarantee slipped, because `/build` dispatches only tasks whose dependencies are all `[x]` and a task depending on a wave-mate is therefore never dispatched in that wave.
+2. **No intersection of files written within the wave.** No two tasks in the wave write the same file. This one the graph models too: `skills/spec-driven-implementation/templates/tasks-template.md` carries `depends_on`, `wave`, `size`, `type`, `door` and `writes` per task, and `writes` is the declared set of paths that task changes. The invariant is therefore checkable by comparing the declared sets: for every pair of tasks in one wave, the intersection of their `writes` must be **empty**, where a path ending in `/` is a directory and collides with everything beneath it. `python3 tools/bla-check tasks specs/<slice-name>` performs that comparison and reports `FALHA [wave-writes-intersection]`. A task that changes no file in the repository declares no `writes`, and there is then nothing to intersect on its behalf.
 
-Because invariant 2 is unmodelled, it must be established by reading the tasks before dispatching a wave. When two tasks in the same wave must write the same file — a barrel of exports, a router registration, a schema migration — the intersection is mandatory and parallel execution would produce a lost write or a conflict. Serialise them: keep one task in the wave and move the colliding task to the next wave.
+Because a declared set can be wrong where a read cannot — a task may write a file it never declared — the check is necessary and not sufficient, and the serialisation rule is unchanged. When two tasks in the same wave must write the same file — a barrel of exports, a router registration, a schema migration — the intersection is mandatory and parallel execution would produce a lost write or a conflict. Serialise them: keep one task in the wave and move the colliding task to the next wave. `/build` closes the gap at the other end, by comparing the union of the wave's declared `writes` against the paths `git` says actually changed.
 
 ### 6. Post-Spec Completion
 
@@ -445,9 +445,9 @@ _Depends on: Task 1.2 (Wave 2)_
 ```json
 {
   "tasks": {
-    "1.1": { "depends_on": [], "wave": 1, "size": "S" },
-    "1.2": { "depends_on": ["1.1"], "wave": 1, "size": "M" },
-    "2.1": { "depends_on": ["1.2"], "wave": 2, "size": "L" }
+    "1.1": { "depends_on": [], "wave": 1, "size": "S", "writes": ["src/domain/types.ts"] },
+    "1.2": { "depends_on": ["1.1"], "wave": 1, "size": "M", "writes": ["src/db/schema.ts"] },
+    "2.1": { "depends_on": ["1.2"], "wave": 2, "size": "L", "writes": ["src/service/resource-service.ts"] }
   },
   "critical_path": ["1.1", "1.2", "2.1"],
   "waves": {

@@ -1,0 +1,261 @@
+# The repository's only workflow. It re-runs, on the server, the deterministic checks that until now
+# existed only as conventions in prose.
+#
+# Three properties are deliberate and must survive every edit:
+#
+#  1. ONE JOB, SHELL PREDICATES. There is no build, no manifest and no lockfile in this repository and
+#     this workflow must not introduce one. `python3` appears only to run `tools/bla-check` and its
+#     self-test (Python 3 is preinstalled on ubuntu-latest); `npx` appears only to run markdownlint at
+#     a pinned version. Everything else is POSIX shell, `grep`, `awk` and `find`.
+#  2. ONE FAILURE FORMAT. Every predicate that fails prints exactly `FALHA [rule-name] <message>` and
+#     the step exits 1. The rule name is the contract: it is what a reader greps for and what the
+#     wave's verification block asserts, so rename a rule only together with every reference to it.
+#     `tools/bla-check` prints the same shape for its own rules.
+#  3. PORTABLE PREDICATES. Every predicate must run unchanged on this runner's GNU userland AND on a
+#     maintainer's macOS BSD userland: no `grep -P`, no `sed -i` without an argument, no `readlink -f`,
+#     and never `grep -l` with `-c` added to it (BSD prints both a `file:count` line and a bare `file`
+#     line per match, which silently doubles every count — count lines with `-c` alone, or list files
+#     with `-l` alone and pipe to `wc -l`). Sums are computed with `awk`, not `paste | bc`, for the same
+#     reason.
+#     Each predicate is written to be safe under `set -e` and `pipefail`, so it can be copied out of
+#     this file and pasted into a local shell verbatim — that is how it is verified before it lands.
+#
+# Every check here was born green: the corrections it protects landed in the same commit as the check.
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        # fetch-depth: 0 — the secret scan needs the full history, not just the tip commit.
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          fetch-depth: 0
+
+      - name: doc-truth
+        # The README states counts about the repository. A count that drifts from disk is a lie the
+        # reader has no way to detect, so every count is derived from disk and compared.
+        run: |
+          f=0
+
+          real=$(find skills -name SKILL.md | wc -l | tr -d ' ')
+
+          grep -q "skills-$real-blue" README.md \
+            || { echo "FALHA [badge-count] README.md the skills badge does not read skills-$real-blue"; f=1; }
+
+          sum=$(grep -oE '\(([0-9]+) skills?\)' README.md \
+                | grep -oE '[0-9]+' \
+                | awk '{s+=$1} END {print s+0}' || true)
+          [ "$sum" = "$real" ] \
+            || { echo "FALHA [subtotal-sum] README.md the (N skills) subtotals sum to $sum, expected $real"; f=1; }
+
+          for d in skills/*/; do
+            grep -q "$d" README.md || { echo "FALHA [skill-missing-from-readme] $d is not named in README.md"; f=1; }
+          done
+
+          dirs=$(find skills -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
+          [ "$dirs" = "$real" ] \
+            || { echo "FALHA [skill-dir-exact-set] skills/ has $dirs directories but $real SKILL.md files"; f=1; }
+
+          # A section heading glued to the paragraph above it is not a style nit: CommonMark does not
+          # open an ATX heading there in every renderer, so the section silently stops being a section.
+          glued=$(awk '/^## /{ if (prev != "") printf " %d", NR } {prev=$0}' README.md)
+          [ -z "$glued" ] \
+            || { echo "FALHA [heading-needs-blank-line] README.md needs a blank line before the heading on line(s):$glued"; f=1; }
+
+          # Real memory rules are `### IM-<digit>`; `### IM-XXX` is the placeholder inside the Rule
+          # Shape fenced block. The loose `^### IM-` counts the placeholder as a rule, so the cap is
+          # checked against the tight pattern and the cap itself is read from the document that
+          # declares it instead of being hardcoded here.
+          im_real=$(grep -c '^### IM-[0-9]' docs/implementation-memory.md | tr -d ' ' || true)
+          im_all=$(grep -c '^### IM-' docs/implementation-memory.md | tr -d ' ' || true)
+          im_cap=$(grep -oE 'Maximum ([0-9]+) active rules' skills/implementation-memory/SKILL.md \
+                   | grep -oE '[0-9]+' | head -1 || true)
+          [ -n "$im_cap" ] \
+            || { echo "FALHA [memory-cap-undeclared] skills/implementation-memory/SKILL.md no longer declares 'Maximum N active rules'"; f=1; im_cap=12; }
+          [ "$im_real" -le "$im_cap" ] \
+            || { echo "FALHA [memory-cap-exceeded] docs/implementation-memory.md has $im_real active rules, cap is $im_cap"; f=1; }
+          [ "$im_all" = "$((im_real + 1))" ] \
+            || { echo "FALHA [memory-shape-placeholder] docs/implementation-memory.md has $im_all '### IM-' headings for $im_real rules; the Rule Shape placeholder must be present exactly once and must not be numbered"; f=1; }
+
+          # docs/artifact-catalog.md is the index authors are sent to for the shape of every artifact,
+          # so its Template column is checked in BOTH directions. A cited template that does not exist
+          # sends the author to nothing; a template on disk that the catalog never names is an orphan,
+          # which is the defect the catalog was written to end (three templates were orphans before it).
+          for t in $(grep -ohE 'skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md' docs/artifact-catalog.md \
+                     | sort -u); do
+            [ -e "$t" ] \
+              || { echo "FALHA [catalog-template-exists] docs/artifact-catalog.md cites $t, which does not exist on disk"; f=1; }
+          done
+
+          for t in $(find skills -path '*/templates/*.md' | sort); do
+            grep -q "$(basename "$t")" docs/artifact-catalog.md \
+              || { echo "FALHA [catalog-template-missing] $t exists on disk but docs/artifact-catalog.md never names it"; f=1; }
+          done
+
+          [ "$f" -eq 0 ] || exit 1
+
+      - name: frontmatter
+        # The frontmatter block is sliced with awk between the first two `---` lines, so a `name:` in
+        # prose further down the file cannot satisfy the check. The key count is compared EXACTLY, not
+        # "at least": an extra key is as much a defect as a missing one — `triggers`/`phase` frontmatter
+        # is explicitly forbidden, and only an exact comparison catches it being added back.
+        run: |
+          f=0
+          block() { awk 'NR>1 && /^---$/{exit} NR>1{print}' "$1"; }
+
+          for file in skills/*/SKILL.md; do
+            keys=$(block "$file" | grep -cE '^[a-zA-Z_-]+:' | tr -d ' ' || true)
+            have=$(block "$file" | grep -cE '^(name|description|leadership_principles):' | tr -d ' ' || true)
+            { [ "$keys" = 3 ] && [ "$have" = 3 ]; } \
+              || { echo "FALHA [skill-frontmatter] $file has $keys key(s), $have of which are name/description/leadership_principles (expected exactly 3/3)"; f=1; }
+          done
+
+          for file in agents/*.md; do
+            keys=$(block "$file" | grep -cE '^[a-zA-Z_-]+:' | tr -d ' ' || true)
+            have=$(block "$file" | grep -cE '^(name|description|role|user-invocable|invoked_by):' | tr -d ' ' || true)
+            { [ "$keys" = 5 ] && [ "$have" = 5 ]; } \
+              || { echo "FALHA [agent-frontmatter] $file has $keys key(s), $have of which are name/description/role/user-invocable/invoked_by (expected exactly 5/5)"; f=1; }
+          done
+
+          # 5 reviewers / 4 advisors / 1 producer. The three numbers also pin the agent count at 10.
+          for pair in reviewer:5 advisor:4 producer:1; do
+            role=${pair%:*}
+            want=${pair#*:}
+            got=$(grep -l "^role: $role" agents/*.md | wc -l | tr -d ' ' || true)
+            [ "$got" = "$want" ] \
+              || { echo "FALHA [agent-role-count] agents/ declares $got role: $role, expected $want"; f=1; }
+          done
+
+          [ "$f" -eq 0 ] || exit 1
+
+      - name: label-integrity
+        # Renaming any severity or verdict label is forbidden: AGENTS.md maps each alias on disk to a
+        # canonical level, and a renamed alias breaks that map silently. The check is PRESENCE-ONLY on
+        # purpose — aliases legitimately grow in number as they are referenced more often, and only two
+        # counts are invariants worth pinning, both of them fixed deliberately in Wave 1.
+        run: |
+          f=0
+
+          while IFS='|' read -r file pat; do
+            [ -n "$file" ] || continue
+            grep -qF -- "$pat" "$file" \
+              || { echo "FALHA [label-missing] $file no longer carries the label $pat"; f=1; }
+          done <<'LABELS'
+          skills/code-review-bar-raising/SKILL.md|[BLOCKING]
+          skills/code-review-bar-raising/SKILL.md|[IMPORTANT]
+          skills/code-review-bar-raising/SKILL.md|[NIT]
+          skills/code-review-bar-raising/SKILL.md|[QUESTION]
+          skills/code-review-bar-raising/SKILL.md|[PRAISE]
+          skills/design-review/SKILL.md|[BLOCKING]
+          skills/design-review/SKILL.md|[NOTE]
+          skills/spec-driven-implementation/SKILL.md|[WARNING]
+          agents/code-review-bar-raiser.md|[blocker]
+          agents/code-review-bar-raiser.md|[concern]
+          agents/code-review-bar-raiser.md|[nit]
+          agents/code-review-bar-raiser.md|[question]
+          .claude/commands/build.md|[FIX REQUIRED]
+          .claude/commands/build.md|[MINOR]
+          .claude/commands/build.md|[OK]
+          .claude/commands/review.md|🚫
+          .claude/commands/review.md|⚠️
+          .claude/commands/review.md|💡
+          agents/security-guardian.md|Critical
+          agents/security-guardian.md|High
+          agents/security-guardian.md|Medium
+          agents/security-guardian.md|Low
+          agents/requirements-analyzer.md|🔴
+          agents/requirements-analyzer.md|🟡
+          agents/implementation-verifier.md|PASS WITH WARNINGS
+          skills/operational-readiness-review/templates/orr-checklist.md|APPROVED WITH CONDITIONS
+          LABELS
+
+          # The only two exact counts. Do NOT tighten [blocker] or 🔴 to a count: both were measured
+          # growing (5 to 9 and 1 to 5) as references, not renames, and presence-only IS the contract.
+          while IFS='|' read -r file pat want; do
+            [ -n "$file" ] || continue
+            got=$(grep -cF -- "$pat" "$file" | tr -d ' ' || true)
+            [ "$got" = "$want" ] \
+              || { echo "FALHA [blocking-count] $file carries $pat on $got line(s), expected $want"; f=1; }
+          done <<'COUNTS'
+          skills/code-review-bar-raising/SKILL.md|[BLOCKING]|3
+          skills/design-review/SKILL.md|[BLOCKING]|2
+          COUNTS
+
+          [ "$f" -eq 0 ] || exit 1
+
+      - name: xref-exists
+        # A path cited in prose is a promise. `bla-check links` only sees markdown link targets, so a
+        # path named in a sentence, a table cell or a code span escapes it entirely — this is the check
+        # that catches those. It is born green only because docs/cursor-setup.md, cited but never
+        # written, was corrected in the same commit that added this step.
+        run: |
+          f=0
+
+          for ref in $(grep -rhoE '(agents/[a-z0-9-]+\.md|skills/[a-z0-9-]+/SKILL\.md|patterns/[a-z0-9-]+/PATTERN\.md|docs/[a-z0-9-]+\.md|\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md)' \
+                        --include='*.md' . | sort -u); do
+            [ -e "$ref" ] || { echo "FALHA [xref-missing] $ref is cited in a markdown file but does not exist on disk"; f=1; }
+          done
+
+          [ "$f" -eq 0 ] || exit 1
+
+      - name: links
+        # Relative markdown links, resolved only against the directory of the file containing them.
+        run: |
+          if python3 tools/bla-check links .; then
+            echo "links: clean"
+          else
+            echo "FALHA [links] python3 tools/bla-check links . reported broken links (see the FALHA [link-broken] lines above)"
+            exit 1
+          fi
+
+      - name: self-test
+        # The checker checks documents; this checks the checker. A green workflow whose checker silently
+        # stopped detecting anything is worse than no workflow at all.
+        run: |
+          if python3 tools/tests/run.py; then
+            echo "self-test: clean"
+          else
+            echo "FALHA [self-test] python3 tools/tests/run.py reported a failing case (see the FAIL lines above)"
+            exit 1
+          fi
+
+      - name: markdownlint
+        # The version is pinned in the invocation, which is the pin — node is preinstalled, so no action
+        # and no third-party supply-chain surface is added for this. The configuration is discovered from
+        # .markdownlint-cli2.jsonc at the repository root, so there is no --config flag to drift.
+        run: |
+          if npx -y markdownlint-cli2@0.18.1 "**/*.md"; then
+            echo "markdownlint: clean"
+          else
+            echo "FALHA [markdownlint] markdownlint-cli2 reported errors (see the lines above)"
+            exit 1
+          fi
+
+      - name: gitleaks
+        # No baseline, on purpose: see the comment in .gitleaks.toml. A baseline committed before the
+        # first scan converts an unknown into an approved exception.
+        #
+        # This step has never executed — the workflow itself has not yet run on GitHub Actions — so
+        # the two settings below are the ones that keep the first run meaningful. Comments are disabled
+        # because the action posts PR comments by default, which needs `pull-requests: write`; the job
+        # holds `contents: read` only, and widening the token to buy a comment would trade a real
+        # permission for a cosmetic one. A secret still fails the step through the exit code and the
+        # log, which is the signal that matters. GITLEAKS_LICENSE is required only for
+        # organisation-owned repositories; if the first run fails asking for one, that is the reason,
+        # and it is a licence question, not a finding about a secret.
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+          GITLEAKS_ENABLE_COMMENTS: "false"

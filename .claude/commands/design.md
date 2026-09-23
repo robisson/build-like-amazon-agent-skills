@@ -81,6 +81,7 @@ Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING
 
 ### Step 2: API Contract (MANDATORY)
 - Read skill: skills/api-contract-first/SKILL.md
+- Record the result in `docs/design/<feature-name>/api-contracts.md`, following `skills/api-contract-first/templates/api-contracts-template.md` — it is the shape of `api-contracts.md`, the contract index and decision record that sits beside the artefacts: one row per surface with protocol, standard, artefact path and reason, plus the clients, the versioning stance and what is frozen since when. It does not replace any artefact below.
 - Every design has an API. If you cannot identify the API, the design is not finished — go back to Step 1. The API is the only customer-facing contract; everything else (UI, CLI, SDK, MCP, AI agent, partner integration, batch job) is a **client** of the API.
 - Identify the protocol(s) and pick the **native contract standard for each protocol** — OpenAPI is not the universal answer. Use the table in `skills/api-contract-first/SKILL.md` ("Pick the right contract standard for the protocol") to choose. Quick reference:
   - **REST / HTTP** → OpenAPI 3.x (or Smithy if AWS-style with SDK gen)
@@ -98,6 +99,7 @@ Every 🚦 GATE below carries one rule. A finding at canonical severity BLOCKING
 
 ### Step 3: Threat Modeling (if security-sensitive)
 - Read skill: skills/threat-modeling/SKILL.md
+- Follow `skills/threat-modeling/templates/threat-model-template.md` — it is the shape of `threat-model.md`, including the terminal verdict block `agents/security-guardian.md` ends the file with.
 - Load `agents/security-guardian.md` and review the design through the security guardian lens.
 - Produce: Threat model with mitigations
 - 🚦 GATE: Present the threat model. Ask: "Any security concerns I missed?"

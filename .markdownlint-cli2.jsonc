@@ -1,0 +1,48 @@
+// markdownlint-cli2 configuration. The file name is the one cli2 discovers on its own from the
+// repository root, so no `--config` flag appears anywhere — in CI or locally.
+//
+// This is an ALLOWLIST, not a denylist: `"default": false` turns every rule off and each rule below
+// is switched back on deliberately. "Only real defects" is only provable in this form — a denylist
+// makes the claim unfalsifiable, because every rule nobody thought to disable is still enforced.
+//
+// Every enabled rule catches a defect a reader would hit, never a style preference. Line length,
+// heading punctuation, list indentation and the rest of the cosmetic families stay off: this
+// repository is prose-dense documentation, and a cosmetic rule applied across every markdown file in
+// it is noise, which is the J1 failure mode (a check born red is a check the team learns to ignore).
+// No file count is stated here on purpose: it drifts with every document added, and markdownlint
+// prints the real one (`Linting: N file(s)`) on every run.
+{
+  "config": {
+    // Everything off; the rules below are the whole enforced set.
+    "default": false,
+
+    // MD024 — duplicate heading. `siblings_only` scopes it to headings under the SAME parent, which
+    // is the real drift class: a section pasted twice inside one section. Repeating `#### Implementation`
+    // under two different `###` parents is legitimate document structure, not a defect, and the one
+    // occurrence on disk (skills/infrastructure-as-code/SKILL.md) is exactly that shape.
+    "MD024": { "siblings_only": true },
+
+    // MD042 — empty link. `[text]()` renders as a link and goes nowhere: a dead promise to the reader.
+    "MD042": true,
+
+    // MD051 — link fragment does not match any heading in the file. Catches `#contributing`-class
+    // anchors that silently scroll nowhere after a heading is renamed or removed.
+    "MD051": true,
+
+    // MD052 — reference link or image whose label was never defined. This is what two adjacent
+    // brackets (`[City name][Date]`) become in CommonMark: a reference link that renders broken.
+    "MD052": true,
+
+    // MD053 — reference definition that nothing uses. Dead definitions outlive the links that
+    // needed them and mislead the next editor into thinking a label is live.
+    "MD053": true
+  },
+
+  // Planning artifacts and nested worktrees are not the product. `.agents/**` holds task plans and
+  // findings, `.worktrees/**` holds checkouts of this same repository, and linting either one would
+  // report the same file twice.
+  "ignores": [
+    ".agents/**",
+    ".worktrees/**"
+  ]
+}
