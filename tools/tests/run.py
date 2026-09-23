@@ -64,6 +64,10 @@ CASES = [
     ("wave-scope-empty",
      ["tasks", os.path.join(FIXTURES, "tasks-open-marker"), "--wave", "9"], 0,
      ["AVISO [wave-scope-empty]"], ["FALHA"], None),
+    ("wave-dep-intra",
+     ["tasks", os.path.join(FIXTURES, "wave-dep-intra")], 1,
+     ["FALHA [wave-dep-intra]", "task 1.2 depends on task 1.1"],
+     ["FALHA [wave-writes-intersection]"], None),
 ]
 
 

@@ -361,6 +361,24 @@ def cmd_tasks(spec_dir, wave=None):
                     "task %s is done while its dependency task %s is blocked"
                     % (task_id, dep)))
 
+    # (i) wave-dep-intra — a dependency edge inside one wave. The planner states two
+    #     conditions for a wave and only the write intersection was mechanical, which
+    #     is how a wave that cannot dispatch gets declared: `/build` dispatches only
+    #     tasks whose dependencies are all `[x]`, so a task depending on a wave-mate
+    #     is never dispatched in that wave at all.
+    for task_id in sorted(json_ids):
+        if not in_scope(task_id):
+            continue
+        own = wave_of.get(task_id)
+        if own is None:
+            continue
+        for dep in (graph.get(task_id) or {}).get("depends_on") or []:
+            if wave_of.get(str(dep)) == own:
+                findings.append(finding(
+                    FALHA, "wave-dep-intra", path, graph_line,
+                    "wave %s: task %s depends on task %s, which is in the same wave — "
+                    "it can never be dispatched there" % (own, task_id, dep)))
+
     # (f) wave-writes-intersection — two tasks in one wave claiming the same path.
     #     Parallel dispatch of that pair is a lost write, whatever the graph says.
     # (g) wave-writes-undeclared — the comparison above cannot be made for a task
@@ -498,7 +516,9 @@ def main(argv=None):
             "  flag at the spec close, where the whole file must be green.\n"
             "  `tasks` compares the `writes` sets of the tasks in one wave: the pairwise\n"
             "  intersection must be empty, and a path ending in `/` is a directory that\n"
-            "  collides with everything beneath it. A spec where no task declares\n"
+            "  collides with everything beneath it. A dependency edge inside one wave is\n"
+            "  the other way a wave cannot dispatch, and is reported as wave-dep-intra.\n"
+            "  A spec where no task declares\n"
             "  `writes` is skipped in silence; a wave that mixes declared and undeclared\n"
             "  tasks gets an AVISO, because there the comparison is only partial.\n"
             "  Completion evidence is checked only when <spec-dir>/.reports/ exists:\n"
