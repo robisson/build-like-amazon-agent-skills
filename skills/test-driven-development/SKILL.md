@@ -1,11 +1,13 @@
 ---
-name: Test-Driven Development
+name: test-driven-development
 description: Red-Green-Refactor cycle with Amazon's test pyramid (80% unit, 15% integration, 5% e2e). Coverage gates, DAMP over DRY in tests, canary tests in production.
 leadership_principles:
   - Insist on the Highest Standards
   - Ownership
   - Dive Deep
 ---
+
+# Test-Driven Development
 
 ## Overview
 

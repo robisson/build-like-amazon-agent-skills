@@ -213,9 +213,11 @@ Checkpoints define what "done" means for each phase. They can be:
    - Correct phase classification
 
 The three commands in that checklist are not honour-system: `.github/workflows/check.yml` re-runs them on
-every pull request, together with the README counts, the skill and agent frontmatter shape, the severity
-and verdict label integrity, every repository path cited in prose, the harness command parity, the
-agreement between `VERSION`, `.claude-plugin/plugin.json` and `CHANGELOG.md`, and a secret scan. Each
+every pull request, together with the README counts, the skill and agent frontmatter shape, the skill spec
+conformance check (`name` equal to the skill's folder name and spec-legal, `description` present and within
+1024 characters — in `skills/` and in `.kiro/skills/` alike), the severity and verdict label integrity,
+every repository path cited in prose, the harness command parity, the agreement between `VERSION`,
+`.claude-plugin/plugin.json` and `CHANGELOG.md`, and a secret scan. Each
 failure prints one `FALHA [rule-name]` line naming the rule that broke. Run them locally first — the server
 tells you the same thing, only slower. What CI cannot check for you is the rest of the list: a cited
 *heading* or frontmatter *field* that no longer exists is invisible to it, which is why that item stays on

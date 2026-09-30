@@ -1,5 +1,5 @@
 ---
-name: Mechanism Creation
+name: mechanism-creation
 description: Turning lessons learned into automated mechanisms that prevent recurrence of problems.
 leadership_principles:
   - Invent and Simplify

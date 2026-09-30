@@ -1,5 +1,5 @@
 ---
-name: Operational Excellence
+name: operational-excellence
 description: Dashboards, alarms, and runbooks that make a service operable. Covers latency, error rate, availability, throughput, and severity-based alarming.
 leadership_principles:
   - Customer Obsession

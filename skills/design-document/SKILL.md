@@ -1,5 +1,5 @@
 ---
-name: Design Document
+name: design-document
 description: Writing a technical design document that translates a Working Backwards output into a concrete, reviewable engineering plan with architecture, trade-offs, cost estimation, and operational concerns.
 leadership_principles:
   - Think Big

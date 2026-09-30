@@ -1,5 +1,5 @@
 ---
-name: Spec-Driven Implementation
+name: spec-driven-implementation
 description: Bridge between an approved Design Document and code. Decompose the system-level blueprint into N vertical specs (requirements → design → tasks), each independently deliverable. Fail fast by ordering hardest-first. Execute wave-by-wave with approval gates.
 leadership_principles:
   - Bias for Action

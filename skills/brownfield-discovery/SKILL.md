@@ -1,5 +1,5 @@
 ---
-name: Brownfield Discovery
+name: brownfield-discovery
 description: Reverse-engineer an existing project to produce a Design Doc, API contracts, and a Threat Model anchored in the real code, IaC, and observability. Run once per project. Output anchors all subsequent /spec and /build invocations.
 leadership_principles:
   - Dive Deep

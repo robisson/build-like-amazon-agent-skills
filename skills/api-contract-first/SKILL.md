@@ -1,5 +1,5 @@
 ---
-name: Contract-First API Design
+name: api-contract-first
 description: Designing APIs contract-first with backward compatibility guarantees, clear versioning strategy, error semantics, idempotency, and pagination. The API is a promise—never break existing clients.
 leadership_principles:
   - Customer Obsession

@@ -1,5 +1,5 @@
 ---
-name: Progressive Deployment
+name: progressive-deployment
 description: Deploy changes incrementally through expanding blast radius stages with bake time and automatic rollback on alarm.
 leadership_principles:
   - Customer Obsession

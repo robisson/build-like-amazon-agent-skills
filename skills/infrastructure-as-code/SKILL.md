@@ -1,5 +1,5 @@
 ---
-name: Infrastructure as Code
+name: infrastructure-as-code
 description: CDK/CloudFormation design principles for immutable infrastructure, environment parity, least privilege, tagging strategy, and cost optimization. Infrastructure is code—it deserves the same rigor as application code.
 leadership_principles:
   - Ownership

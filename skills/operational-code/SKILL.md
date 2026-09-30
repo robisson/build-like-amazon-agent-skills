@@ -1,11 +1,13 @@
 ---
-name: Operational Code
+name: operational-code
 description: Writing code with built-in observability from day one. Structured logging (JSON), metrics emission (latency p50/p99, error rates), alarm-ready code, request tracing, graceful degradation.
 leadership_principles:
   - Ownership
   - Insist on the Highest Standards
   - Dive Deep
 ---
+
+# Operational Code
 
 ## Overview
 

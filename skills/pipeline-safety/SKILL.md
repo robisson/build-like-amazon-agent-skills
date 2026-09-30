@@ -1,5 +1,5 @@
 ---
-name: Pipeline Safety
+name: pipeline-safety
 description: CI/CD pipeline safety with automated gates, deployment blockers, alarm checks, and one-click rollback.
 leadership_principles:
   - Customer Obsession

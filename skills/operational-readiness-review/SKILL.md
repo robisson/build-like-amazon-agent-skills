@@ -1,11 +1,13 @@
 ---
-name: Operational Readiness Review
+name: operational-readiness-review
 description: The ORR process — a self-assessment checklist covering monitoring, alarming, runbooks, on-call, scaling, security, deployment safety, cost, and dependencies. Must pass before launch.
 leadership_principles:
   - Ownership
   - Insist on the Highest Standards
   - Think Big
 ---
+
+# Operational Readiness Review
 
 ## Overview
 

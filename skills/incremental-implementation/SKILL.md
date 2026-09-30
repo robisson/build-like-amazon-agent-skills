@@ -1,11 +1,13 @@
 ---
-name: Incremental Implementation
+name: incremental-implementation
 description: Implementing features in thin vertical slices that each deliver value independently. Feature flags, safe defaults, rollback-friendly changes. Never a big-bang deployment.
 leadership_principles:
   - Bias for Action
   - Deliver Results
   - Insist on the Highest Standards
 ---
+
+# Incremental Implementation
 
 ## Overview
 

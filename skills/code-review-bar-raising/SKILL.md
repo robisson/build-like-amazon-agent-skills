@@ -1,11 +1,13 @@
 ---
-name: Raising the Bar in Code Review
+name: code-review-bar-raising
 description: Applying Amazon's raise-the-bar principle to every code review. What reviewers look for — clarity, correctness, design, reuse, operational readiness. "Ship It" means the change raises or maintains the quality bar.
 leadership_principles:
   - Insist on the Highest Standards
   - Earn Trust
   - Learn and Be Curious
 ---
+
+# Raising the Bar in Code Review
 
 ## Overview
 

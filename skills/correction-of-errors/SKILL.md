@@ -1,5 +1,5 @@
 ---
-name: Correction of Errors
+name: correction-of-errors
 description: Blameless post-incident analysis focused on timeline, 5 Whys, mechanisms over people, and concrete action items with owners.
 leadership_principles:
   - Ownership

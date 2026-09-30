@@ -33,6 +33,26 @@ a plausible shape, which is worse than no date.
      definition). Both rules are enabled in .markdownlint-cli2.jsonc. Do not "fix" these headings back into
      brackets: the brackets buy nothing here, because no heading links anywhere. -->
 
+## 0.5.0 — 2026-09-30
+
+The 28 skills are now valid Kiro skills. Each `name` is its folder name in kebab-case, which is what Kiro
+and the Agent Skills specification require — 22 carried a Title Case `name` and produced no slash command.
+The human-readable title moved to the body as an H1; nothing was lost.
+
+Kiro install changed. Copy `skills/` into `.kiro/skills/` one level deep (`cp -R src/. dest/`), which gives
+you 28 slash commands named after their folders, plus `/bla` from the new `.kiro/skills/bla/SKILL.md`
+orchestrator — `/bla wb`, `/bla design`, `/bla build`. Stop copying `.kiro/commands/` into `.kiro/prompts/`:
+that directory holds `@name` prompts, not slash commands. Two frontmatter-less files,
+`.kiro/skills/amazon-build-and-deploy.md` and `.kiro/skills/amazon-working-backwards.md`, are gone — loose
+`.md` files cannot be skills.
+
+New Kiro harness files: `.kiro/agents/bla.json` (the BLA custom agent, no pinned model) and
+`.kiro/settings/cli.json` (`chat.defaultAgent`, `chat.modelDefaults`).
+
+New CI check `skill-spec`: `FALHA [skill-name-invalid]` when a skill's `name` is not its folder name,
+`FALHA [skill-description-invalid]` when `description` is missing or over 1024 characters. It covers
+`skills/` and `.kiro/skills/`.
+
 ## 0.4.0 — 2026-09-23
 
 Flow artifacts moved out of `docs/` and into `.bla/`. `docs/` in an adopter's project no longer means two

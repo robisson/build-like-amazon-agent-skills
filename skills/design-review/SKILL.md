@@ -1,5 +1,5 @@
 ---
-name: Design Review
+name: design-review
 description: Review a technical design before specs or implementation. Evaluate problem clarity, requirements, alternatives, trade-offs, architecture, dependency behavior, security, operations, cost, testability, and simplicity.
 leadership_principles:
   - Insist on the Highest Standards

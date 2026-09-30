@@ -170,6 +170,12 @@ jobs:
         # prose further down the file cannot satisfy the check. The key count is compared EXACTLY, not
         # "at least": an extra key is as much a defect as a missing one — `triggers`/`phase` frontmatter
         # is explicitly forbidden, and only an exact comparison catches it being added back.
+        #
+        # THIS STEP ASSERTS THE KEY SET, NEVER A VALUE. The values are the next step's unit:
+        # `skill-spec` asserts that `name` equals the folder name and is spec-legal and that
+        # `description` is present and within its limit. Do not merge the two — this one iterates
+        # `skills/*/SKILL.md` plus `agents/*.md` and counts keys; that one iterates both skill trees
+        # and reads values, and a merged step would have to choose one glob and lose the other.
         run: |
           f=0
           block() { awk 'NR>1 && /^---$/{exit} NR>1{print}' "$1"; }
@@ -195,6 +201,75 @@ jobs:
             got=$(grep -l "^role: $role" agents/*.md | wc -l | tr -d ' ' || true)
             [ "$got" = "$want" ] \
               || { echo "FALHA [agent-role-count] agents/ declares $got role: $role, expected $want"; f=1; }
+          done
+
+          [ "$f" -eq 0 ] || exit 1
+
+      - name: skill-spec
+        # A skill whose `name` is not exactly its folder name produces NO slash command in Kiro and is
+        # rejected by the Agent Skills specification — and nothing detected it until this step existed.
+        # 22 of the 28 skills carried a Title Case `name` ("Design Review") because docs/skill-anatomy.md
+        # told their authors to; all 22 were silently invalid. The rule is stated identically in two
+        # places: https://kiro.dev/docs/skills ("Must match folder name. Lowercase letters, numbers, and
+        # hyphens only (max 64 chars)") and https://agentskills.io/specification (1-64 chars, no leading
+        # or trailing hyphen, no consecutive hyphens, must match the parent directory name).
+        #
+        # THIS STEP ASSERTS VALUES, NEVER THE KEY SET — see the note in `frontmatter`, which owns the
+        # key set. Nothing here is duplicated there.
+        #
+        # BOTH skill trees are covered. `.kiro/skills/bla/SKILL.md` is the file whose validity literally
+        # decides whether `/bla` exists, so leaving it unchecked would leave the harness's entry point as
+        # the one skill nobody verified. It is correctly exempt from `frontmatter`, whose glob is
+        # `skills/*/SKILL.md` and does not reach into `.kiro/`.
+        #
+        # `description` is measured on the FOLDED value, not the first line: the `bla` skill uses YAML's
+        # `>-` block form, and measuring only `description: >-` would report 0 chars and pass anything.
+        # The longest description on disk is 301 chars, so the 1024 arm is born green — it exists to
+        # catch the day someone pastes a page of prose into the field Kiro matches requests against.
+        run: |
+          f=0
+          block() { awk 'NR>1 && /^---$/{exit} NR>1{print}' "$1"; }
+
+          for file in skills/*/SKILL.md .kiro/skills/*/SKILL.md; do
+            [ -f "$file" ] || continue
+            dir=$(basename "$(dirname "$file")")
+
+            n=$(block "$file" | awk '/^name:/{sub(/^name:[[:space:]]*/,"");gsub(/^"|"$/,"");print;exit}' || true)
+            ln=$(grep -nE '^name:' "$file" | head -1 | cut -d: -f1 || true)
+            [ -n "$ln" ] || ln=1
+
+            if [ -z "$n" ]; then
+              echo "FALHA [skill-name-invalid] $file:1 the frontmatter block carries no name: key"
+              f=1
+            else
+              [ "$n" = "$dir" ] \
+                || { echo "FALHA [skill-name-invalid] $file:$ln name is '$n' but the folder is '$dir'; Kiro requires them equal, and the slash command IS the folder name"; f=1; }
+              echo "$n" | grep -qE '^[a-z0-9]([a-z0-9-]*[a-z0-9])?$' \
+                || { echo "FALHA [skill-name-invalid] $file:$ln name '$n' must be lowercase letters, numbers and hyphens, and must not start or end with a hyphen"; f=1; }
+              case "$n" in
+                *--*) echo "FALHA [skill-name-invalid] $file:$ln name '$n' contains consecutive hyphens, which the Agent Skills specification forbids"; f=1 ;;
+              esac
+              [ "${#n}" -le 64 ] \
+                || { echo "FALHA [skill-name-invalid] $file:$ln name is ${#n} chars, the maximum is 64"; f=1; }
+            fi
+
+            # Joins the folded continuation lines onto the first, so the measured length is the value
+            # Kiro actually reads. `exit` falls through to END, which is where the single print lives.
+            d=$(block "$file" | awk '
+              /^description:/ { sub(/^description:[[:space:]]*/,""); sub(/^>-?[[:space:]]*$/,""); sub(/^\|-?[[:space:]]*$/,""); b=$0; c=1; next }
+              c==1 && /^[[:space:]]/ { sub(/^[[:space:]]+/,""); b=(b=="" ? $0 : b" "$0); next }
+              c==1 { exit }
+              END { print b }' || true)
+            dl=$(grep -nE '^description:' "$file" | head -1 | cut -d: -f1 || true)
+            [ -n "$dl" ] || dl=1
+
+            if [ -z "$d" ]; then
+              echo "FALHA [skill-description-invalid] $file:$dl description is missing or empty; it is the only thing an agent reads before deciding to activate the skill"
+              f=1
+            else
+              [ "${#d}" -le 1024 ] \
+                || { echo "FALHA [skill-description-invalid] $file:$dl description is ${#d} chars, the maximum is 1024"; f=1; }
+            fi
           done
 
           [ "$f" -eq 0 ] || exit 1
@@ -278,10 +353,15 @@ jobs:
         # a path as it was at the time of the entry, not as it is now. The 0.4.0 migration table cites
         # the pre-0.4.0 implementation-memory location precisely because it no longer exists, and a
         # citation of a deliberately-removed path is history, not a broken promise.
+        # The `skills/…` arm carries an optional `(\.kiro/)?` prefix so a citation of
+        # `.kiro/skills/bla/SKILL.md` is checked as the path it actually is. Without the group,
+        # `grep -oE` extracts the leftmost match `skills/bla/SKILL.md` out of that citation and then
+        # fails the `-e` test on a path nobody ever claimed existed — a false FALHA on a true sentence.
+        # With the group the alternation is leftmost-longest and the full `.kiro/` path is extracted.
         run: |
           f=0
 
-          for ref in $(grep -rhoE '(agents/[a-z0-9-]+\.md|skills/[a-z0-9-]+/SKILL\.md|patterns/[a-z0-9-]+/PATTERN\.md|docs/[a-z0-9-]+\.md|\.bla/[a-z0-9-]+\.md|\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md)' \
+          for ref in $(grep -rhoE '(agents/[a-z0-9-]+\.md|(\.kiro/)?skills/[a-z0-9-]+/SKILL\.md|patterns/[a-z0-9-]+/PATTERN\.md|docs/[a-z0-9-]+\.md|\.bla/[a-z0-9-]+\.md|\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md)' \
                         --include='*.md' --exclude=CHANGELOG.md --exclude-dir=.agents --exclude-dir=.worktrees . | sort -u); do
             [ -e "$ref" ] || { echo "FALHA [xref-missing] $ref is cited in a markdown file but does not exist on disk"; f=1; }
           done
@@ -436,21 +516,25 @@ jobs:
         # To change a command, edit the Claude version and re-apply the two mechanics to both mirrors.
         #
         # WHY THE MIRRORS WERE NOT REPLACED BY THIN SHELLS POINTING AT ONE CANONICAL BODY — measured,
-        # so a future maintainer does not redo the analysis. The three documented copy-based installs
-        # were simulated with the README's own `cp -r` commands, and the canonical pointer target was
-        # then resolved against four candidate bases: it resolves at 0 of 4 under 3 of the 4 documented
-        # install paths, because each of those copies ONE harness directory (and Kiro renames it to
-        # `.kiro/prompts/`), so the canonical body is simply not on disk. Under those installs a thin
-        # shell is not a degraded command but a null instruction, so a shell would have to carry the
-        # rule kernel to stay functional — which restores the whole duplication the restructure exists
-        # to remove. Revisit the day this library stops distributing by copying one harness directory.
+        # so a future maintainer does not redo the analysis. The copy-based installs in README.md were
+        # simulated with the README's own `cp` commands, and the canonical pointer target was then
+        # resolved against every candidate base: under an install that copies ONE harness command
+        # directory into a project, the canonical body is simply not on disk at any base, because the
+        # other harness directories were never copied. Under those installs a thin shell is not a
+        # degraded command but a null instruction, so a shell would have to carry the rule kernel to
+        # stay functional — which restores the whole duplication the restructure exists to remove.
+        # (Deliberately stated without a tally: the number of copy-based installs changes whenever a
+        # harness block is rewritten — Kiro's now copies no command directory at all — and a stale
+        # count in a rationale comment is exactly the defect `doc-truth` exists to prevent.) Revisit
+        # the day this library stops distributing by copying one harness directory.
         #
         # OUTSIDE THIS PREDICATE'S UNIT, deliberately. The unit is the 14 commands.
         # `.cursor/rules/amazon-skills.md` is a thin router in the *rules* channel, where a router works
-        # (the whole repository is present), and it carries no command body. `.kiro/skills/*.md` are
-        # thin routers by their own declaration: measured at 52 and 60 lines, they cite ZERO `commands/`
-        # paths and every `skills/` directory they name exists, so they are not a drift surface for the
-        # commands and adding them here would assert nothing.
+        # (the whole repository is present), and it carries no command body. `.kiro/skills/bla/SKILL.md`
+        # is the Kiro orchestrator skill: it routes `/bla <phase>` by naming sibling SKILLS, cites ZERO
+        # `commands/` paths (verified with `grep -rn "commands/" .kiro/skills/bla/SKILL.md`), and
+        # therefore carries no command body that could drift from the 14. Its own validity is checked by
+        # `skill-spec`, not here.
         run: |
           f=0
 

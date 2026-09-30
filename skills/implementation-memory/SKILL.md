@@ -1,5 +1,5 @@
 ---
-name: Implementation Memory
+name: implementation-memory
 description: Internal /build flow mechanism that maintains fixed-size procedural memory of durable implementation-quality lessons.
 leadership_principles:
   - Insist on the Highest Standards

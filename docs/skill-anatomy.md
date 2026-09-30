@@ -21,8 +21,8 @@ Skills live in `skills/<skill-name>/SKILL.md`. Some skills have additional files
 
 ```yaml
 ---
-name: Human-Readable Skill Name
-description: One-sentence description of what this skill covers and why it matters.
+name: skill-folder-name
+description: One-sentence description of what this skill covers and when to use it.
 leadership_principles:
   - Customer Obsession
   - Ownership
@@ -31,9 +31,11 @@ leadership_principles:
 ```
 
 **Rules**:
-- `name`: Title case, 2-5 words
-- `description`: Single sentence, <150 characters, states what and why
+- `name`: must be exactly the skill's folder name — lowercase letters, numbers and hyphens only, max 64 characters, no leading or trailing hyphen and no `--`. This is not a style preference: [Kiro](https://kiro.dev/docs/skills) and the [Agent Skills specification](https://agentskills.io/specification) both require `name` to match the parent directory, and the slash command a reader types *is* that name. A Title Case `name` produces no slash command at all
+- `description`: max 1024 characters. Still write one sentence that says what the skill covers and when to use it — `description` is the only thing an agent reads before deciding to activate the skill, so it must carry the keywords a matching request would use
 - `leadership_principles`: List 2-4 most relevant Amazon Leadership Principles. These are not decoration—they ground the skill in the cultural framework
+
+The frontmatter carries exactly these three keys. The human-readable title lives in the body, not in the frontmatter: every `SKILL.md` opens with `# <Human-Readable Title>` immediately after the closing `---`, then `## Overview`.
 
 ---
 

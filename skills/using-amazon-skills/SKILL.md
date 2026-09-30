@@ -1,5 +1,5 @@
 ---
-name: Using Amazon Skills
+name: using-amazon-skills
 description: Meta-skill for navigating and applying the complete skills library. Routing flow chart, core operating behaviors, and skill discovery logic.
 leadership_principles:
   - Customer Obsession

@@ -1,5 +1,5 @@
 ---
-name: Threat Modeling
+name: threat-modeling
 description: Security threat modeling using STRIDE methodology adapted for cloud services. Covers data classification, IAM boundaries, encryption requirements, blast radius analysis, and systematic identification of attack vectors before code is written.
 leadership_principles:
   - Customer Obsession

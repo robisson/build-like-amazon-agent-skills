@@ -1,11 +1,13 @@
 ---
-name: Dependency Management
+name: dependency-management
 description: Managing external dependencies safely with circuit breakers, timeouts, retries with exponential backoff, bulkhead pattern, graceful degradation, and dependency isolation.
 leadership_principles:
   - Ownership
   - Think Big
   - Insist on the Highest Standards
 ---
+
+# Dependency Management
 
 ## Overview
 

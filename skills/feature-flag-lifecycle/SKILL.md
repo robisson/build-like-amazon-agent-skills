@@ -1,5 +1,5 @@
 ---
-name: Feature Flag Lifecycle
+name: feature-flag-lifecycle
 description: Complete lifecycle of feature flags from creation through gradual rollout to cleanup, including kill switches and A/B testing.
 leadership_principles:
   - Customer Obsession

@@ -1,5 +1,5 @@
 ---
-name: Metrics Review
+name: metrics-review
 description: Reviewing operational and business metrics for continuous improvement, trend analysis, and proactive issue detection.
 leadership_principles:
   - Dive Deep
