@@ -57,6 +57,14 @@ Two skills are not routed by any phase because no phase chain declares them:
 `infrastructure-as-code` and `metrics-review`. Reach them directly — Kiro also activates them on its
 own when a request matches their description.
 
+## This table is the whole routing surface
+
+A Kiro install copies skills, not command bodies, so the 14 files under `.claude/commands/` are **not
+on disk in an adopter's project**. Where `AGENTS.md` cites `.claude/commands/build.md` or
+`.claude/commands/review.md`, do not go looking for them: unless this library's clone is present,
+they are not there. Route from the table above and follow the skills it names and `AGENTS.md`. Never
+invent the contents of a file you cannot read.
+
 ## When no keyword is recognised
 
 Ask which phase the user wants. Do not guess, and do not start the phase that looks closest — the

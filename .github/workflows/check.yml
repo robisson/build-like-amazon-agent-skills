@@ -81,6 +81,20 @@ jobs:
           grep -q "list of $refs references" README.md \
             || { echo "FALHA [reference-count] README.md does not say 'list of $refs references', which is what docs/references.md numbers"; f=1; }
 
+          # The Kiro block states two more counts about disk, and the `(N skills)` arm above cannot
+          # reach either: how many slash commands the install produces, and how many of those are
+          # skills from `skills/`. Both are derived here, so adding a 29th skill cannot leave the Kiro
+          # block claiming 28 in silence. The slash-command total is skills + `.kiro/skills/`, and that
+          # second term is ASSERTED from disk rather than hardcoded as +1 — if a second harness skill
+          # is ever added beside `bla`, this arm moves the expected total instead of going stale.
+          kiro=$(find .kiro/skills -name SKILL.md | wc -l | tr -d ' ')
+          [ "$kiro" -ge 1 ] \
+            || { echo "FALHA [kiro-skill-unparsed] .kiro/skills/ holds no SKILL.md; the /bla orchestrator is the Kiro entry point and the README's slash-command total is derived from this count"; f=1; kiro=0; }
+          grep -q "The $real skills by folder name" README.md \
+            || { echo "FALHA [kiro-skill-count] README.md does not say 'The $real skills by folder name' in the Kiro block, and skills/ holds $real SKILL.md files"; f=1; }
+          grep -q "$((real + kiro)) slash commands" README.md \
+            || { echo "FALHA [kiro-command-count] README.md does not say '$((real + kiro)) slash commands', which is $real in skills/ plus $kiro in .kiro/skills/"; f=1; }
+
           # A section heading glued to the paragraph above it is not a style nit: CommonMark does not
           # open an ATX heading there in every renderer, so the section silently stops being a section.
           glued=$(awk '/^## /{ if (prev != "") printf " %d", NR } {prev=$0}' README.md)

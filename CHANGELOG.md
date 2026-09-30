@@ -46,8 +46,19 @@ that directory holds `@name` prompts, not slash commands. Two frontmatter-less f
 `.kiro/skills/amazon-build-and-deploy.md` and `.kiro/skills/amazon-working-backwards.md`, are gone — loose
 `.md` files cannot be skills.
 
+**Kiro adopters lose the 14 command bodies.** Dropping the `.kiro/prompts/` copy removed the only step that
+put `.claude/commands/*.md` on a Kiro adopter's disk, and nothing replaces it: the wave execution flow, the
+`tasks.md` state machine and the post-implementation review verdict format in `.claude/commands/build.md` are
+not in your project after install, and `/bla build` is not equivalent to `/build` in Claude Code. Where
+`AGENTS.md` points at `.claude/commands/build.md`, that file is in this library's clone only. The documented
+alternative — `.kiro/steering/` — was declined because it needs `inclusion` frontmatter the command files do
+not carry, and because on the Kiro CLI inclusion modes are unsupported and every steering file loads in every
+session.
+
 New Kiro harness files: `.kiro/agents/bla.json` (the BLA custom agent, no pinned model) and
-`.kiro/settings/cli.json` (`chat.defaultAgent`, `chat.modelDefaults`).
+`.kiro/settings/cli.json` (`chat.defaultAgent`, `chat.modelDefaults`). `cli.json` is read by the Kiro CLI
+only — on the IDE it is inert — and its `chat.defaultAgent` overrides a default agent you set for yourself in
+that workspace; delete the key and use `kiro-cli chat --agent bla` if you would rather keep your own.
 
 New CI check `skill-spec`: `FALHA [skill-name-invalid]` when a skill's `name` is not its folder name,
 `FALHA [skill-description-invalid]` when `description` is missing or over 1024 characters. It covers

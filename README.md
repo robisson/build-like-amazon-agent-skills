@@ -70,7 +70,7 @@ From Medium ceremony upward these commands also append flow events to a JSONL se
 
 > 👉 **New here? Read [`docs/getting-started.md`](docs/getting-started.md) first** — it walks you through install + 4 hands-on scenarios (new product, existing project onboarding, small change, production incident) in ~10 minutes. The setup snippets below are also there, with full context.
 
-> **Which command directory do I edit?** `.claude/commands/` is the one you edit. `.gemini/commands/` and `.kiro/commands/` hold the same 14 command files as hand-synced **mirrors** of it, differing only by a banner and a path-resolution note; the `parity` step of [`.github/workflows/check.yml`](.github/workflows/check.yml) fails the build if a mirror drifts. Each harness below copies from its own directory because a copied file cannot resolve a pointer into a sibling one — except Kiro, whose install copies no command directory at all, because in Kiro a slash command is a skill (see its block below) — so change `.claude/commands/<name>.md` first, then copy the change into both mirrors.
+> **Which command directory do I edit?** `.claude/commands/` is the one you edit. `.gemini/commands/` and `.kiro/commands/` hold the same 14 command files as hand-synced **mirrors** of it, differing only by a banner and a path-resolution note; the `parity` step of [`.github/workflows/check.yml`](.github/workflows/check.yml) fails the build if a mirror drifts. Each harness below copies from its own directory because a copied file cannot resolve a pointer into a sibling one — except Kiro, whose install copies no command directory at all, because a Kiro slash command comes from a skill folder ([kiro.dev/docs/skills](https://kiro.dev/docs/skills)) or from a steering file that declares an `inclusion` mode in its frontmatter ([kiro.dev/docs/steering](https://kiro.dev/docs/steering)), and a command file is neither (see its block below) — so change `.claude/commands/<name>.md` first, then copy the change into both mirrors.
 
 ### One step for every harness: take the checker with you
 
@@ -95,7 +95,7 @@ Every artifact the flow produces lands under `.bla/` in *your* project: `.bla/wo
 <details>
 <summary><strong>Kiro IDE & CLI</strong></summary>
 
-In Kiro a **skill is the slash-command mechanism**: a folder `<name>/SKILL.md` under `.kiro/skills/` is invoked as `/<name>` ([kiro.dev/docs/skills](https://kiro.dev/docs/skills)). So the install copies skills — nothing else produces a slash command in Kiro.
+In Kiro a **skill is the slash-command mechanism this library uses**: a folder `<name>/SKILL.md` under `.kiro/skills/` is invoked as `/<name>` ([kiro.dev/docs/skills](https://kiro.dev/docs/skills)). So the install copies skills.
 
 **With Kiro IDE you can skip `/bla spec`** — Kiro has excellent native support for spec-driven development. The other phases are still worth having.
 
@@ -103,11 +103,12 @@ In Kiro a **skill is the slash-command mechanism**: a folder `<name>/SKILL.md` u
 git clone https://github.com/robisson/build-like-amazon.git
 cd your-project
 
-# 1. The 28 skills — each becomes a slash command named after its folder
+# 1. The skills — each becomes a slash command named after its folder
 mkdir -p .kiro/skills
 cp -R build-like-amazon/skills/. .kiro/skills/
 
 # 2. The Kiro harness — the /bla orchestrator skill, the bla agent, workspace settings
+#    cli.json is read by the Kiro CLI only; on the IDE that last copy is inert.
 mkdir -p .kiro/agents .kiro/settings
 cp -R build-like-amazon/.kiro/skills/. .kiro/skills/
 cp build-like-amazon/.kiro/agents/bla.json .kiro/agents/bla.json
@@ -131,11 +132,18 @@ Every copy is written `mkdir -p dest && cp -R src/. dest/`, which copies *conten
 /bla learn
 ```
 
-The 14 phase commands do **not** exist as `/wb`, `/design` or `/build` in Kiro. `.kiro/commands/` is a mirror kept for the maintenance contract described above, not an install path: nothing documented on kiro.dev turns a plain `.md` file into a slash command. `.kiro/prompts/` is a real directory, but it stores `@name` prompts that take no arguments ([kiro.dev/docs/cli/chat/manage-prompts](https://kiro.dev/docs/cli/chat/manage-prompts)) — which is why the install no longer copies anything there. Each phase is reached as `/bla <phase>`; `.kiro/skills/bla/SKILL.md` holds the routing table.
+**What a Kiro install does not give you.** The 14 phase commands do **not** exist as `/wb`, `/design` or `/build`, and their bodies — 1371 lines in `.claude/commands/` — are **not copied into your project by any step above**. That is a real loss, not a rename: `.claude/commands/build.md` alone carries the autonomous-execution rule, the Step 0 proportionality check, the wave execution flow, the `tasks.md` state machine and the post-implementation review verdict format, and none of that is restated in `skills/`. `/bla build` hands the agent the skill chain and the artifact path; it is **not** equivalent to `/build` in Claude Code. Where `AGENTS.md` sends you to `.claude/commands/build.md` for the full state-transition protocol, that file lives in this library's clone (`build-like-amazon/.claude/commands/`) and not in your project — keep the clone if you want to read it.
+
+Two documented Kiro routes were considered for those bodies and both were declined, on kiro.dev's own terms:
+
+- **`.kiro/steering/`** does turn an `.md` into a slash command, but only one carrying `inclusion: manual` or `inclusion: auto` frontmatter; a frontmatter-less file is `inclusion: always` and produces no command ([kiro.dev/docs/steering](https://kiro.dev/docs/steering)). The 14 command files carry no frontmatter, and adding it would edit files that exist as byte-compared mirrors. The same page also states that **on the Kiro CLI inclusion modes are not supported and every file in `.kiro/steering/` loads automatically** — so on the CLI this route buys no slash command at all and costs 1371 lines of permanent context in every session.
+- **`.kiro/prompts/`** is a real directory, but it stores `@name` prompts that take no arguments ([kiro.dev/docs/cli/chat/manage-prompts](https://kiro.dev/docs/cli/chat/manage-prompts)) — which is why the install no longer copies anything there.
+
+`.kiro/commands/` is therefore a mirror kept for the maintenance contract described above, not an install path. Each phase is reached as `/bla <phase>`, routing to skills; `.kiro/skills/bla/SKILL.md` holds the routing table and is the whole routing surface a Kiro project receives.
 
 **Where `AGENTS.md` fits.** At the project root it is steering: Kiro picks it up automatically and always includes it, with no inclusion mode to configure ([kiro.dev/docs/steering](https://kiro.dev/docs/steering)). It is also declared in the `bla` agent's `resources`, because a custom agent is not guaranteed to inherit steering.
 
-**What `cli.json` does.** `chat.modelDefaults` is documented at workspace scope and gives Claude Opus 4.8 `xhigh` reasoning effort when the session actually runs that model — inert otherwise ([kiro.dev/docs/models/effort](https://kiro.dev/docs/models/effort)). `chat.defaultAgent: "bla"` asks the CLI to start on the `bla` agent; kiro.dev documents the setting but lists Settings as a global scope, so if a session does not start on `bla`, start it with `kiro-cli chat --agent bla`. Nothing depends on it — `/bla` and the 28 commands work on any agent, because the default agent loads `.kiro/skills/` with no declaration. No agent pins a model, so the flow inherits your session model.
+**What `cli.json` does — Kiro CLI only.** kiro.dev documents both keys as Kiro CLI settings: the settings reference is scoped "Configure Kiro CLI behavior" ([kiro.dev/docs/reference/settings](https://kiro.dev/docs/reference/settings)) and the persistence sections in the effort page are headed "(CLI)" ([kiro.dev/docs/models/effort](https://kiro.dev/docs/models/effort)). Nothing on kiro.dev says the Kiro IDE reads `.kiro/settings/cli.json`, so **if you are on the IDE, step 2's `cli.json` copy does nothing for you** and this paragraph does not apply. On the CLI: `chat.modelDefaults` is documented at workspace scope and gives Claude Opus 4.8 `xhigh` reasoning effort when the session actually runs that model — inert otherwise. `chat.defaultAgent: "bla"` asks the CLI to start on the `bla` agent; because workspace settings rank above user settings in the documented precedence order, **this copied file wins over a default agent you configured for yourself, in this workspace** — if you would rather keep your own, delete the key and start sessions with `kiro-cli chat --agent bla`. kiro.dev documents the setting but lists Settings as a global scope, so if a session does not start on `bla`, use that same flag. Nothing depends on it — `/bla` and the skill commands work on any agent, because the default agent loads `.kiro/skills/` with no declaration. No agent pins a model, so the flow inherits your session model.
 
 **Where the flow writes.** `.bla/` in your project, and **commit it** — see *Where the flow writes* above. `.bla` is a dotfolder, so `ls` will not show it; use `ls -la`.
 
