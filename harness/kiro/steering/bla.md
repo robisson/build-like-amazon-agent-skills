@@ -14,5 +14,7 @@ own — resolve every cited path through this map before you open it:
 | `tools/bla-check`, `AGENTS.md`, `.bla/…` | the same path, from the project root |
 
 A phase command written `/wb`, `/design`, `/build` and so on is `/bla wb`, `/bla design`, `/bla build`
-here. `docs/…` is the library's own documentation and is not installed. If a mapped file is missing, say
-so and continue from what is on disk — never reconstruct a file you cannot read.
+here. `docs/…` and the library's `README.md` are its own documentation and are not installed — a
+`README.md` at this project's root is the project's, not the BLA skill catalogue; the installed skills
+are the folders under `.kiro/skills/`. If a mapped file is missing, say so and continue from what is on
+disk — never reconstruct a file you cannot read.
