@@ -42,8 +42,8 @@ The human-readable title moved to the body as an H1; nothing was lost.
 Kiro install changed — follow the README block. The Kiro harness now lives in `harness/kiro/` and becomes
 `.kiro/` only in your project, as in aidlc-workflows; this library no longer carries a `.kiro/` of its own.
 The install copies `skills/` into `.kiro/skills/` one level deep, then `harness/kiro/` into `.kiro/`: 28
-slash commands named after their folders, plus `/bla`, the `bla` agent (no pinned model),
-`.kiro/settings/cli.json` and `.kiro/steering/bla.md`. Stop copying `.kiro/commands/` into `.kiro/prompts/`:
+slash commands named after their folders, plus `/bla`, and `.kiro/steering/bla.md`. Stop copying
+`.kiro/commands/` into `.kiro/prompts/`:
 that directory holds `@name` prompts, not slash commands. Two frontmatter-less files,
 `.kiro/skills/amazon-build-and-deploy.md` and `.kiro/skills/amazon-working-backwards.md`, are gone — loose
 `.md` files cannot be skills.
@@ -53,14 +53,19 @@ that directory holds `@name` prompts, not slash commands. Two frontmatter-less f
 read are installed under `.kiro/skills/bla/references/agents/` and `.kiro/skills/bla/references/patterns/`,
 and `.kiro/steering/bla.md` maps every library path the skills cite to where it was installed.
 
-`cli.json` is read by the Kiro CLI only. It sets `chat.defaultAgent` to `bla` for everyone working in the
-project; delete the key and use `kiro-cli chat --agent bla` to keep your own default.
+**No custom agent and no `cli.json`.** The flow runs on Kiro's default agent, which loads skills, steering
+and `AGENTS.md` on its own. A custom agent loads none of them unless it declares them, so one would add
+nothing and would replace your default agent and its MCP servers.
+
+To upgrade a Kiro project from 0.4.0: delete `.kiro/skills/amazon/`, the two `.kiro/skills/amazon-*.md`
+routers and the 14 phase files the old install copied under `.kiro/prompts/`, then re-run the README block.
+Nothing in `.bla/` changes.
 
 New CI checks: `skill-spec` fails with `FALHA [skill-name-invalid]` when a skill's `name` is not its folder
 name and `FALHA [skill-description-invalid]` when `description` is missing or over 1024 characters, in
 `skills/` and `harness/kiro/skills/`; `kiro-install` runs the README's Kiro block in a temporary directory
-and fails with `FALHA [kiro-install]` when an installed file is missing or differs from the library, a JSON
-file does not parse, or a path an installed file cites does not resolve.
+and fails with `FALHA [kiro-install]` when an installed file is missing or differs from the library, or a
+path an installed file cites does not resolve.
 
 ## 0.4.0 — 2026-09-23
 

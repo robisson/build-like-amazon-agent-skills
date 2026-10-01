@@ -105,8 +105,7 @@ cd your-project
 # 1. The skills, one folder each
 mkdir -p .kiro/skills && cp -R "$BLA/skills/." .kiro/skills/
 
-# 2. The harness: the /bla skill with its phase procedures, the bla agent, the path-map steering, cli.json
-#    Overwrites an existing .kiro/settings/cli.json, .kiro/agents/bla.json and .kiro/steering/bla.md — merge by hand if you have them
+# 2. The harness: the /bla skill with its phase procedures, and the path-map steering
 mkdir -p .kiro && cp -R "$BLA/harness/kiro/." .kiro/
 
 # 3. The personas and patterns the phases read, kept inside the bla skill
@@ -120,7 +119,7 @@ mkdir -p tools && cp "$BLA/tools/bla-check" tools/bla-check
 
 **What you get: 29 slash commands.** `/bla <phase>` runs the whole phase procedure — `/bla wb`, `/bla design` and `/bla build` do what `/wb`, `/design` and `/build` do in Claude Code. The 28 skills by folder name are commands too: `/design-review`, `/threat-modeling`, and so on.
 
-**`cli.json` (Kiro CLI only)** makes `bla` the default agent for everyone working in this project; to keep your own default, delete `chat.defaultAgent` and start with `kiro-cli chat --agent bla`. The `bla` agent can read, write and run shell commands, pre-approves none of them — writes and shell commands ask first — and has no MCP or web tools; `/bla` also works on Kiro's default agent.
+**Runs on your own agent.** The install adds no custom agent and no `cli.json`: Kiro's default agent loads the skills, the steering and `AGENTS.md` on its own, so your default agent, MCP servers and tools stay as they are.
 
 **Artifacts** land in `.bla/`, a dotfolder — use `ls -la` to see it — and are meant to be committed.
 </details>

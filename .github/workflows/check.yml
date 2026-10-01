@@ -645,8 +645,8 @@ jobs:
         # byte-identical to the library's copy; the skill count, one level deep, derived from disk, with
         # every `name` equal to its folder; the 14 phase procedures present and routed by the `bla`
         # skill; no root `agents/` or `patterns/` and no `.md` under `.kiro/agents/` (Kiro IDE 1.0 and
-        # CLI 3.0 load those as agent profiles); no installed file naming `harness/kiro`; both JSON files
-        # parse; and every library path an installed file cites resolves through the map in
+        # CLI 3.0 load those as agent profiles); no installed file naming `harness/kiro`; and every
+        # library path an installed file cites resolves through the map in
         # `.kiro/steering/bla.md`. `docs/` is deliberately NOT asserted: it is the library's own
         # documentation, it is never installed, and the steering map says so.
         run: |
@@ -756,18 +756,7 @@ jobs:
             f=1
           fi
 
-          # 5. The two JSON files parse, and the bla agent loads the path map and the workspace skills.
-          for j in .kiro/agents/bla.json .kiro/settings/cli.json; do
-            [ -f "$p/$j" ] || continue
-            python3 -m json.tool "$p/$j" > /dev/null 2> "$tmp/json.err" \
-              || { echo "FALHA [kiro-install] $j:1 is not valid JSON: $(head -1 "$tmp/json.err")"; f=1; }
-          done
-          for r in '"file://.kiro/steering/**/*.md"' '"skill://.kiro/skills/*/SKILL.md"'; do
-            grep -qF "$r" "$p/.kiro/agents/bla.json" 2>/dev/null \
-              || { echo "FALHA [kiro-install] .kiro/agents/bla.json:1 resources lack $r, so the bla agent would not load it"; f=1; }
-          done
-
-          # 6. Every library path an installed file cites resolves through the map in .kiro/steering/bla.md.
+          # 5. Every library path an installed file cites resolves through the map in .kiro/steering/bla.md.
           #    docs/ is absent on purpose: it is the library's own documentation and is never installed.
           ( cd "$p" && { find .kiro -name '*.md' -type f; echo AGENTS.md; } | sort ) > "$tmp/files"
           while read -r file; do
