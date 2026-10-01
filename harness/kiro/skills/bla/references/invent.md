@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/invent.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/invent.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/invent.md of the bla skill. -->
 
 # Invent — What Is the Solution?
 

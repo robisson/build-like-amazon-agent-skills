@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/deploy.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/deploy.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/deploy.md of the bla skill. -->
 
 # Deploy — Progressive Deployment
 

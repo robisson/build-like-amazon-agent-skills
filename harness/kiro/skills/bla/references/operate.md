@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/operate.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/operate.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/operate.md of the bla skill. -->
 
 # Operate — Operational Excellence
 

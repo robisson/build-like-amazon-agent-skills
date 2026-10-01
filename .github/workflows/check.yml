@@ -4,9 +4,10 @@
 # Three properties are deliberate and must survive every edit:
 #
 #  1. ONE JOB, SHELL PREDICATES. There is no build, no manifest and no lockfile in this repository and
-#     this workflow must not introduce one. `python3` appears only to run `tools/bla-check` and its
-#     self-test (Python 3 is preinstalled on ubuntu-latest); `npx` appears only to run markdownlint at
-#     a pinned version. Everything else is POSIX shell, `grep`, `awk` and `find`.
+#     this workflow must not introduce one. `python3` appears only to run `tools/bla-check`, its
+#     self-test, and `python3 -m json.tool` in `kiro-install` (standard library, nothing installed;
+#     Python 3 is preinstalled on ubuntu-latest); `npx` appears only to run markdownlint at a pinned
+#     version. Everything else is POSIX shell, `grep`, `awk` and `find`.
 #  2. ONE FAILURE FORMAT. Every predicate that fails prints exactly `FALHA [rule-name] <message>` and
 #     the step exits 1. The rule name is the contract: it is what a reader greps for and what the
 #     wave's verification block asserts, so rename a rule only together with every reference to it.
@@ -84,16 +85,22 @@ jobs:
           # The Kiro block states two more counts about disk, and the `(N skills)` arm above cannot
           # reach either: how many slash commands the install produces, and how many of those are
           # skills from `skills/`. Both are derived here, so adding a 29th skill cannot leave the Kiro
-          # block claiming 28 in silence. The slash-command total is skills + `.kiro/skills/`, and that
-          # second term is ASSERTED from disk rather than hardcoded as +1 — if a second harness skill
-          # is ever added beside `bla`, this arm moves the expected total instead of going stale.
-          kiro=$(find .kiro/skills -name SKILL.md | wc -l | tr -d ' ')
+          # block claiming 28 in silence. The slash-command total is skills + `harness/kiro/skills/`,
+          # and that second term is ASSERTED from disk rather than hardcoded as +1 — if a second harness
+          # skill is ever added beside `bla`, this arm moves the expected total instead of going stale.
+          # Only `<name>/SKILL.md` one level deep is counted, because that is the only depth Kiro and
+          # `skill-spec` treat as a skill; and both phrases are searched for inside the Kiro block
+          # only, because the same words elsewhere in README.md are not the install claim asserted here.
+          kiro=$( { find harness/kiro/skills -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null || true; } | wc -l | tr -d ' ')
           [ "$kiro" -ge 1 ] \
-            || { echo "FALHA [kiro-skill-unparsed] .kiro/skills/ holds no SKILL.md; the /bla orchestrator is the Kiro entry point and the README's slash-command total is derived from this count"; f=1; kiro=0; }
-          grep -q "The $real skills by folder name" README.md \
+            || { echo "FALHA [kiro-skill-unparsed] harness/kiro/skills/ holds no <name>/SKILL.md; the /bla orchestrator is the Kiro entry point and the README's slash-command total is derived from this count"; f=1; kiro=0; }
+          kblock=$(awk 'index($0, "<summary><strong>Kiro IDE & CLI</strong></summary>") { k = 1 } k && /^<\/details>/ { exit } k' README.md)
+          [ -n "$kblock" ] \
+            || { echo "FALHA [kiro-skill-unparsed] README.md has no 'Kiro IDE & CLI' block to read the two Kiro counts from"; f=1; }
+          printf '%s\n' "$kblock" | grep -q "The $real skills by folder name" \
             || { echo "FALHA [kiro-skill-count] README.md does not say 'The $real skills by folder name' in the Kiro block, and skills/ holds $real SKILL.md files"; f=1; }
-          grep -q "$((real + kiro)) slash commands" README.md \
-            || { echo "FALHA [kiro-command-count] README.md does not say '$((real + kiro)) slash commands', which is $real in skills/ plus $kiro in .kiro/skills/"; f=1; }
+          printf '%s\n' "$kblock" | grep -q "$((real + kiro)) slash commands" \
+            || { echo "FALHA [kiro-command-count] README.md does not say '$((real + kiro)) slash commands' in the Kiro block, which is $real in skills/ plus $kiro in harness/kiro/skills/"; f=1; }
 
           # A section heading glued to the paragraph above it is not a style nit: CommonMark does not
           # open an ATX heading there in every renderer, so the section silently stops being a section.
@@ -231,10 +238,10 @@ jobs:
         # THIS STEP ASSERTS VALUES, NEVER THE KEY SET — see the note in `frontmatter`, which owns the
         # key set. Nothing here is duplicated there.
         #
-        # BOTH skill trees are covered. `.kiro/skills/bla/SKILL.md` is the file whose validity literally
-        # decides whether `/bla` exists, so leaving it unchecked would leave the harness's entry point as
-        # the one skill nobody verified. It is correctly exempt from `frontmatter`, whose glob is
-        # `skills/*/SKILL.md` and does not reach into `.kiro/`.
+        # BOTH skill trees are covered. `harness/kiro/skills/bla/SKILL.md` is the file whose validity
+        # literally decides whether `/bla` exists, so leaving it unchecked would leave the harness's entry
+        # point as the one skill nobody verified. It is correctly exempt from `frontmatter`, whose glob is
+        # `skills/*/SKILL.md` and does not reach into `harness/kiro/`.
         #
         # `description` is measured on the FOLDED value, not the first line: the `bla` skill uses YAML's
         # `>-` block form, and measuring only `description: >-` would report 0 chars and pass anything.
@@ -244,7 +251,7 @@ jobs:
           f=0
           block() { awk 'NR>1 && /^---$/{exit} NR>1{print}' "$1"; }
 
-          for file in skills/*/SKILL.md .kiro/skills/*/SKILL.md; do
+          for file in skills/*/SKILL.md harness/kiro/skills/*/SKILL.md; do
             [ -f "$file" ] || continue
             dir=$(basename "$(dirname "$file")")
 
@@ -367,15 +374,18 @@ jobs:
         # a path as it was at the time of the entry, not as it is now. The 0.4.0 migration table cites
         # the pre-0.4.0 implementation-memory location precisely because it no longer exists, and a
         # citation of a deliberately-removed path is history, not a broken promise.
-        # The `skills/…` arm carries an optional `(\.kiro/)?` prefix so a citation of
-        # `.kiro/skills/bla/SKILL.md` is checked as the path it actually is. Without the group,
+        # The `skills/…` arm carries an optional `(harness/kiro/|\.kiro/)?` prefix so a citation of
+        # `harness/kiro/skills/bla/SKILL.md` is checked as the path it actually is. Without the group,
         # `grep -oE` extracts the leftmost match `skills/bla/SKILL.md` out of that citation and then
         # fails the `-e` test on a path nobody ever claimed existed — a false FALHA on a true sentence.
-        # With the group the alternation is leftmost-longest and the full `.kiro/` path is extracted.
+        # With the group the alternation is leftmost-longest and the full path is extracted. A concrete
+        # `.kiro/skills/<n>/SKILL.md` is a path that exists only in an adopter's project — this
+        # repository has no `.kiro/` of its own — so it is extracted whole too, and reported: write such
+        # a path with a placeholder (`.kiro/skills/<name>/SKILL.md`), which no arm matches.
         run: |
           f=0
 
-          for ref in $(grep -rhoE '(agents/[a-z0-9-]+\.md|(\.kiro/)?skills/[a-z0-9-]+/SKILL\.md|patterns/[a-z0-9-]+/PATTERN\.md|docs/[a-z0-9-]+\.md|\.bla/[a-z0-9-]+\.md|\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md)' \
+          for ref in $(grep -rhoE '(agents/[a-z0-9-]+\.md|(harness/kiro/|\.kiro/)?skills/[a-z0-9-]+/SKILL\.md|patterns/[a-z0-9-]+/PATTERN\.md|docs/[a-z0-9-]+\.md|\.bla/[a-z0-9-]+\.md|\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md)' \
                         --include='*.md' --exclude=CHANGELOG.md --exclude-dir=.agents --exclude-dir=.worktrees . | sort -u); do
             [ -e "$ref" ] || { echo "FALHA [xref-missing] $ref is cited in a markdown file but does not exist on disk"; f=1; }
           done
@@ -519,9 +529,11 @@ jobs:
         # THE MAINTENANCE CONTRACT FOR THE HARNESS COMMAND DIRECTORIES.
         #
         # `.claude/commands/` is CANONICAL: it is the file you edit. `.gemini/commands/` and
-        # `.kiro/commands/` are MIRRORS — their own first line says so — and a mirror may differ from
-        # its canonical source by exactly two declared mechanics and nothing else:
-        #   T1  the `<!-- MIRROR: … -->` banner plus the single blank line after it (mirrors only);
+        # `harness/kiro/skills/bla/references/` are MIRRORS — their own first line says so — and a
+        # mirror may differ from its canonical source by exactly two declared mechanics and nothing else:
+        #   T1  the `<!-- MIRROR: … -->` banner plus the single blank line after it (mirrors only). The
+        #       Kiro banner carries one extra clause, `Kiro: installed as references/<name>.md of the bla
+        #       skill.`, naming the path the `bla` skill reads the file at; that clause is asserted too;
         #   T2  the `> **Path resolution**: …` blockquote plus the single blank line after it
         #       (`.claude/` only — it describes the Claude plugin root, a concept the other two
         #       harnesses do not have).
@@ -538,25 +550,25 @@ jobs:
         # degraded command but a null instruction, so a shell would have to carry the rule kernel to
         # stay functional — which restores the whole duplication the restructure exists to remove.
         # (Deliberately stated without a tally: the number of copy-based installs changes whenever a
-        # harness block is rewritten — Kiro's now copies no command directory at all — and a stale
-        # count in a rationale comment is exactly the defect `doc-truth` exists to prevent.) Revisit
+        # harness block is rewritten — Kiro's copies its mirror as the bla skill's `references/` — and a
+        # stale count in a rationale comment is exactly the defect `doc-truth` exists to prevent.) Revisit
         # the day this library stops distributing by copying one harness directory.
         #
         # OUTSIDE THIS PREDICATE'S UNIT, deliberately. The unit is the 14 commands.
         # `.cursor/rules/amazon-skills.md` is a thin router in the *rules* channel, where a router works
-        # (the whole repository is present), and it carries no command body. `.kiro/skills/bla/SKILL.md`
-        # is the Kiro orchestrator skill: it routes `/bla <phase>` by naming sibling SKILLS, cites ZERO
-        # `commands/` paths (verified with `grep -rn "commands/" .kiro/skills/bla/SKILL.md`), and
-        # therefore carries no command body that could drift from the 14. Its own validity is checked by
-        # `skill-spec`, not here.
+        # (the whole repository is present), and it carries no command body.
+        # `harness/kiro/skills/bla/SKILL.md` is the Kiro router: it sends `/bla <phase>` to
+        # `references/<phase>.md`, carries no command body of its own, and `kiro-install` asserts that it
+        # routes to all 14. Its own validity is checked by `skill-spec`, not here.
         run: |
           f=0
 
-          # The mirror set is discovered from disk, never from a fixed list, so a fourth harness added
-          # tomorrow is covered automatically and a forgotten one cannot leave the set in silence.
-          MIRRORS=$(find . -maxdepth 2 -mindepth 2 -type d -name commands \
-                    ! -path './.claude/*' ! -path './.agents/*' ! -path './.worktrees/*' \
-                    | sed 's|^\./||' | sort)
+          # The dot-directory mirrors are discovered from disk; the Kiro mirror is named, because it is a
+          # skill's references/ folder rather than a `commands` directory, and a missing one must be loud.
+          KIRO_MIRROR=harness/kiro/skills/bla/references
+          MIRRORS=$( { find . -maxdepth 2 -mindepth 2 -type d -name commands \
+                         ! -path './.claude/*' ! -path './.agents/*' ! -path './.worktrees/*'; \
+                       echo "./$KIRO_MIRROR"; } | sed 's|^\./||' | sort)
 
           # Removes T1 and T2 and nothing else. Newline-agnostic by construction, because awk always
           # terminates its last output line — which is why the missing final newline in 13 of the 14
@@ -571,6 +583,11 @@ jobs:
           ls .claude/commands | sort > "$canon"
 
           for m in $MIRRORS; do
+            if [ ! -d "$m" ]; then
+              echo "FALHA [parity-name-set] $m does not exist; it is where the mirror of .claude/commands/ must live"
+              f=1
+              continue
+            fi
             mine=$(mktemp)
             ls "$m" | sort > "$mine"
             if ! cmp -s "$canon" "$mine"; then
@@ -584,6 +601,10 @@ jobs:
               [ -f "$m/$n" ] || continue
               head -1 "$m/$n" | grep -qF "mirrors .claude/commands/$n." \
                 || { echo "FALHA [parity-banner] $m/$n does not open with the mirror banner naming .claude/commands/$n"; f=1; }
+              if [ "$m" = "$KIRO_MIRROR" ]; then
+                head -1 "$m/$n" | grep -qF "references/$n of the bla skill" \
+                  || { echo "FALHA [parity-banner] $m/$n does not name references/$n in its banner, the path the bla skill reads it at"; f=1; }
+              fi
 
               a=$(mktemp); b=$(mktemp)
               norm ".claude/commands/$n" > "$a"
@@ -600,11 +621,194 @@ jobs:
 
           # A command file is copied into someone else's project, so a path from this machine in one of
           # them is an instruction that cannot execute anywhere else.
-          hits=$(grep -rln '/Users/\|/home/\|/root/' .claude/commands $MIRRORS | wc -l | tr -d ' ' || true)
+          hits=$(grep -rln '/Users/\|/home/\|/root/' .claude/commands $MIRRORS 2>/dev/null | wc -l | tr -d ' ' || true)
           [ "$hits" = 0 ] \
-            || { echo "FALHA [parity-abs-path] an absolute path appears in $hits command file(s): $(grep -rln '/Users/\|/home/\|/root/' .claude/commands $MIRRORS | tr '\n' ' ')"; f=1; }
+            || { echo "FALHA [parity-abs-path] an absolute path appears in $hits command file(s): $(grep -rln '/Users/\|/home/\|/root/' .claude/commands $MIRRORS 2>/dev/null | tr '\n' ' ')"; f=1; }
 
           [ "$f" -eq 0 ] || exit 1
+
+      - name: kiro-install
+        # THE README'S KIRO INSTALL, EXECUTED. Every other step reads README.md; this one runs it. The one
+        # `bash` fence inside the "Kiro IDE & CLI" block is EXTRACTED from README.md on every run and is
+        # never retyped here: a copy in this file would drift from the README, and a README that drifts
+        # from what actually installs is the defect this step exists to catch. The block as it stood
+        # before this step failed when executed — `cd your-project` left the clone behind.
+        #
+        # Three stand-ins keep the run hermetic. The network: `git clone <url>` is replaced by a symlink
+        # to this checkout, created where the block runs it and named the way git names a clone, so the
+        # block copies from the commit under test; any other `git` call fails instead of being skipped.
+        # The project: an empty `your-project/` inside a `mktemp -d` directory, removed on exit (`rm -rf`
+        # unlinks the symlink and never traverses it). The shell: the block runs under `sh`, not bash,
+        # so it stays POSIX for an adopter on any userland.
+        #
+        # What is asserted about the installed tree: every file the install owes is present and
+        # byte-identical to the library's copy; the skill count, one level deep, derived from disk, with
+        # every `name` equal to its folder; the 14 phase procedures present and routed by the `bla`
+        # skill; no root `agents/` or `patterns/` and no `.md` under `.kiro/agents/` (Kiro IDE 1.0 and
+        # CLI 3.0 load those as agent profiles); no installed file naming `harness/kiro`; both JSON files
+        # parse; and every library path an installed file cites resolves through the map in
+        # `.kiro/steering/bla.md`. `docs/` is deliberately NOT asserted: it is the library's own
+        # documentation, it is never installed, and the steering map says so.
+        run: |
+          f=0
+          root=$PWD
+          tmp=$(mktemp -d)
+          trap 'rm -rf "$tmp"' EXIT
+
+          # The block is READ from README.md, never retyped here: a README that drifts from what actually
+          # installs is the defect this step exists to catch.
+          bstart=$(grep -nF '<summary><strong>Kiro IDE & CLI</strong></summary>' README.md | head -1 | cut -d: -f1 || true)
+          if [ -z "$bstart" ]; then
+            echo "FALHA [kiro-install] README.md:1 the 'Kiro IDE & CLI' block is gone; this step executes that block and has nothing to run"
+            exit 1
+          fi
+          set -- $(awk -v s="$bstart" -v out="$tmp/block.sh" '
+            NR <= s { next }
+            /^<\/details>/ { exit }
+            inf && /^```$/ { inf = 0; next }
+            inf { print > out; next }
+            /^```bash$/ { n++; if (n == 1) { inf = 1; at = NR } }
+            END { print n + 0, at + 0 }' README.md)
+          fences=$1
+          fline=$2
+          if [ "$fences" != 1 ]; then
+            echo "FALHA [kiro-install] README.md:$bstart the Kiro block holds $fences \`\`\`bash fence(s); it must hold exactly one, the install"
+            exit 1
+          fi
+
+          # Stand in for the network: `git clone <url>` becomes a symlink to this checkout, created where the
+          # block runs it and named the way git names a clone. Any other git call is a README change this step
+          # must be taught about, so it fails instead of being skipped.
+          mkdir -p "$tmp/your-project"
+          {
+            printf '%s\n' 'git() {'
+            printf '%s\n' '  if [ "$#" -eq 2 ] && [ "$1" = clone ]; then d=${2##*/}; ln -s "$KIRO_INSTALL_CHECKOUT" "${d%.git}"; return 0; fi'
+            printf '%s\n' '  echo "the Kiro block runs git $*, which kiro-install cannot stand in for" >&2; return 1'
+            printf '%s\n' '}'
+            cat "$tmp/block.sh"
+          } > "$tmp/run.sh"
+          if ! (cd "$tmp" && KIRO_INSTALL_CHECKOUT="$root" sh -e "$tmp/run.sh") > "$tmp/run.log" 2>&1; then
+            echo "FALHA [kiro-install] README.md:$fline the Kiro install block failed when executed: $(tail -3 "$tmp/run.log" | tr '\n' ' ')"
+            exit 1
+          fi
+          p="$tmp/your-project"
+
+          # 1. Every file the install owes lands byte-identical at its mapped destination. This subsumes
+          #    existence, and it also catches a block that copies the right names from the wrong place.
+          tab=$(printf '\t')
+          {
+            (cd skills && find . -type f) | sed 's|^\./||' | awk '{ print "skills/" $0 "\t.kiro/skills/" $0 }'
+            (cd harness/kiro && find . -type f) | sed 's|^\./||' | awk '{ print "harness/kiro/" $0 "\t.kiro/" $0 }'
+            { find agents -maxdepth 1 -name '*.md' -type f; find patterns -type f; } | awk '{ print $0 "\t.kiro/skills/bla/references/" $0 }'
+            printf 'AGENTS.md\tAGENTS.md\ntools/bla-check\ttools/bla-check\n'
+          } | sort > "$tmp/owed"
+          while IFS="$tab" read -r src dst; do
+            if [ ! -f "$p/$dst" ]; then
+              echo "FALHA [kiro-install] $dst:1 is missing from the installed project; the README's Kiro block never puts $src there"
+            elif ! cmp -s "$src" "$p/$dst"; then
+              echo "FALHA [kiro-install] $dst:1 differs from $src; the README's Kiro block copies it from somewhere else"
+            fi
+          done < "$tmp/owed" > "$tmp/owed.out"
+          if [ -s "$tmp/owed.out" ]; then cat "$tmp/owed.out"; f=1; fi
+
+          # 2. Skills: exactly one level deep, every name equal to its folder, the total derived from disk.
+          # Each find is guarded so a missing harness/kiro/skills/ reaches the FALHA lines below instead of
+          # ending the step silently under set -e (measured: the unguarded form exits 1 with no FALHA line).
+          lib=$( { find skills -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null || true; } | wc -l | tr -d ' ')
+          har=$( { find harness/kiro/skills -mindepth 2 -maxdepth 2 -name SKILL.md 2>/dev/null || true; } | wc -l | tr -d ' ')
+          want=$((lib + har))
+          got=$(find "$p/.kiro/skills" -mindepth 2 -maxdepth 2 -name SKILL.md | wc -l | tr -d ' ')
+          [ "$got" = "$want" ] \
+            || { echo "FALHA [kiro-install] .kiro/skills:1 the install produced $got <name>/SKILL.md, expected $want (skills/ plus harness/kiro/skills/)"; f=1; }
+          for s in $(cd "$p" && find .kiro/skills -mindepth 3 -name SKILL.md | sort); do
+            echo "FALHA [kiro-install] $s:1 a SKILL.md below .kiro/skills/<name>/ is loaded as a skill by any **/SKILL.md glob"
+            f=1
+          done
+          for s in "$p"/.kiro/skills/*/SKILL.md; do
+            d=$(basename "$(dirname "$s")")
+            n=$(awk 'NR>1 && /^---$/{exit} NR>1 && /^name:/{sub(/^name:[[:space:]]*/,""); gsub(/^"|"$/,""); print; exit}' "$s")
+            [ "$n" = "$d" ] \
+              || { echo "FALHA [kiro-install] .kiro/skills/$d/SKILL.md:2 name is '$n' but the folder is '$d'; Kiro gives it no slash command"; f=1; }
+          done
+
+          # 3. The 14 phase procedures are installed, and the router sends /bla <phase> to every one of them.
+          for c in .claude/commands/*.md; do
+            n=$(basename "$c")
+            [ -f "$p/.kiro/skills/bla/references/$n" ] \
+              || { echo "FALHA [kiro-install] .kiro/skills/bla/references/$n:1 is missing, so /bla ${n%.md} has no procedure to follow"; f=1; }
+            grep -qF "references/$n" "$p/.kiro/skills/bla/SKILL.md" 2>/dev/null \
+              || { echo "FALHA [kiro-install] .kiro/skills/bla/SKILL.md:1 never sends the agent to references/$n, so /bla ${n%.md} has no procedure"; f=1; }
+          done
+
+          # 4. Nothing lands where it collides: not at the adopter's root, not where Kiro reads agent profiles.
+          for x in agents patterns; do
+            [ ! -e "$p/$x" ] \
+              || { echo "FALHA [kiro-install] $x:1 the install created a root $x/ in the adopter's project, where it collides with their own code"; f=1; }
+          done
+          for x in "$p"/.kiro/agents/*.md; do
+            [ -e "$x" ] || continue
+            echo "FALHA [kiro-install] .kiro/agents/$(basename "$x"):1 a .md in .kiro/agents/ is an agent profile to Kiro IDE 1.0 and CLI 3.0"
+            f=1
+          done
+          hits=$(grep -rn 'harness/kiro' "$p/.kiro" 2>/dev/null | sed "s|^$p/||" || true)
+          if [ -n "$hits" ]; then
+            echo "$hits" | awk -F: '{ printf "FALHA [kiro-install] %s:%s names harness/kiro, a path that exists only in the library\n", $1, $2 }'
+            f=1
+          fi
+
+          # 5. The two JSON files parse, and the bla agent loads the path map and the workspace skills.
+          for j in .kiro/agents/bla.json .kiro/settings/cli.json; do
+            [ -f "$p/$j" ] || continue
+            python3 -m json.tool "$p/$j" > /dev/null 2> "$tmp/json.err" \
+              || { echo "FALHA [kiro-install] $j:1 is not valid JSON: $(head -1 "$tmp/json.err")"; f=1; }
+          done
+          for r in '"file://.kiro/steering/**/*.md"' '"skill://.kiro/skills/*/SKILL.md"'; do
+            grep -qF "$r" "$p/.kiro/agents/bla.json" 2>/dev/null \
+              || { echo "FALHA [kiro-install] .kiro/agents/bla.json:1 resources lack $r, so the bla agent would not load it"; f=1; }
+          done
+
+          # 6. Every library path an installed file cites resolves through the map in .kiro/steering/bla.md.
+          #    docs/ is absent on purpose: it is the library's own documentation and is never installed.
+          ( cd "$p" && { find .kiro -name '*.md' -type f; echo AGENTS.md; } | sort ) > "$tmp/files"
+          while read -r file; do
+            { grep -noE '(\.claude/commands/[a-z0-9-]+\.md|skills/[a-z0-9-]+/SKILL\.md|skills/[a-z0-9-]+/templates/[a-z0-9-]+\.md|agents/[a-z0-9-]+\.md|patterns/INDEX\.md|patterns/[a-z0-9-]+/PATTERN\.md)' "$p/$file" || true; } \
+            | while IFS=: read -r ln ref; do
+                case "$ref" in
+                  .claude/commands/*) to=".kiro/skills/bla/references/${ref#.claude/commands/}" ;;
+                  skills/*) to=".kiro/$ref" ;;
+                  *) to=".kiro/skills/bla/references/$ref" ;;
+                esac
+                [ -f "$p/$to" ] \
+                  || echo "FALHA [kiro-install] $file:$ln cites $ref; the map in .kiro/steering/bla.md sends it to $to, which the install did not produce"
+              done
+          done < "$tmp/files" > "$tmp/xref"
+          # A folder cited as `skills/<name>/…` or `patterns/<name>/…` must exist where the map sends it,
+          # whatever the citation names inside it. The file arm above cannot see a folder citation, so
+          # without this pass one would dangle in silence after a skill or a pattern is renamed.
+          while read -r file; do
+            { grep -noE '(skills|patterns)/[a-z0-9-]+/' "$p/$file" || true; } \
+            | while IFS=: read -r ln ref; do
+                case "$ref" in
+                  skills/*) to=".kiro/$ref" ;;
+                  *) to=".kiro/skills/bla/references/$ref" ;;
+                esac
+                [ -d "$p/$to" ] \
+                  || echo "FALHA [kiro-install] $file:$ln cites the folder $ref; the map in .kiro/steering/bla.md sends it to $to, which the install did not produce"
+              done
+          done < "$tmp/files" >> "$tmp/xref"
+          { grep -noE 'references/[a-z0-9-]+\.md' "$p/.kiro/skills/bla/SKILL.md" 2>/dev/null || true; } \
+          | while IFS=: read -r ln ref; do
+              [ -f "$p/.kiro/skills/bla/$ref" ] \
+                || echo "FALHA [kiro-install] .kiro/skills/bla/SKILL.md:$ln routes to $ref, which is not in .kiro/skills/bla/"
+            done >> "$tmp/xref"
+          if [ -s "$tmp/xref" ]; then cat "$tmp/xref"; f=1; fi
+
+          if [ "$f" -ne 0 ]; then
+            echo "--- the installed tree, find .kiro -maxdepth 3:"
+            (cd "$p" && find .kiro -maxdepth 3 | sort)
+            exit 1
+          fi
+          echo "kiro-install: clean — $got skills, $(wc -l < "$tmp/owed" | tr -d ' ') files installed as the library holds them, $(wc -l < "$tmp/files" | tr -d ' ') installed documents whose cited library paths all resolve"
 
       - name: gitleaks
         # No baseline, on purpose: see the comment in .gitleaks.toml. A baseline committed before the

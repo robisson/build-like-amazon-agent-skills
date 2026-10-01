@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/spec.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/spec.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/spec.md of the bla skill. -->
 
 # Spec — Create a New Implementation Spec
 

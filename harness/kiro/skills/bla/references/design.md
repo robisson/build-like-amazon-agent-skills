@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/design.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/design.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/design.md of the bla skill. -->
 
 # Design — Technical Design Document
 

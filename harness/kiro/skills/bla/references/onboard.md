@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/onboard.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/onboard.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/onboard.md of the bla skill. -->
 
 # Onboard — Reverse-Engineer an Existing Project
 

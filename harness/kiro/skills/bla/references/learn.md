@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/learn.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/learn.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/learn.md of the bla skill. -->
 
 # Learn — Correction of Errors and Mechanisms
 

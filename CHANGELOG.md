@@ -39,30 +39,28 @@ The 28 skills are now valid Kiro skills. Each `name` is its folder name in kebab
 and the Agent Skills specification require — 22 carried a Title Case `name` and produced no slash command.
 The human-readable title moved to the body as an H1; nothing was lost.
 
-Kiro install changed. Copy `skills/` into `.kiro/skills/` one level deep (`cp -R src/. dest/`), which gives
-you 28 slash commands named after their folders, plus `/bla` from the new `.kiro/skills/bla/SKILL.md`
-orchestrator — `/bla wb`, `/bla design`, `/bla build`. Stop copying `.kiro/commands/` into `.kiro/prompts/`:
+Kiro install changed — follow the README block. The Kiro harness now lives in `harness/kiro/` and becomes
+`.kiro/` only in your project, as in aidlc-workflows; this library no longer carries a `.kiro/` of its own.
+The install copies `skills/` into `.kiro/skills/` one level deep, then `harness/kiro/` into `.kiro/`: 28
+slash commands named after their folders, plus `/bla`, the `bla` agent (no pinned model),
+`.kiro/settings/cli.json` and `.kiro/steering/bla.md`. Stop copying `.kiro/commands/` into `.kiro/prompts/`:
 that directory holds `@name` prompts, not slash commands. Two frontmatter-less files,
 `.kiro/skills/amazon-build-and-deploy.md` and `.kiro/skills/amazon-working-backwards.md`, are gone — loose
 `.md` files cannot be skills.
 
-**Kiro adopters lose the 14 command bodies.** Dropping the `.kiro/prompts/` copy removed the only step that
-put `.claude/commands/*.md` on a Kiro adopter's disk, and nothing replaces it: the wave execution flow, the
-`tasks.md` state machine and the post-implementation review verdict format in `.claude/commands/build.md` are
-not in your project after install, and `/bla build` is not equivalent to `/build` in Claude Code. Where
-`AGENTS.md` points at `.claude/commands/build.md`, that file is in this library's clone only. The documented
-alternative — `.kiro/steering/` — was declined because it needs `inclusion` frontmatter the command files do
-not carry, and because on the Kiro CLI inclusion modes are unsupported and every steering file loads in every
-session.
+**`/bla <phase>` runs the full phase.** The 14 phase procedures ship as the `bla` skill's `references/`, so
+`/bla build` follows the same procedure as `/build` in Claude Code. The personas and patterns the phases
+read are installed under `.kiro/skills/bla/references/agents/` and `.kiro/skills/bla/references/patterns/`,
+and `.kiro/steering/bla.md` maps every library path the skills cite to where it was installed.
 
-New Kiro harness files: `.kiro/agents/bla.json` (the BLA custom agent, no pinned model) and
-`.kiro/settings/cli.json` (`chat.defaultAgent`, `chat.modelDefaults`). `cli.json` is read by the Kiro CLI
-only — on the IDE it is inert — and its `chat.defaultAgent` overrides a default agent you set for yourself in
-that workspace; delete the key and use `kiro-cli chat --agent bla` if you would rather keep your own.
+`cli.json` is read by the Kiro CLI only. It sets `chat.defaultAgent` to `bla` for everyone working in the
+project; delete the key and use `kiro-cli chat --agent bla` to keep your own default.
 
-New CI check `skill-spec`: `FALHA [skill-name-invalid]` when a skill's `name` is not its folder name,
-`FALHA [skill-description-invalid]` when `description` is missing or over 1024 characters. It covers
-`skills/` and `.kiro/skills/`.
+New CI checks: `skill-spec` fails with `FALHA [skill-name-invalid]` when a skill's `name` is not its folder
+name and `FALHA [skill-description-invalid]` when `description` is missing or over 1024 characters, in
+`skills/` and `harness/kiro/skills/`; `kiro-install` runs the README's Kiro block in a temporary directory
+and fails with `FALHA [kiro-install]` when an installed file is missing or differs from the library, a JSON
+file does not parse, or a path an installed file cites does not resolve.
 
 ## 0.4.0 — 2026-09-23
 

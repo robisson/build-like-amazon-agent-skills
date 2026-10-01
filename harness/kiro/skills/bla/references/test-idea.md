@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/test-idea.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/test-idea.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/test-idea.md of the bla skill. -->
 
 # Test Idea — How Will We Measure Success?
 

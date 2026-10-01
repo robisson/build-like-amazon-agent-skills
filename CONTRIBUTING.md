@@ -201,7 +201,7 @@ Checkpoints define what "done" means for each phase. They can be:
    - [ ] `python3 tools/bla-check links .` is clean (no `FALHA` line)
    - [ ] `npx -y markdownlint-cli2@0.18.1 "**/*.md"` reports `Summary: 0 error(s)`
    - [ ] If the project I am changing keeps a flow-metric series, `python3 tools/bla-check metrics <path-to-jsonl>` is clean (no `FALHA` line). This repository ships no series of its own, so here it applies only to the fixtures under `tools/tests/fixtures/metrics-*/` — which `python3 tools/tests/run.py` already covers
-   - [ ] If I edited `.claude/commands/<name>.md`, I copied the same change into `.gemini/commands/<name>.md` and `.kiro/commands/<name>.md`
+   - [ ] If I edited `.claude/commands/<name>.md`, I copied the same change into `.gemini/commands/<name>.md` and `harness/kiro/skills/bla/references/<name>.md`
    - [ ] `CHANGELOG.md` updated **only if** this change affects users
    - [ ] Counts stated in README match what is on disk
    - [ ] No cross-reference points at a non-existent path, heading or field
@@ -215,18 +215,19 @@ Checkpoints define what "done" means for each phase. They can be:
 The three commands in that checklist are not honour-system: `.github/workflows/check.yml` re-runs them on
 every pull request, together with the README counts, the skill and agent frontmatter shape, the skill spec
 conformance check (`name` equal to the skill's folder name and spec-legal, `description` present and within
-1024 characters — in `skills/` and in `.kiro/skills/` alike), the severity and verdict label integrity,
-every repository path cited in prose, the harness command parity, the agreement between `VERSION`,
-`.claude-plugin/plugin.json` and `CHANGELOG.md`, and a secret scan. Each
-failure prints one `FALHA [rule-name]` line naming the rule that broke. Run them locally first — the server
-tells you the same thing, only slower. What CI cannot check for you is the rest of the list: a cited
-*heading* or frontmatter *field* that no longer exists is invisible to it, which is why that item stays on
-you.
+1024 characters — in `skills/` and in `harness/kiro/skills/` alike), the severity and verdict label integrity,
+every repository path cited in prose, the harness command parity, the README's Kiro install executed in a
+temporary directory, the agreement between `VERSION`, `.claude-plugin/plugin.json` and `CHANGELOG.md`, and a
+secret scan. Each failure prints one `FALHA [rule-name]` line naming the rule that broke. Run them locally
+first — the server tells you the same thing, only slower. What CI cannot check for you is the rest of the
+list: a cited *heading* or frontmatter *field* that no longer exists is invisible to it, which is why that
+item stays on you.
 
-**`.claude/commands/` is canonical; `.gemini/commands/` and `.kiro/commands/` are mirrors of it.** Their own
-banner says so, and the `parity` step now enforces it: a mirror may differ from its canonical file by exactly
-two things — the `<!-- MIRROR: … -->` banner (mirrors only) and the `> **Path resolution**:` blockquote
-(`.claude/` only, because it describes the Claude plugin root) — and nothing else. Edit the canonical file,
+**`.claude/commands/` is canonical; `.gemini/commands/` and `harness/kiro/skills/bla/references/` are mirrors
+of it.** Their own banner says so, and the `parity` step now enforces it: a mirror may differ from its
+canonical file by exactly two things — the `<!-- MIRROR: … -->` banner (mirrors only; the Kiro one also names
+`references/<name>.md`) and the `> **Path resolution**:` blockquote (`.claude/` only, because it describes the
+Claude plugin root) — and nothing else. Edit the canonical file,
 then copy the change into both mirrors in the same commit. If you forget, `parity` fails with
 `FALHA [parity-body]` naming the file that drifted and printing the `diff`, so the failure tells you exactly
 what to copy. There is no generator: the mirrors are hand-synced on purpose, because this library is

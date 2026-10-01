@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/listen.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/listen.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/listen.md of the bla skill. -->
 
 # Listen — Who Is the Customer?
 

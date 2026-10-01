@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/refine.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/refine.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/refine.md of the bla skill. -->
 
 # Refine — Write the PR/FAQ
 

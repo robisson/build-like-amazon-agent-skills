@@ -339,7 +339,7 @@ Surface this to the user and suggest they open an issue or contribute an improve
 
 This repository *is* documentation: a stale cross-reference is a broken instruction, not a cosmetic defect. When you add, remove or rename a file, directory, command, skill, agent or frontmatter field, search the repository for references to the old name and update every one of them **in the same commit** as the change itself.
 
-Surfaces to search, at minimum: `README.md`, `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`, every `*/commands/` directory, and `docs/`.
+Surfaces to search, at minimum: `README.md`, `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/`, every `*/commands/` directory, `harness/kiro/`, and `docs/`.
 
 Three checks before you consider the change done:
 

@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/wb.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/wb.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/wb.md of the bla skill. -->
 
 # Working Backwards — Start Here
 

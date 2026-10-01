@@ -1,4 +1,4 @@
-<!-- MIRROR: This file mirrors .claude/commands/build.md. Do not edit directly — sync from the Claude version. -->
+<!-- MIRROR: This file mirrors .claude/commands/build.md. Do not edit directly — sync from the Claude version. Kiro: installed as references/build.md of the bla skill. -->
 
 # Build — Execute Specs
 
