@@ -1,6 +1,6 @@
 # Refine — Write the PR/FAQ
 
-> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. Installed as a Claude Code plugin, that root is the `BLA plugin root:` line the plugin printed at session start; in a local install it is the working directory.
 
 You are activating the **wb-refine** skill. This is Phase 4 of Working Backwards: crystallizing the idea into Amazon's PR/FAQ format.
 

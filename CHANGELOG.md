@@ -33,6 +33,22 @@ a plausible shape, which is worse than no date.
      definition). Both rules are enabled in .markdownlint-cli2.jsonc. Do not "fix" these headings back into
      brackets: the brackets buy nothing here, because no heading links anywhere. -->
 
+## 0.6.0 — 2026-10-05
+
+Claude Code installs the plugin from a marketplace. The repository is now its own marketplace
+(`.claude-plugin/marketplace.json`), so `/plugin marketplace add robisson/build-like-amazon-agent-skills`
+followed by `/plugin install build-like-amazon@build-like-amazon` replaces the clone and `--plugin-dir`.
+
+An installed plugin used to lose the rules: Claude Code never loads a plugin's `CLAUDE.md`, so approval
+gates, task markers, proportionality and API First were absent, and the `skills/`, `agents/` and `patterns/`
+paths the commands cite pointed at the adopter's working directory. A `SessionStart` hook
+(`hooks/hooks.json`) now prints the Critical Rules from `CLAUDE.md` and the plugin root, and each command's
+path-resolution note points at that root.
+
+The repository URLs in `.claude-plugin/plugin.json`, the README and `docs/getting-started.md` named
+`robisson/build-like-amazon`, which does not exist; they name `robisson/build-like-amazon-agent-skills`, and
+the clone directories in the install blocks follow. `version-agreement` also checks the marketplace entry.
+
 ## 0.5.0 — 2026-09-30
 
 The 28 skills are now valid Kiro skills. Each `name` is its folder name in kebab-case, which is what Kiro

@@ -77,7 +77,7 @@ From Medium ceremony upward these commands also append flow events to a JSONL se
 `tools/bla-check` is the only executable in this library and it runs **in your project**, not here: `tasks` refuses to call a spec done while a marker is still open or a `[!]` task has no reason, `links` catches a relative link that does not resolve, `metrics` validates a flow-event series. It is a single standard-library Python 3 file with no dependencies, so one copy is the whole install:
 
 ```bash
-mkdir -p tools && cp build-like-amazon/tools/bla-check tools/bla-check
+mkdir -p tools && cp build-like-amazon-agent-skills/tools/bla-check tools/bla-check
 ```
 
 If your harness below keeps the clone in-tree as `.build-like-amazon/`, skip the copy — the path is already `.build-like-amazon/tools/bla-check`.
@@ -98,8 +98,8 @@ Every artifact the flow produces lands under `.bla/` in *your* project: `.bla/wo
 Kiro turns each folder `<name>/SKILL.md` under `.kiro/skills/` into the slash command `/<name>` ([kiro.dev/docs/skills](https://kiro.dev/docs/skills)). The install copies the skills, then the Kiro harness from `harness/kiro/` — the layout [aidlc-workflows](https://github.com/awslabs/aidlc-workflows) uses — so nothing in your project points back at the clone.
 
 ```bash
-git clone https://github.com/robisson/build-like-amazon.git
-BLA="$PWD/build-like-amazon"
+git clone https://github.com/robisson/build-like-amazon-agent-skills.git
+BLA="$PWD/build-like-amazon-agent-skills"
 cd your-project
 
 # 1. The skills, one folder each
@@ -127,31 +127,35 @@ mkdir -p tools && cp "$BLA/tools/bla-check" tools/bla-check
 <details>
 <summary><strong>Claude Code</strong></summary>
 
-**Option A — Plugin (recommended, zero conflict with your project)**
+**Option A — Plugin from the marketplace (recommended, zero conflict with your project)**
 
-```bash
-git clone https://github.com/robisson/build-like-amazon.git
-claude --plugin-dir /path/to/build-like-amazon
+Inside Claude Code:
+
+```
+/plugin marketplace add robisson/build-like-amazon-agent-skills
+/plugin install build-like-amazon@build-like-amazon
 ```
 
-Everything loads automatically — commands, skills, agents, and patterns. Commands are available as `/build-like-amazon:wb`, `/build-like-amazon:design`, etc. Your project's `CLAUDE.md` stays completely untouched.
+Everything loads automatically — the 14 commands, 28 skills, 10 agents and the patterns. Commands are available as `/wb`, `/design`, … or, when another plugin uses the same name, as `/build-like-amazon:wb`, `/build-like-amazon:design`. A `SessionStart` hook loads the operating rules (approval gates, task markers, proportionality, API First) and tells the agent where the plugin is installed, so every `skills/`, `agents/` and `patterns/` path a command cites resolves. Your project's `CLAUDE.md` stays completely untouched. Update with `/plugin marketplace update build-like-amazon`.
+
+To try a local checkout instead: `claude --plugin-dir /path/to/build-like-amazon-agent-skills`.
 
 **Option B — Local install (copies commands and rules into your project)**
 
 ```bash
-git clone https://github.com/robisson/build-like-amazon.git
+git clone https://github.com/robisson/build-like-amazon-agent-skills.git
 
 # Slash commands
-cp -r build-like-amazon/.claude/commands/ your-project/.claude/commands/
+cp -r build-like-amazon-agent-skills/.claude/commands/ your-project/.claude/commands/
 
 # Rules (additive — does NOT touch your CLAUDE.md)
 mkdir -p your-project/.claude/rules
-cp build-like-amazon/CLAUDE.md your-project/.claude/rules/build-like-amazon.md
+cp build-like-amazon-agent-skills/CLAUDE.md your-project/.claude/rules/build-like-amazon.md
 
 # Optional: symlink skills/, agents/, patterns/ so commands can reference them
-ln -s "$(pwd)/build-like-amazon/skills" your-project/skills
-ln -s "$(pwd)/build-like-amazon/agents" your-project/agents
-ln -s "$(pwd)/build-like-amazon/patterns" your-project/patterns
+ln -s "$(pwd)/build-like-amazon-agent-skills/skills" your-project/skills
+ln -s "$(pwd)/build-like-amazon-agent-skills/agents" your-project/agents
+ln -s "$(pwd)/build-like-amazon-agent-skills/patterns" your-project/patterns
 ```
 
 Then use slash commands directly:
@@ -169,7 +173,7 @@ Then use slash commands directly:
 Copy the rules file into your project, or reference the full `skills/` directory:
 
 ```bash
-git clone https://github.com/robisson/build-like-amazon.git .build-like-amazon
+git clone https://github.com/robisson/build-like-amazon-agent-skills.git .build-like-amazon
 cp .build-like-amazon/.cursor/rules/amazon-skills.md .cursor/rules/amazon-skills.md
 ```
 
@@ -190,14 +194,14 @@ See [docs/getting-started.md](docs/getting-started.md) for detailed configuratio
 Install as native skills for auto-discovery:
 
 ```bash
-git clone https://github.com/robisson/build-like-amazon.git
-gemini skills install ./build-like-amazon/skills/
+git clone https://github.com/robisson/build-like-amazon-agent-skills.git
+gemini skills install ./build-like-amazon-agent-skills/skills/
 ```
 
 Or reference in `GEMINI.md`:
 
 ```bash
-cp -r build-like-amazon/.gemini/commands/ your-project/.gemini/commands/
+cp -r build-like-amazon-agent-skills/.gemini/commands/ your-project/.gemini/commands/
 ```
 </details>
 
@@ -207,7 +211,7 @@ cp -r build-like-amazon/.gemini/commands/ your-project/.gemini/commands/
 Use this repository as a portable skill library for Codex. Keep `AGENTS.md` as the operating contract, and keep the library in `.build-like-amazon/` so Codex can load skills, personas, templates, references, and command definitions on demand:
 
 ```bash
-git clone https://github.com/robisson/build-like-amazon.git .build-like-amazon
+git clone https://github.com/robisson/build-like-amazon-agent-skills.git .build-like-amazon
 cp .build-like-amazon/AGENTS.md ./AGENTS.md
 ```
 
@@ -241,7 +245,7 @@ Recommended model: `gpt-5.2-codex` for long-running agentic coding tasks, with h
 Use agent definitions from `agents/` as Copilot personas and skill content in `.github/copilot-instructions.md`:
 
 ```bash
-git clone https://github.com/robisson/build-like-amazon.git .build-like-amazon
+git clone https://github.com/robisson/build-like-amazon-agent-skills.git .build-like-amazon
 cat .build-like-amazon/AGENTS.md >> .github/copilot-instructions.md
 ```
 </details>
@@ -252,7 +256,7 @@ cat .build-like-amazon/AGENTS.md >> .github/copilot-instructions.md
 Skills are plain Markdown — they work with any agent that accepts system prompts or instruction files:
 
 ```bash
-git clone https://github.com/robisson/build-like-amazon.git .build-like-amazon
+git clone https://github.com/robisson/build-like-amazon-agent-skills.git .build-like-amazon
 ```
 
 Point your agent to:

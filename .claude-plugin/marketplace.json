@@ -1,0 +1,19 @@
+{
+  "name": "build-like-amazon",
+  "owner": {
+    "name": "Robisson Oliveira"
+  },
+  "metadata": {
+    "description": "Build Like Amazon Agent Skills — Working Backwards and operational excellence workflows for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "build-like-amazon",
+      "source": "./",
+      "description": "Production-grade engineering skills for AI coding agents, built on Amazon's Working Backwards methodology and operational excellence culture.",
+      "version": "0.6.0",
+      "category": "development",
+      "homepage": "https://github.com/robisson/build-like-amazon-agent-skills"
+    }
+  ]
+}

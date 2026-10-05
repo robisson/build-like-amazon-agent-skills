@@ -1,6 +1,6 @@
 # Onboard — Reverse-Engineer an Existing Project
 
-> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. Installed as a Claude Code plugin, that root is the `BLA plugin root:` line the plugin printed at session start; in a local install it is the working directory.
 
 `/onboard` activates the **brownfield-discovery** skill. It runs once per project (or when the project drifts significantly) and produces anchoring artifacts derived from the real code, IaC, and observability.
 

@@ -1,6 +1,6 @@
 # Design — Technical Design Document
 
-> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. Installed as a Claude Code plugin, that root is the `BLA plugin root:` line the plugin printed at session start; in a local install it is the working directory.
 
 ⛔ CRITICAL: Execute steps 1-5 IN ORDER. Each step MUST produce its artifact and receive user approval before the next step begins. If you find yourself writing specs without having produced a Design Document first, STOP — you are violating the process.
 

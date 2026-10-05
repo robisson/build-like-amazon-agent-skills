@@ -1,6 +1,6 @@
 # Spec — Create a New Implementation Spec
 
-> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. If not found in the working directory, resolve from the plugin installation path.
+> **Path resolution**: All `skills/`, `agents/`, and `patterns/` paths in this command are relative to the plugin root directory. Installed as a Claude Code plugin, that root is the `BLA plugin root:` line the plugin printed at session start; in a local install it is the working directory.
 
 This command creates a **single new spec** (vertical slice of value) when the design phase is already complete. Use it to incrementally add features, endpoints, or capabilities without re-running the full `/design` flow.
 
