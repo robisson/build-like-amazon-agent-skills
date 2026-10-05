@@ -47,7 +47,7 @@ path-resolution note points at that root.
 
 The repository URLs in `.claude-plugin/plugin.json`, the README and `docs/getting-started.md` named
 `robisson/build-like-amazon`, which does not exist; they name `robisson/build-like-amazon-agent-skills`, and
-the clone directories in the install blocks follow. `version-agreement` also checks the marketplace entry.
+the clone directories in the install blocks follow.
 
 ## 0.5.0 — 2026-09-30
 
